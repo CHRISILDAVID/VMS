@@ -10,40 +10,6 @@
 
 ## Milestone Overview
 
-```mermaid
-gantt
-    title VMS Development Roadmap
-    dateFormat  YYYY-MM-DD
-    axisFormat  %b %d
-
-    section M0
-    Monorepo + Expo Setup              :m0, 2026-07-28, 5d
-
-    section M1
-    Auth + Schedule                    :m1, after m0, 14d
-
-    section M2
-    Bookings                           :m2, after m1, 14d
-
-    section M3
-    Memberships                        :m3, after m2, 16d
-
-    section M4
-    Payments                           :m4, after m3, 10d
-
-    section M5
-    Profile + Settings                 :m5, after m4, 12d
-
-    section M6
-    Reports + Polish                   :m6, after m5, 10d
-
-    section M7
-    Admin Panel                        :m7, after m2, 12d
-
-    section M8
-    Launch Prep                        :m8, after m6, 5d
-```
-
 > [!NOTE]
 > **M7 (Admin Panel) can start in parallel with M3** since it only depends on core tables from M0-M1.
 
@@ -51,7 +17,7 @@ gantt
 
 ## Milestone 0 — Monorepo + Expo Setup
 
-**Duration:** ~1 week | **Complexity:** ⬛⬛⬜⬜⬜ (Low)
+**Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Objectives
 - Set up pnpm monorepo with all apps and packages
@@ -63,52 +29,52 @@ gantt
 ### Deliverables
 
 **Monorepo:**
-- [ ] pnpm workspace (`apps/owner/`, `apps/admin/`, `packages/shared/`)
-- [ ] Root `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`
-- [ ] Updated `.gitignore`, `AGENTS.md`
-- [ ] Archive Figma code to `reference/figma-src/` and `reference/prompts/`
-- [ ] Remove empty `Owner app/` dir, `CLAUDE.md`, stale lockfiles
+- [x] pnpm workspace (`apps/owner/`, `apps/admin/`, `packages/shared/`)
+- [x] Root `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`
+- [x] Updated `.gitignore`, `AGENTS.md`
+- [x] Archive Figma code to `reference/figma-src/` and `reference/prompts/`
+- [x] Remove empty `Owner app/` dir, `CLAUDE.md`, stale lockfiles
 
 **Owner App (`apps/owner/`):**
-- [ ] Expo project with Expo Router
-- [ ] NativeWind (Tailwind for React Native)
-- [ ] Path aliases (`@/`, `@vms/shared`)
-- [ ] Install: React Query, Zustand, React Hook Form, Zod, date-fns
-- [ ] Design tokens (colors, fonts, spacing from Figma reference)
-- [ ] Core UI: Button, Card, Input, Badge, StatusChip, Skeleton, EmptyState, ErrorState
-- [ ] Layout: custom TabBar, PageHeader, SafeArea wrapper
-- [ ] Overlays: @gorhom/bottom-sheet, Dialog, FABMenu
-- [ ] Auth guard in root layout
-- [ ] Verify on physical device (Expo Go)
+- [x] Expo project with Expo Router
+- [x] NativeWind (Tailwind for React Native)
+- [x] Path aliases (`@/`, `@vms/shared`)
+- [x] Install: React Query, Zustand, React Hook Form, Zod, date-fns
+- [x] Design tokens (colors, fonts, spacing from Figma reference)
+- [x] Core UI: Button, Card, Input, Badge, StatusChip, Skeleton, EmptyState, ErrorState
+- [x] Layout: custom TabBar, PageHeader, SafeArea wrapper
+- [x] Overlays: @gorhom/bottom-sheet, Dialog, FABMenu
+- [x] Auth guard in root layout
+- [x] Verify on physical device (Expo Go)
 
 **Shared Package (`packages/shared/`):**
-- [ ] TypeScript package with barrel exports
-- [ ] Supabase client init (env-aware: SecureStore vs localStorage)
-- [ ] Placeholder types, utils, constants
-- [ ] Utility functions: `formatCurrency()`, `formatDate()`, `formatPhone()`
+- [x] TypeScript package with barrel exports
+- [x] Supabase client init (env-aware: SecureStore vs localStorage)
+- [x] Placeholder types, utils, constants
+- [x] Utility functions: `formatCurrency()`, `formatDate()`, `formatPhone()`
 
 **Supabase:**
-- [ ] Install Supabase CLI
-- [ ] Link to existing project
-- [ ] Migration 001: enums, owners, venues, courts
-- [ ] Basic RLS policies
-- [ ] Generate TypeScript types
+- [x] Install Supabase CLI
+- [x] Link to existing project
+- [x] Migration 001: enums, owners, venues, courts
+- [x] Basic RLS policies
+- [x] Generate TypeScript types
 
 **Admin Stub (`apps/admin/`):**
-- [ ] Minimal Vite + React + Tailwind skeleton
+- [x] Minimal Vite + React + Tailwind skeleton
 
 ### Completion Checklist
-- [ ] `pnpm dev:owner` → Expo starts, viewable on device
-- [ ] `pnpm build:admin` → Vite produces build
-- [ ] Owner app imports from `@vms/shared` work
-- [ ] Supabase connection verified
-- [ ] All core UI components render
+- [x] `pnpm dev:owner` → Expo starts, viewable on device
+- [x] `pnpm build:admin` → Vite produces build
+- [x] Owner app imports from `@vms/shared` work
+- [x] Supabase connection verified
+- [x] All core UI components render
 
 ---
 
 ## Milestone 1 — Authentication + Schedule
 
-**Duration:** ~2 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
 - [ ] Login screen: phone input + OTP (Supabase Auth)
@@ -137,7 +103,7 @@ gantt
 
 ## Milestone 2 — Bookings
 
-**Duration:** ~2 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
 - [ ] Customers table + search + create (migration 003)
@@ -170,7 +136,7 @@ gantt
 
 ## Milestone 3 — Membership Management
 
-**Duration:** ~2.5 weeks | **Complexity:** ⬛⬛⬛⬛⬜ (High)
+**Complexity:** ⬛⬛⬛⬛⬜ (High)
 
 ### Deliverables
 - [ ] Membership slots CRUD (migration 004)
@@ -199,7 +165,7 @@ gantt
 
 ## Milestone 4 — Membership Payments
 
-**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
 - [ ] Membership payments table (migration 005)
@@ -226,7 +192,7 @@ gantt
 
 ## Milestone 5 — Profile & Settings
 
-**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
 - [ ] Profile screen with menu items
@@ -252,7 +218,7 @@ gantt
 
 ## Milestone 6 — Reports + Polish
 
-**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
+**Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
 
 ### Deliverables
 - [ ] Reports screen: period selector (Week/Month/Year)
@@ -282,7 +248,7 @@ gantt
 
 ## Milestone 7 — Admin Panel
 
-**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
+**Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
 
 > [!NOTE]
 > Can start **in parallel with M3** (after M2 complete). Depends only on core tables from M0-M1.
@@ -308,7 +274,7 @@ gantt
 
 ## Milestone 8 — Launch Preparation
 
-**Duration:** ~1 week | **Complexity:** ⬛⬛⬜⬜⬜ (Low)
+**Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Deliverables
 - [ ] Production Supabase: all migrations applied
@@ -345,8 +311,6 @@ gantt
 | M6: Reports + Polish | 1.5 weeks | Low-Medium | M1-M5 |
 | M7: Admin Panel | 1.5 weeks | Low-Medium | M1 (parallel with M3+) |
 | M8: Launch | 1 week | Low | All |
-| **Total (sequential)** | **~14.5 weeks** | | |
-| **Total (M7 parallel)** | **~13 weeks** | | |
 
 > [!IMPORTANT]
 > These estimates assume a **single developer** working full-time. M5 (Profile) can also start alongside M3 since it only depends on M1 data.
