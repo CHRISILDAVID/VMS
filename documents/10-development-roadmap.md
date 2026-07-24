@@ -1,448 +1,355 @@
 # Badminton Manager — Development Roadmap
 
+## Architecture
+
+| App | Platform | Technology |
+|-----|----------|-----------|
+| **Owner App** | Mobile (Android/iOS) | React Native + Expo |
+| **Admin Panel** | Web (Desktop) | React + Vite + Tailwind |
+| **Backend** | Cloud | Supabase (shared) |
+
 ## Milestone Overview
 
 ```mermaid
 gantt
-    title Badminton Manager Development Roadmap
+    title VMS Development Roadmap
     dateFormat  YYYY-MM-DD
     axisFormat  %b %d
 
     section M0
-    Project Setup           :m0, 2026-08-01, 5d
+    Monorepo + Expo Setup              :m0, 2026-07-28, 5d
 
     section M1
-    Auth + Schedule         :m1, after m0, 14d
+    Auth + Schedule                    :m1, after m0, 14d
 
     section M2
-    Bookings                :m2, after m1, 14d
+    Bookings                           :m2, after m1, 14d
 
     section M3
-    Memberships             :m3, after m2, 18d
+    Memberships                        :m3, after m2, 16d
 
     section M4
-    Payments                :m4, after m3, 10d
+    Payments                           :m4, after m3, 10d
 
     section M5
-    Profile + Settings      :m5, after m4, 14d
+    Profile + Settings                 :m5, after m4, 12d
 
     section M6
-    Reports + Polish        :m6, after m5, 10d
+    Reports + Polish                   :m6, after m5, 10d
 
     section M7
-    Mobile App              :m7, after m6, 21d
+    Admin Panel                        :m7, after m2, 12d
 
     section M8
-    Launch Prep             :m8, after m7, 7d
+    Launch Prep                        :m8, after m6, 5d
 ```
+
+> [!NOTE]
+> **M7 (Admin Panel) can start in parallel with M3** since it only depends on core tables from M0-M1.
 
 ---
 
-## Milestone 0 — Project Setup & Foundation
+## Milestone 0 — Monorepo + Expo Setup
 
-**Duration:** ~1 week
-**Complexity:** ⬛⬛⬜⬜⬜ (Low)
+**Duration:** ~1 week | **Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Objectives
-- Set up production project structure
-- Configure tooling, linting, CI
-- Set up Supabase project
-- Create design system foundation
+- Set up pnpm monorepo with all apps and packages
+- Initialize Expo project for Owner App
+- Configure Supabase and create initial schema
+- Build core UI component library
+- Archive Figma export code
 
 ### Deliverables
-- [ ] Initialize Vite + React + TypeScript project (fresh, not from Figma export)
-- [ ] Configure Tailwind CSS v4 with design tokens from existing `index.css`
-- [ ] Install and configure: React Router, React Query, Zustand, React Hook Form, Zod, Sonner
-- [ ] Set up Supabase project (development environment)
-- [ ] Create initial database migration (core tables: owners, venues, courts)
-- [ ] Configure Supabase client + typed client generation
-- [ ] Set up Vercel project with preview deploys
-- [ ] Configure ESLint + Prettier
-- [ ] Build shared UI components: Button, Card, Input, Badge, StatusChip, Skeleton, EmptyState
-- [ ] Build layout components: BottomNav, PageHeader, PageShell, BottomSheet
-- [ ] Create basic routing skeleton with auth guard
 
-### Dependencies
-- Supabase account
-- Vercel account
-- Domain name (optional)
+**Monorepo:**
+- [ ] pnpm workspace (`apps/owner/`, `apps/admin/`, `packages/shared/`)
+- [ ] Root `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`
+- [ ] Updated `.gitignore`, `AGENTS.md`
+- [ ] Archive Figma code to `reference/figma-src/` and `reference/prompts/`
+- [ ] Remove empty `Owner app/` dir, `CLAUDE.md`, stale lockfiles
 
-### Testing Strategy
-- Verify dev server runs
-- Verify Supabase connection
-- Verify Vercel preview deploy
-- Visual check: all shared components render correctly
+**Owner App (`apps/owner/`):**
+- [ ] Expo project with Expo Router
+- [ ] NativeWind (Tailwind for React Native)
+- [ ] Path aliases (`@/`, `@vms/shared`)
+- [ ] Install: React Query, Zustand, React Hook Form, Zod, date-fns
+- [ ] Design tokens (colors, fonts, spacing from Figma reference)
+- [ ] Core UI: Button, Card, Input, Badge, StatusChip, Skeleton, EmptyState, ErrorState
+- [ ] Layout: custom TabBar, PageHeader, SafeArea wrapper
+- [ ] Overlays: @gorhom/bottom-sheet, Dialog, FABMenu
+- [ ] Auth guard in root layout
+- [ ] Verify on physical device (Expo Go)
+
+**Shared Package (`packages/shared/`):**
+- [ ] TypeScript package with barrel exports
+- [ ] Supabase client init (env-aware: SecureStore vs localStorage)
+- [ ] Placeholder types, utils, constants
+- [ ] Utility functions: `formatCurrency()`, `formatDate()`, `formatPhone()`
+
+**Supabase:**
+- [ ] Install Supabase CLI
+- [ ] Link to existing project
+- [ ] Migration 001: enums, owners, venues, courts
+- [ ] Basic RLS policies
+- [ ] Generate TypeScript types
+
+**Admin Stub (`apps/admin/`):**
+- [ ] Minimal Vite + React + Tailwind skeleton
 
 ### Completion Checklist
-- [ ] `npm run dev` starts without errors
-- [ ] `npm run build` produces production build
-- [ ] Supabase tables created and accessible
-- [ ] Auth guard redirects unauthenticated users
-- [ ] All shared UI components exported and usable
+- [ ] `pnpm dev:owner` → Expo starts, viewable on device
+- [ ] `pnpm build:admin` → Vite produces build
+- [ ] Owner app imports from `@vms/shared` work
+- [ ] Supabase connection verified
+- [ ] All core UI components render
 
 ---
 
 ## Milestone 1 — Authentication + Schedule
 
-**Duration:** ~2 weeks
-**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
-
-### Objectives
-- Implement OTP login/logout
-- Build the Schedule screen (heart of the app)
-- Implement venue selector with data
+**Duration:** ~2 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Login page with phone input + OTP verification (Supabase Auth)
-- [ ] Session management (persist, refresh, logout)
-- [ ] Owners table + profile creation on first login
-- [ ] Venues CRUD + seed data
-- [ ] Courts CRUD + seed data
-- [ ] Venue selector component (global state via Zustand)
-- [ ] Schedule page: timeline grid, court rows, hourly columns
-- [ ] Color-coded slots rendering from database
+- [ ] Login screen: phone input + OTP (Supabase Auth)
+- [ ] Token storage: expo-secure-store
+- [ ] Session persistence + auto-refresh + logout
+- [ ] Owner profile creation on first login
+- [ ] Venues + courts CRUD + seed data
+- [ ] Venue selector (Zustand global state, persistent)
+- [ ] Schedule screen: horizontal timeline grid
+- [ ] Court rows × time columns (:00/:30 intervals, 6AM-10PM)
+- [ ] Color-coded slot rendering (7 types including Membership)
 - [ ] Slot tap → bottom sheet with actions
 - [ ] Week-view date selector
-- [ ] Operating schedules + pricing blocks tables
-- [ ] RLS policies for owners, venues, courts
-
-### Dependencies
-- Milestone 0 complete
-- Supabase SMS provider configured (Twilio/MessageBird)
-
-### Testing Strategy
-- Manual: Full login flow (phone → OTP → schedule)
-- Manual: Venue switching refreshes data
-- Manual: Schedule renders correct for selected date
-- Unit: Supabase service functions (mocked)
+- [ ] Operating schedules + pricing blocks (migration 002)
+- [ ] RLS policies for all M1 tables
+- [ ] Multi-device support (max 4 concurrent sessions)
 
 ### Completion Checklist
 - [ ] New user can register and land on Schedule
 - [ ] Returning user auto-authenticated
-- [ ] Venue selector shows all owner venues
-- [ ] Schedule displays courts × time grid
+- [ ] Venue selector shows all owner venues, switching refreshes data
+- [ ] Schedule displays courts × time grid correctly
 - [ ] Tapping slot opens bottom sheet
 
 ---
 
 ## Milestone 2 — Bookings
 
-**Duration:** ~2 weeks
-**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
-
-### Objectives
-- Build complete booking lifecycle
-- Implement customer management
-- Connect bookings to schedule
+**Duration:** ~2 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Customers table + search + create
-- [ ] Bookings table with all fields
-- [ ] Bookings list page with tabs (Upcoming/Ongoing/Completed/Cancelled)
-- [ ] Search bookings (name, phone, ID)
-- [ ] Filter bookings (court, date)
-- [ ] Booking card component
-- [ ] Booking detail page with all info
-- [ ] 5-step booking wizard
-- [ ] Price auto-calculation from pricing blocks
-- [ ] Booking status transitions (upcoming → ongoing → completed)
-- [ ] Cancel booking with confirmation
+- [ ] Customers table + search + create (migration 003)
+- [ ] Bookings table with constraints (start :00/:30, whole-hour duration)
+- [ ] Bookings list: tabs (Upcoming/Ongoing/Completed/Cancelled)
+- [ ] Search by name, phone, booking ID
+- [ ] Filter by court, date
+- [ ] BookingCard component
+- [ ] Booking detail screen
+- [ ] Payment status update: dropdown (Pending→Partial→Paid→Refunded→Cancelled) + note
+- [ ] 5-step booking wizard with price auto-calc + override + flat discount
+- [ ] Status transitions (upcoming → ongoing → completed)
+- [ ] Cancel with confirmation
 - [ ] Move booking (change time/court)
-- [ ] Availability check (prevent double-booking)
-- [ ] Schedule → New Booking integration
-- [ ] FAB → New Booking integration
-- [ ] RLS policies for bookings and customers
-
-### Dependencies
-- Milestone 1 complete (auth, schedule, venues, courts)
-
-### Testing Strategy
-- Manual: Complete booking flow from schedule
-- Manual: Search and filter bookings
-- Manual: Status transitions
-- Manual: Double-booking prevention
-- Unit: Price calculation function
-- Unit: Availability check function
+- [ ] Hard-block overlapping bookings + owner force-book override
+- [ ] Schedule → New Booking + FAB → New Booking
+- [ ] Booking source: Offline/Walk-in (immutable)
+- [ ] WhatsApp deep link for confirmation
+- [ ] RLS policies
 
 ### Completion Checklist
 - [ ] Can create booking from schedule or FAB
 - [ ] Booking appears on schedule grid
-- [ ] Can filter and search bookings
-- [ ] Can complete, cancel, and edit bookings
-- [ ] Price calculated correctly from pricing blocks
+- [ ] Can search, filter, complete, cancel, edit bookings
+- [ ] Price calculated correctly, owner can override
+- [ ] Payment status changeable post-creation
+- [ ] Double-booking prevented
 
 ---
 
 ## Milestone 3 — Membership Management
 
-**Duration:** ~2.5 weeks
-**Complexity:** ⬛⬛⬛⬛⬜ (High)
-
-### Objectives
-- Build complete membership system
-- Implement slot lifecycle
-- Handle applications and guest play
+**Duration:** ~2.5 weeks | **Complexity:** ⬛⬛⬛⬛⬜ (High)
 
 ### Deliverables
-- [ ] Membership slots CRUD
-- [ ] Members table + add/edit/remove
-- [ ] Members page with 4 tabs
-- [ ] Summary dashboard cards (KPIs)
-- [ ] Slots tab: slot cards with capacity bar, open/close toggle
-- [ ] Create slot form with initial members
-- [ ] Edit slot form
-- [ ] Slot members view: member cards with active toggle
+- [ ] Membership slots CRUD (migration 004)
+- [ ] Members add/edit/remove
+- [ ] Members screen: 4 tabs (Slots, Applications, Guest Play, Members)
+- [ ] Summary KPI cards
+- [ ] Slots tab: cards with capacity bar, open/close toggle
+- [ ] Create/edit slot forms with initial members
+- [ ] Slot members view with active/inactive toggle
 - [ ] Member transfer between slots
-- [ ] Membership applications table + UI
-- [ ] Accept/reject/invite-to-guest-play actions
-- [ ] Guest play table + UI (upcoming/completed)
-- [ ] Accept guest as member flow
+- [ ] Membership applications: accept/reject/invite-to-guest-play
+- [ ] Guest play: upcoming/completed, accept-as-member
 - [ ] Capacity enforcement
-- [ ] RLS policies for membership tables
-
-### Dependencies
-- Milestone 2 complete (customers table shared with bookings)
-
-### Testing Strategy
-- Manual: Full slot creation with initial members
-- Manual: Add/edit/remove members from slot
-- Manual: Transfer member between slots
-- Manual: Active/inactive toggle behavior
-- Manual: Application review flow
-- Manual: Guest play → accept as member
-- Unit: Capacity enforcement logic
+- [ ] Membership slots pre-block on schedule
+- [ ] Release slot for specific date (membership_slot_releases table)
+- [ ] RLS policies
 
 ### Completion Checklist
-- [ ] Can create membership slot with all fields
-- [ ] Can manage members within a slot
-- [ ] Can review and act on applications
-- [ ] Can manage guest play sessions
+- [ ] Can create slot with all fields + initial members
+- [ ] Can manage members (add/edit/transfer/remove/toggle)
+- [ ] Membership blocks appear on schedule
+- [ ] Can release slot for specific date
 - [ ] Capacity limits enforced
 
 ---
 
 ## Milestone 4 — Membership Payments
 
-**Duration:** ~1.5 weeks
-**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
-
-### Objectives
-- Build payment tracking for memberships
-- Implement payment recording workflow
+**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Membership payments table
-- [ ] Auto-generate monthly payment records (Edge Function cron)
-- [ ] Payments page: KPI dashboard cards
+- [ ] Membership payments table (migration 005)
+- [ ] Auto-generate monthly payments (Edge Function cron)
+- [ ] Payments screen: KPI dashboard
 - [ ] Slot payment cards with collection progress
-- [ ] Slot payments detail page: member payment list
-- [ ] Filter chips (All/Paid/Pending/Overdue)
-- [ ] Mark as Paid bottom sheet (payment mode + date)
+- [ ] Slot payments detail: member list with filter chips
+- [ ] Mark as Paid bottom sheet (mode + date)
 - [ ] Payment history per member
-- [ ] Send reminder action (WhatsApp deep link or SMS)
-- [ ] Download receipt (PDF generation via Edge Function)
+- [ ] Push notification reminder (expo-notifications + FCM)
+- [ ] WhatsApp deep link reminder
+- [ ] PDF receipt (expo-print)
 - [ ] Inactive member payment suppression
-- [ ] RLS policies for payments
-
-### Dependencies
-- Milestone 3 complete (membership slots and members)
-
-### Testing Strategy
-- Manual: Monthly payment generation
-- Manual: Mark as paid flow
-- Manual: Filter by status
-- Manual: Payment history display
-- Unit: Payment status transitions
-- Unit: Inactive member exclusion
+- [ ] RLS policies
 
 ### Completion Checklist
 - [ ] Monthly payments auto-generated for active members
 - [ ] Can mark payments as paid with mode
 - [ ] Dashboard KPIs update correctly
-- [ ] Payment history accessible per member
+- [ ] Push notification + WhatsApp reminder work
+- [ ] PDF receipt generates and can be shared
 
 ---
 
 ## Milestone 5 — Profile & Settings
 
-**Duration:** ~2 weeks
-**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
-
-### Objectives
-- Build all profile sub-screens
-- Implement court configuration
+**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Profile page with menu items
-- [ ] Court Information page (view + edit mode)
-- [ ] Photo upload to Supabase Storage
-- [ ] Google Maps integration (view + link)
-- [ ] Court Schedule & Pricing page
-- [ ] Weekly calendar preview with pricing blocks
-- [ ] Add/edit/delete pricing blocks
-- [ ] Copy day's schedule to other days
-- [ ] Close/24h/Reopen day toggles
-- [ ] Grow Your Business landing pages (4 promo pages)
-- [ ] Subscription & Billing page (static for now)
-- [ ] Help & Support page (FAQ accordion, contact info, legal)
-- [ ] Logout flow with confirmation
-
-### Dependencies
-- Milestone 1 complete (venues, courts, operating schedules)
-
-### Testing Strategy
-- Manual: Edit court info and verify persistence
-- Manual: Upload and view photos
-- Manual: Create/edit/delete pricing blocks
-- Manual: Copy schedule between days
-- Manual: Navigate all profile sub-screens
+- [ ] Profile screen with menu items
+- [ ] Court Information: view + edit (owner admin permission)
+- [ ] Photo upload (expo-image-picker → Supabase Storage)
+- [ ] Google Maps link
+- [ ] Court type metadata (Wooden/Synthetic/Cement/Mat)
+- [ ] Court Schedule & Pricing: weekly calendar, pricing blocks CRUD, copy day, close/24h
+- [ ] Grow Your Business: 4 placeholder CTA pages
+- [ ] Subscription & Billing: static mock from design
+- [ ] Help & Support: FAQ accordion, contact, legal
+- [ ] Account recovery: optional email backup
+- [ ] Logout with confirmation
 
 ### Completion Checklist
 - [ ] All profile menu items navigable
 - [ ] Court info editable and persisted
-- [ ] Photos upload and display correctly
-- [ ] Pricing blocks create/edit/delete work
+- [ ] Photos upload and display
+- [ ] Pricing blocks CRUD works
 - [ ] Schedule copy-to-days works
 
 ---
 
-## Milestone 6 — Reports & Polish
+## Milestone 6 — Reports + Polish
 
-**Duration:** ~1.5 weeks
-**Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
-
-### Objectives
-- Build reporting dashboard
-- Polish UI, error handling, edge cases
+**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
 
 ### Deliverables
-- [ ] Reports page with period selector
-- [ ] Revenue charts (bar + line via Recharts)
-- [ ] Court utilization bars
-- [ ] Membership growth trend
-- [ ] Payment split pie chart
+- [ ] Reports screen: period selector (Week/Month/Year)
+- [ ] Revenue breakdown: Booking Revenue | Membership Revenue | Total
+- [ ] Charts: revenue (bar/line), utilization, membership growth, payment split (pie)
 - [ ] KPI cards with trend indicators
-- [ ] Database views/functions for report aggregation
-- [ ] Loading skeletons on all pages
-- [ ] Empty states on all list views
+- [ ] CSV report export (expo-sharing)
+- [ ] DB views/functions for report aggregation
+- [ ] Loading skeletons on all screens
+- [ ] Empty states on all lists
 - [ ] Error boundaries with retry
 - [ ] Toast notifications for all actions
 - [ ] Form validation messages
-- [ ] Pull-to-refresh (mobile prep)
-- [ ] Performance audit (bundle size, lazy loading)
-
-### Dependencies
-- Milestones 1–5 complete (data to report on)
-
-### Testing Strategy
-- Manual: Reports show correct data after bookings/payments
-- Manual: Loading and empty states display correctly
-- Manual: Error recovery works
-- Performance: Lighthouse audit
+- [ ] Offline: read-only MMKV cache for schedule + members
+- [ ] Offline banner: "You're offline — showing cached data"
+- [ ] Push notifications: FCM setup for all triggers
+- [ ] Performance audit
 
 ### Completion Checklist
 - [ ] All reports render with real data
-- [ ] Loading states on every data-fetching page
-- [ ] Empty states on every list
-- [ ] Error boundaries catch and display errors
-- [ ] Lighthouse performance score > 80
+- [ ] Loading/empty/error states everywhere
+- [ ] Offline mode works (read-only cache + banner)
+- [ ] Push notifications delivered correctly
+- [ ] CSV export works
 
 ---
 
-## Milestone 7 — Mobile App (React Native / Expo)
+## Milestone 7 — Admin Panel
 
-**Duration:** ~3 weeks
-**Complexity:** ⬛⬛⬛⬛⬜ (High)
+**Duration:** ~1.5 weeks | **Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
 
-### Objectives
-- Port web app to React Native
-- Implement mobile-specific features
+> [!NOTE]
+> Can start **in parallel with M3** (after M2 complete). Depends only on core tables from M0-M1.
 
 ### Deliverables
-- [ ] Set up Expo project with shared packages
-- [ ] Implement all screens using React Native components
-- [ ] React Navigation tab + stack navigation
-- [ ] Expo SecureStore for auth tokens
-- [ ] Push notifications setup (expo-notifications)
-- [ ] Camera integration for photos (expo-image-picker)
-- [ ] Deep linking configuration
-- [ ] Platform-specific UI adjustments
-- [ ] EAS Build configuration
-- [ ] Internal distribution for testing
-
-### Dependencies
-- Milestones 0–6 complete (web app functional)
-
-### Testing Strategy
-- Manual: Full app walkthrough on iOS and Android
-- Manual: Push notification delivery
-- Manual: Photo capture and upload
-- Device: Test on at least 2 different screen sizes
+- [ ] Admin auth: email/password (Supabase)
+- [ ] Admin RLS policies (super_admin role)
+- [ ] Venues: create, edit, deactivate
+- [ ] Courts: create, edit per venue
+- [ ] Owners: view accounts, assign to venues
+- [ ] Initial court info setup (feed into DB)
+- [ ] Simple dashboard: aggregate stats (total venues, owners, bookings)
+- [ ] Desktop-first layout: sidebar + content area
+- [ ] Deploy to Vercel
 
 ### Completion Checklist
-- [ ] App runs on iOS and Android via Expo
-- [ ] All features match web functionality
-- [ ] Push notifications work
-- [ ] Photos capture and upload
+- [ ] Admin can log in with email/password
+- [ ] Can create and configure venues + courts
+- [ ] Can view and manage owner accounts
+- [ ] Deployed to Vercel
 
 ---
 
 ## Milestone 8 — Launch Preparation
 
-**Duration:** ~1 week
-**Complexity:** ⬛⬛⬜⬜⬜ (Low)
-
-### Objectives
-- Prepare for production launch
-- Set up monitoring and analytics
+**Duration:** ~1 week | **Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Deliverables
-- [ ] Production Supabase project with final migrations
-- [ ] Production environment variables on Vercel
-- [ ] Sentry error tracking configured
-- [ ] Analytics integration (PostHog/Mixpanel)
-- [ ] Custom domain + SSL
-- [ ] App store listings (if submitting mobile)
+- [ ] Production Supabase: all migrations applied
+- [ ] Production env variables configured
+- [ ] Sentry error tracking (both apps)
+- [ ] EAS Build config (Android APK/AAB, iOS IPA)
+- [ ] Internal distribution testing (EAS)
+- [ ] Admin panel: custom domain + SSL on Vercel
 - [ ] Data seed script for demo/onboarding
-- [ ] User documentation / onboarding guide
-- [ ] Final security audit (RLS policies, API keys, CORS)
+- [ ] Final security audit (RLS, API keys)
 - [ ] Performance testing with realistic data volume
-- [ ] Backup strategy for Supabase
-
-### Dependencies
-- All previous milestones complete
-
-### Testing Strategy
-- End-to-end: Complete user journey on production
-- Security: Attempt unauthorized data access
-- Performance: Load test with 100+ bookings, 50+ members
+- [ ] Supabase backup configuration
+- [ ] Delete `reference/` directory (no longer needed)
 
 ### Completion Checklist
-- [ ] Production site live and accessible
+- [ ] Owner app installable on Android device
+- [ ] Admin panel live at custom domain
 - [ ] Error tracking receiving events
-- [ ] Analytics tracking user actions
-- [ ] Mobile app submitted to stores (or distributed internally)
-- [ ] Backups configured and tested
+- [ ] Security audit passed
+- [ ] Backups configured
 
 ---
 
-## Complexity Summary
+## Timeline Summary
 
-| Milestone | Duration | Complexity | Risk |
-|-----------|----------|------------|------|
-| M0: Setup | 1 week | Low | Low |
-| M1: Auth + Schedule | 2 weeks | Medium | Medium (SMS provider) |
-| M2: Bookings | 2 weeks | Medium | Low |
-| M3: Memberships | 2.5 weeks | High | Medium (complex state) |
-| M4: Payments | 1.5 weeks | Medium | Low |
-| M5: Profile | 2 weeks | Medium | Low |
-| M6: Reports + Polish | 1.5 weeks | Low-Medium | Low |
-| M7: Mobile | 3 weeks | High | High (platform differences) |
-| M8: Launch | 1 week | Low | Medium (production issues) |
-| **Total** | **~16 weeks** | | |
+| Milestone | Duration | Complexity | Dependencies |
+|-----------|----------|------------|-------------|
+| M0: Setup | 1 week | Low | — |
+| M1: Auth + Schedule | 2 weeks | Medium | M0 |
+| M2: Bookings | 2 weeks | Medium | M1 |
+| M3: Memberships | 2.5 weeks | High | M2 |
+| M4: Payments | 1.5 weeks | Medium | M3 |
+| M5: Profile | 1.5 weeks | Medium | M1 |
+| M6: Reports + Polish | 1.5 weeks | Low-Medium | M1-M5 |
+| M7: Admin Panel | 1.5 weeks | Low-Medium | M1 (parallel with M3+) |
+| M8: Launch | 1 week | Low | All |
+| **Total (sequential)** | **~14.5 weeks** | | |
+| **Total (M7 parallel)** | **~13 weeks** | | |
 
 > [!IMPORTANT]
-> **Do not begin a later milestone until the preceding milestone is complete.** Each milestone builds on the data and features of the previous one. Skipping ahead will create integration problems.
+> These estimates assume a **single developer** working full-time. M5 (Profile) can also start alongside M3 since it only depends on M1 data.
 
-> [!NOTE]
-> These estimates assume a **single developer** working full-time. With a team of 2-3, the timeline can be compressed to ~10-12 weeks by parallelizing non-dependent work (e.g., M5 Profile can start alongside M3 Memberships since it only depends on M1).
+> [!WARNING]
+> **Do not skip M0.** The monorepo setup, shared package, and Supabase schema are the foundation. Shortcuts here create integration debt that compounds in every later milestone.

@@ -1,203 +1,190 @@
-# Badminton Manager — Mobile Strategy & Deployment
+# Badminton Manager — Mobile & Deployment Strategy
 
-## Part A: React Native (Expo) Mobile Strategy
+## Part A: Owner App — React Native (Expo)
 
-### 1. Shared vs Platform-Specific
+### 1. Platform Strategy
 
-| Layer | Shared (Web + Mobile) | Platform-Specific |
-|-------|----------------------|-------------------|
+| Aspect | Decision |
+|--------|---------|
+| **Framework** | React Native + Expo SDK 52 |
+| **Primary platform** | Android |
+| **Secondary platform** | iOS |
+| **Navigation** | Expo Router 4.x (file-based) |
+| **Styling** | NativeWind 4.x (Tailwind for RN) |
+| **Distribution** | Expo EAS Build + EAS Submit |
+
+### 2. Shared vs Platform-Specific
+
+| Layer | Shared (`packages/shared/`) | Platform-Specific |
+|-------|---------------------------|-------------------|
 | **Types** | `types/database.ts`, `types/api.ts` | N/A |
 | **Services** | All Supabase service modules | N/A |
 | **Validation** | Zod schemas | N/A |
-| **Business Logic** | Hooks (useBookings, useMembers, etc.) | N/A |
-| **State** | Zustand stores, React Query config | Storage adapter (AsyncStorage vs localStorage) |
-| **Navigation** | N/A | React Navigation (mobile) vs React Router (web) |
-| **UI Components** | Component API (props/types) | Implementation differs (div→View, span→Text) |
-| **Auth** | Supabase auth logic | Token storage (SecureStore vs localStorage) |
+| **Utils** | Formatters, constants | N/A |
+| **Auth logic** | Supabase auth flow | Storage adapter (SecureStore for mobile, localStorage for web) |
+| **Navigation** | N/A | Expo Router (mobile), React Router (admin web) |
+| **UI Components** | Component API (props/types) | Full implementation (RN ≠ web) |
 | **Notifications** | N/A | expo-notifications (mobile only) |
-| **Camera** | N/A | expo-camera (member photos, court photos) |
-| **File Upload** | Upload logic | expo-image-picker (mobile), input[type=file] (web) |
-| **Deep Linking** | N/A | expo-linking |
-| **Maps** | N/A | expo-maps or react-native-maps |
+| **Camera** | N/A | expo-image-picker (mobile only) |
+| **Offline** | N/A | MMKV (mobile only) |
+| **Maps** | N/A | Google Maps link (no in-app map for MVP) |
 
-### 2. Recommended Monorepo Structure
-
-```
-venue-os/
-├── packages/
-│   ├── shared/                    # Shared business logic
-│   │   ├── services/              # Supabase service layer
-│   │   ├── hooks/                 # React Query hooks
-│   │   ├── stores/                # Zustand stores
-│   │   ├── types/                 # TypeScript types
-│   │   ├── validators/            # Zod schemas
-│   │   └── utils/                 # Formatters, constants
-│   │
-│   ├── web/                       # React web app
-│   │   ├── src/
-│   │   ├── vite.config.ts
-│   │   └── package.json
-│   │
-│   └── mobile/                    # React Native (Expo) app
-│       ├── app/                   # Expo Router file-based routing
-│       ├── components/            # Native UI components
-│       ├── app.json
-│       └── package.json
-│
-├── supabase/                      # Supabase project
-│   ├── migrations/
-│   ├── functions/
-│   └── config.toml
-│
-├── turbo.json                     # Turborepo config
-└── package.json                   # Workspace root
-```
-
-### 3. Mobile Navigation (React Navigation / Expo Router)
-
-```
-(tabs)/
-├── schedule/                      # Court timeline
-├── bookings/
-│   ├── index                      # Bookings list
-│   ├── [id]                       # Booking detail
-│   └── new                        # New booking wizard
-├── members/                       # 4-tab members view
-├── payments/
-│   ├── index                      # Slot payment cards
-│   └── [slotId]                   # Slot payments
-└── profile/
-    ├── index                      # Settings menu
-    ├── court-info
-    ├── schedule-pricing
-    ├── reports
-    ├── grow-business
-    ├── subscription
-    └── help
-```
-
-### 4. Mobile-Specific Features
+### 3. Mobile-Specific Features
 
 | Feature | Technology | Priority |
 |---------|-----------|----------|
-| Push notifications | expo-notifications + Supabase webhooks | MVP |
-| Camera (court/member photos) | expo-camera + expo-image-picker | MVP |
-| File upload | expo-file-system + Supabase Storage | MVP |
-| Deep linking | expo-linking + app.json scheme | Phase 2 |
-| Offline support | WatermelonDB or MMKV caching | Phase 3 |
+| Push notifications | expo-notifications + FCM | MVP |
+| Photo capture | expo-image-picker | MVP |
+| Secure auth storage | expo-secure-store | MVP |
+| Offline cache | react-native-mmkv | MVP |
+| PDF receipts | expo-print | MVP |
+| WhatsApp deep links | react-native Linking | MVP |
+| Share receipts | expo-sharing | MVP |
 | Biometric auth | expo-local-authentication | Phase 2 |
-| Share booking | expo-sharing | Phase 2 |
+| Deep linking | expo-linking + app.json scheme | Phase 2 |
 | Haptic feedback | expo-haptics | Nice-to-have |
 
-### 5. Offline Strategy (Phase 3)
+### 4. Offline Strategy
 
 | Data | Offline Behavior |
 |------|-----------------|
-| Schedule (today) | Cache locally, show stale indicator |
-| New bookings | Queue offline, sync when connected |
-| Payment recording | Queue offline, sync when connected |
-| Reports | Not available offline |
-| Member list | Cache locally, read-only |
+| Today's schedule | ✅ Cache in MMKV, show with "offline" banner |
+| Member list | ✅ Cache in MMKV, read-only |
+| New bookings | ❌ Blocked — requires internet |
+| Payment recording | ❌ Blocked — requires internet |
+| Reports | ❌ Not available offline |
 
----
-
-## Part B: Deployment Strategy
-
-### 1. Environment Architecture
-
-| Environment | Frontend | Backend | Purpose |
-|-------------|----------|---------|---------|
-| Development | localhost:5173 | Supabase Local (CLI) | Active development |
-| Staging | Vercel Preview | Supabase Staging project | QA & testing |
-| Production | Vercel Production | Supabase Production project | Live users |
-
-### 2. Frontend Deployment (Vercel)
-
-```yaml
-# vercel.json
-{
-  "buildCommand": "cd packages/web && npm run build",
-  "outputDirectory": "packages/web/dist",
-  "framework": "vite",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
-```
-
-**Branch strategy:**
-- `main` → Production deploy (auto)
-- `staging` → Staging preview (auto)
-- Feature branches → Preview deploys (PR-based)
-
-### 3. Mobile Deployment (Expo EAS)
+### 5. EAS Build Configuration
 
 ```json
-// eas.json
 {
   "build": {
-    "development": { "distribution": "internal", "channel": "development" },
-    "preview": { "distribution": "internal", "channel": "preview" },
-    "production": { "channel": "production" }
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development"
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview"
+    },
+    "production": {
+      "channel": "production"
+    }
   },
   "submit": {
     "production": {
-      "android": { "serviceAccountKeyPath": "./google-services.json" },
-      "ios": { "appleId": "...", "ascAppId": "..." }
+      "android": {
+        "serviceAccountKeyPath": "./google-services.json"
+      },
+      "ios": {
+        "appleId": "...",
+        "ascAppId": "..."
+      }
     }
   }
 }
 ```
 
-### 4. Environment Variables
+---
 
-| Variable | Dev | Staging | Production |
-|----------|-----|---------|------------|
-| `VITE_SUPABASE_URL` | localhost:54321 | staging.supabase.co | prod.supabase.co |
-| `VITE_SUPABASE_ANON_KEY` | local key | staging key | prod key |
-| `VITE_APP_ENV` | development | staging | production |
-| `VITE_SENTRY_DSN` | — | staging DSN | prod DSN |
+## Part B: Admin Panel — React Web
 
-### 5. CI/CD Pipeline
+### 1. Platform Strategy
+
+| Aspect | Decision |
+|--------|---------|
+| **Framework** | React 19 + Vite 8 |
+| **Styling** | Tailwind CSS 4.x |
+| **Layout** | Desktop-first (sidebar + content) |
+| **Auth** | Email + password (Supabase Auth) |
+| **Deployment** | Vercel |
+
+### 2. Admin Panel Features
+
+| Feature | Description |
+|---------|------------|
+| Venue management | Create, edit, deactivate venues |
+| Court management | Create, edit courts per venue |
+| Owner management | View owner accounts, assign to venues |
+| Initial data setup | Feed venue/court info into DB |
+| Dashboard | Aggregate stats (total venues, owners, bookings) |
+
+---
+
+## Part C: Monorepo Structure
+
+```
+VMS/
+├── apps/
+│   ├── owner/          # React Native (Expo) — Owner mobile app
+│   └── admin/          # React + Vite — Admin web panel
+├── packages/
+│   └── shared/         # Shared types, services, validators, utils
+├── supabase/           # Backend (migrations, edge functions, seed)
+├── documents/          # Documentation
+├── reference/          # Archived Figma export (temporary)
+├── package.json        # Workspace root
+├── pnpm-workspace.yaml
+└── tsconfig.base.json
+```
+
+---
+
+## Part D: Deployment Strategy
+
+### 1. Environment Architecture
+
+| Environment | Owner App | Admin Panel | Backend |
+|-------------|-----------|-------------|---------|
+| Development | Expo Dev Client (local) | localhost:5173 | Supabase (cloud project) |
+| Preview | EAS internal build | Vercel preview | Same Supabase project |
+| Production | EAS production build | Vercel production | Same Supabase project |
+
+### 2. Environment Variables
+
+| Variable | Owner App | Admin Panel |
+|----------|-----------|-------------|
+| `SUPABASE_URL` | app.json extra | VITE_SUPABASE_URL |
+| `SUPABASE_ANON_KEY` | app.json extra | VITE_SUPABASE_ANON_KEY |
+| `APP_ENV` | EAS channel | VITE_APP_ENV |
+
+### 3. CI/CD Pipeline
 
 ```mermaid
 graph LR
     A[Push to Branch] --> B{Branch?}
     B -->|feature/*| C[Lint + Typecheck]
-    C --> D[Unit Tests]
-    D --> E[Vercel Preview Deploy]
+    C --> D[Vercel Preview - Admin]
 
-    B -->|staging| F[Lint + Typecheck]
-    F --> G[Unit + Integration Tests]
-    G --> H[Vercel Staging Deploy]
-    H --> I[E2E Tests]
-
-    B -->|main| J[Full Test Suite]
-    J --> K[Vercel Production Deploy]
-    K --> L[Smoke Tests]
-    L --> M[Notify Team]
+    B -->|main| E[Full Test Suite]
+    E --> F[Vercel Production - Admin]
+    E --> G[EAS Build - Owner App]
+    G --> H[Internal Distribution]
 ```
 
-### 6. Monitoring & Analytics
+### 4. Monitoring
 
-| Concern | Tool | Purpose |
-|---------|------|---------|
-| Error tracking | Sentry | Crash reports, error boundaries |
-| Analytics | PostHog or Mixpanel | User behavior, feature usage |
-| Performance | Vercel Analytics | Web Vitals, page load times |
-| Uptime | BetterUptime | API/site availability |
-| Logs | Supabase Dashboard | Database/Edge Function logs |
+| Concern | Tool |
+|---------|------|
+| Error tracking | Sentry (both apps) |
+| Analytics | PostHog or Mixpanel |
+| Performance | Expo Insights (mobile) |
+| Uptime | BetterUptime (admin panel) |
+| Logs | Supabase Dashboard |
 
-### 7. Release Strategy
+### 5. Release Strategy
 
-| Phase | Web | Mobile |
-|-------|-----|--------|
-| Dev | PR preview deploys | Expo Dev Client |
-| Staging | Branch deploy | EAS internal distribution |
-| Production | Merge to main → auto-deploy | EAS Submit to stores |
-| Hotfix | Cherry-pick to main | OTA update via EAS Update |
+| Phase | Owner App (Mobile) | Admin Panel (Web) |
+|-------|-------------------|------------------|
+| Dev | Expo Go / Dev Client | Vite dev server |
+| Preview | EAS internal distribution | Vercel preview deploy |
+| Production | EAS Submit to stores | Vercel production |
+| Hotfix | OTA update (EAS Update) | Merge to main |
 
-### 8. Versioning
+### 6. Versioning
 
 - Semantic versioning: `MAJOR.MINOR.PATCH`
-- Web: version in `package.json`
-- Mobile: `app.json` version + build number
-- Database: Sequential migration files (`001_initial.sql`, `002_add_memberships.sql`)
+- Owner App: `app.json` version + build number
+- Admin Panel: `package.json` version
+- Database: Sequential migration files (`001_initial.sql`, `002_bookings.sql`, etc.)

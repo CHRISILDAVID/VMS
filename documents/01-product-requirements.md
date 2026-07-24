@@ -3,9 +3,10 @@
 ## 1. Executive Summary
 
 **Product Name:** Badminton Manager
-**Product Type:** Mobile-first SaaS application for badminton court/venue management
-**Target Platform:** Android (primary), iOS (secondary), Web (admin dashboard — future)
-**Frame Reference:** 390 × 844 (mobile portrait)
+**Product Type:** Native mobile app (Owner) + Web admin panel (Super-Admin)
+**Target Platform:** Android (primary), iOS (secondary) via React Native / Expo
+**Admin Panel:** Desktop web app (React + Vite)
+**Backend:** Supabase (PostgreSQL + Auth + Storage + Edge Functions)
 
 Badminton Manager is a comprehensive venue management system designed specifically for badminton facility owners. It replaces ad-hoc management tools (spreadsheets, WhatsApp groups, pen-and-paper) with a single, premium mobile application covering daily operations: scheduling, bookings, membership management, payments, and business reporting.
 
@@ -20,13 +21,13 @@ The product aims to be more intuitive than existing competitors (TurfTown, Playo
 - Manages 2–30+ courts across venues
 - Handles daily operations: bookings, memberships, payments
 - Needs at-a-glance business overview
-- May delegate to staff but retains full control
+- Full control — no staff role delegation needed for MVP
 
 ### Secondary Users
 
 | User | Description |
 |------|-------------|
-| **Staff** | Employees with limited permissions (e.g., booking-only, front-desk) |
+| **Super-Admin** | Platform-level administrator who onboards venues and owners via the Admin Panel (web app) |
 | **Players** (future) | End-users who book courts, apply for memberships, and make payments through a separate Player App |
 | **Coaches** (future) | Coaching professionals listed by venues |
 | **Organizers** (future) | Tournament hosts using venue facilities |
@@ -35,22 +36,25 @@ The product aims to be more intuitive than existing competitors (TurfTown, Playo
 
 ## 3. User Roles & Permissions
 
-| Role | Access Scope |
-|------|-------------|
-| **Owner** | Full access to all venues, courts, members, payments, reports, settings |
-| **Staff** (designed but not fully specified) | Configurable permissions per role (roles and permissions UI exists in Profile) |
-| **Admin** (implied) | Platform-level admin who creates courts — mentioned in v3 prompt ("the court is already created by the Admin") |
+| Role | Access Scope | Platform |
+|------|-------------|----------|
+| **Super-Admin** | Full platform access — creates venues, courts, manages owners | Admin Panel (Web) |
+| **Owner** | Full access to their own venues, courts, members, payments, reports, settings | Owner App (Mobile) |
+| **Owner (Court Info)** | Admin-level permissions specifically for: Court Information (name, photos, address, maps, amenities) in Profile | Owner App (Mobile) |
 
-> [!IMPORTANT]
-> **Open Question:** The relationship between "Owner" and "Admin" is unclear. The v3 prompt states "The court is already created by the Admin" — does this mean there is a super-admin who onboards venues? Or is this self-service?
+> [!NOTE]
+> **Staff roles are not needed for MVP.** The owner's 3-4 concurrent device logins are sufficient for managing all courts and venues. Most venue operators don't have many people organizing these courts.
 
 ---
 
 ## 4. Business Structure
 
 ```
-Owner
- └── Venue(s)
+Super-Admin (Admin Panel)
+ └── Creates Venue(s) + assigns Owner(s)
+
+Owner (Mobile App)
+ └── Manages Venue(s)
       └── Court(s)
            ├── Time Slots → Bookings → Customers → Payments
            └── Membership Slots → Members → Membership Payments
@@ -77,10 +81,17 @@ Schedule → Tap Empty Slot → New Booking Wizard
 → Return to Schedule
 ```
 
+**Slot Time Rules:**
+- Start times at `:00` or `:30` only
+- Duration in whole-hour increments only (1hr, 2hr, 3hr)
+
 ### Flow 2 — Collect Payment
 ```
-Bookings → Tap Booking Card → Booking Details → Collect Payment → Complete Booking
+Bookings → Tap Booking Card → Booking Details → Update Payment Status → Complete Booking
 ```
+
+**Payment status can change post-creation:**
+`Pending → Partial → Paid → Refunded → Cancelled`
 
 ### Flow 3 — Membership Management
 ```
@@ -96,11 +107,12 @@ Payments → Membership Slots List → View Payments → Filter by Status → Ma
 ### Flow 5 — View Reports
 ```
 Profile → Reports → Select Period → View Revenue/Utilization/Growth Charts
+Revenue Breakdown: Booking Revenue | Membership Revenue | Total
 ```
 
 ### Flow 6 — Court Configuration
 ```
-Profile → Court Information → Edit Details
+Profile → Court Information → Edit Details (Owner has admin permission here)
 Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 ```
 
@@ -113,21 +125,24 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 |---------|--------|
 | Phone number input | Designed |
 | OTP verification (4-digit) | Designed |
-| Auto-login / session persistence | Not designed |
+| Auto-login / session persistence | Designed (expo-secure-store) |
 | Logout | Designed |
-| Multi-device login | Not specified |
-| Account recovery | Not specified |
+| Multi-device login | Resolved: Allow max 3-4 concurrent sessions |
+| Account recovery | Resolved: Optional (Email + Support fallback) in profile settings |
 
 ### 6.2 Schedule (Heart of the App)
 | Feature | Status |
 |---------|--------|
 | Google Calendar-style horizontal timeline | Designed |
-| Court rows with hourly slots (6AM–10PM default) | Designed |
-| Color-coded slot types (Available/Booked/Coaching/Tournament/Maintenance/Blocked) | Designed |
+| Court rows with time slots (6AM–10PM default) | Designed |
+| Slot start times at :00 or :30 only | Resolved |
+| Color-coded slot types (Available/Booked/Coaching/Tournament/Maintenance/Blocked/Membership) | Designed |
 | Week-view date selector | Designed |
-| Venue selector | Designed |
+| Venue selector (global, persistent) | Designed |
 | Tap slot → Bottom Sheet with actions | Designed |
 | Unlimited vertical scrolling for many courts | Designed |
+| Membership slots pre-blocked on calendar | Resolved |
+| Owner can release membership slot for specific date | Resolved |
 
 ### 6.3 Bookings (Regular Court Bookings Only)
 | Feature | Status |
@@ -136,9 +151,15 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 | Filter by court and date | Designed |
 | Tab categories: Upcoming/Ongoing/Completed/Cancelled | Designed |
 | Booking card with player, court, time, duration, amount, status | Designed |
-| Booking detail bottom sheet | Designed |
+| Booking detail with payment status update | Resolved |
+| Payment status: Pending → Partial → Paid → Refunded → Cancelled | Resolved |
 | Actions: Edit, Cancel, Move, Contact Customer | Designed |
 | New Booking wizard (5 steps) | Designed |
+| Price auto-calculation from pricing blocks + owner override | Resolved |
+| Simple flat discount (₹ or %) | Resolved |
+| Booking source: Offline / Walk-in (immutable after creation) | Resolved |
+| Hard-block overlapping bookings | Resolved |
+| Owner force-book with confirmation dialog | Resolved |
 
 ### 6.4 Membership System
 | Feature | Status |
@@ -150,7 +171,7 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 | Member active/inactive toggle | Designed |
 | Transfer member between slots | Designed |
 | Open/Close recruitment toggle | Designed |
-| Membership applications (player submissions) | Designed |
+| Membership applications (player submissions — future via Player App) | Designed |
 | Guest Play management (trial sessions) | Designed |
 | Accept guest player as member | Designed |
 
@@ -161,20 +182,23 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 | Navigate: Slots → Slot Payments → Member Payments | Designed |
 | Filter chips: All/Paid/Pending/Overdue | Designed |
 | Mark as Paid (with payment mode) | Designed |
-| Send reminder | Designed |
+| Send reminder (Push notification + WhatsApp deep link) | Resolved |
 | View payment history | Designed |
-| Download receipt | Designed |
+| Download receipt (PDF via expo-print) | Designed |
 | Offline payment modes: Cash, Google Pay, PhonePe, Bank Transfer, Cheque | Designed |
 
 ### 6.6 Profile & Settings
 | Feature | Status |
 |---------|--------|
-| Court Information (name, photos, address, maps, amenities) | Designed |
+| Court Information (name, photos, address, maps, amenities) — owner admin permission | Designed |
+| Court type metadata (Wooden, Synthetic/PVC, Cement, Mat) | Resolved |
 | Court Schedule & Pricing (weekly calendar, time blocks, pricing tiers) | Designed |
-| Reports (Revenue, Utilization, Growth, Payment Split) | Designed |
-| Grow Your Business (4 promotional pages) | Designed |
-| Subscription & Billing (Free/Pro/Enterprise plans) | Designed |
+| Reports (Revenue breakdown, Utilization, Growth, Payment Split) | Designed |
+| Report export (CSV for MVP) | Resolved |
+| Grow Your Business (4 promotional placeholder pages) | Designed |
+| Subscription & Billing (static mock for MVP) | Resolved |
 | Help & Support (FAQs, contact, legal) | Designed |
+| Account recovery (optional email backup) | Resolved |
 | Logout | Designed |
 
 ### 6.7 Future Modules (Designed as Placeholders)
@@ -189,7 +213,6 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 | Café / POS | Reserved |
 | Inventory Management | Reserved |
 | Wallet / Loyalty | Reserved |
-| Staff Attendance | Reserved |
 | QR Check-in | Reserved |
 | Dynamic Pricing | Reserved |
 | Franchise Management | Reserved |
@@ -200,7 +223,7 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Bottom Navigation                     │
+│                    Bottom Tab Navigation                  │
 ├───────────┬───────────┬──────────┬──────────┬───────────┤
 │ Schedule  │ Bookings  │ Members  │ Payments │ Profile   │
 ├───────────┴───────────┴──────────┴──────────┴───────────┤
@@ -213,11 +236,12 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 │  │                 ├── Coaching                          │
 │  │                 └── Maintenance                       │
 │                                                          │
-│  Bookings ─────── Booking Detail Bottom Sheet            │
+│  Bookings ─────── Booking Detail Screen                  │
 │  │                 ├── Edit                              │
 │  │                 ├── Cancel                            │
 │  │                 ├── Move                              │
-│  │                 └── Contact                           │
+│  │                 ├── Update Payment Status             │
+│  │                 └── Contact (Call / WhatsApp)         │
 │                                                          │
 │  Members ──────── [Tabs: Slots | Applications |          │
 │  │                       Guest Play | Members]           │
@@ -231,14 +255,15 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 │                                                          │
 │  Profile ──────── Court Information                      │
 │  │                Court Schedule & Pricing               │
-│  │                Reports                                │
+│  │                Reports (with revenue breakdown)       │
 │  │                Grow Your Business                     │
 │  │                 ├── Become an Organizer               │
 │  │                 ├── Add Coaches                       │
 │  │                 ├── Sell Sports Items                 │
 │  │                 └── Promote Events                    │
-│  │                Subscription & Billing                 │
+│  │                Subscription & Billing (mock)          │
 │  │                Help & Support                         │
+│  │                Account Recovery (optional email)      │
 │  └── Logout                                              │
 │                                                          │
 │  FAB (on Schedule & Bookings) ──────                     │
@@ -253,25 +278,30 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 
 ---
 
-## 8. Business Rules (Extracted / Inferred)
+## 8. Business Rules (Extracted / Inferred / Resolved)
 
-| # | Rule | Source | Confidence |
-|---|------|--------|------------|
-| BR-1 | Every booking belongs to exactly one Venue and one Court | v1 prompt | ✅ Explicit |
-| BR-2 | Booking payments can be: Paid, Partial, or Unpaid | Mock data | ✅ Explicit |
-| BR-3 | Booking sources: Online, Offline, Walk-in, Membership | v1 prompt | ✅ Explicit |
-| BR-4 | Payment supports: Cash, UPI, Card (bookings); Cash, GPay, PhonePe, Bank Transfer, Cheque (membership) | v1, v2 prompts | ✅ Explicit |
-| BR-5 | Membership slots are time-based recurring groups (e.g., Mon/Wed/Fri 6-8AM) | v2 prompt | ✅ Explicit |
-| BR-6 | A membership slot has a skill level and capacity limit | v2 prompt | ✅ Explicit |
-| BR-7 | Members can be paused (inactive) — stops payment requests until reactivated | v5 prompt | ✅ Explicit |
-| BR-8 | Members can transfer between slots | v5 prompt | ✅ Explicit |
-| BR-9 | Published slots appear in the Player App under "Become a Member" | v2 prompt | ✅ Explicit |
-| BR-10 | Payments page manages ONLY membership payments, NOT booking payments | v2, v5 prompts | ✅ Explicit |
-| BR-11 | Booking payments are handled within the booking flow itself | v1 prompt | ⚠️ Inferred |
-| BR-12 | Pricing blocks support weekday/weekend/peak/off-peak/per-court differentiation | v3 prompt | ✅ Explicit |
-| BR-13 | Time blocks cannot overlap within the same court/day | v3 prompt | ✅ Explicit |
-| BR-14 | Venue switching refreshes all data globally | v1 prompt | ✅ Explicit |
-| BR-15 | Subscription model: Free / Pro / Enterprise tiers | v3 prompt | ✅ Explicit |
+| # | Rule | Source | Status |
+|---|------|--------|--------|
+| BR-1 | Every booking belongs to exactly one Venue and one Court | v1 prompt | ✅ Confirmed |
+| BR-2 | Booking payment status: Pending, Partial, Paid, Refunded, Cancelled | Client decision | ✅ Resolved |
+| BR-3 | MVP booking sources: Offline, Walk-in only (immutable after creation) | Client decision | ✅ Resolved |
+| BR-4 | Payment supports: Cash, UPI, Card (bookings); Cash, GPay, PhonePe, Bank Transfer, Cheque (membership) | v1, v2 prompts | ✅ Confirmed |
+| BR-5 | Membership slots are time-based recurring groups (e.g., Mon/Wed/Fri 6-8AM) | v2 prompt | ✅ Confirmed |
+| BR-6 | A membership slot has a skill level and capacity limit | v2 prompt | ✅ Confirmed |
+| BR-7 | Members can be paused (inactive) — stops payment requests until reactivated | v5 prompt | ✅ Confirmed |
+| BR-8 | Members can transfer between slots | v5 prompt | ✅ Confirmed |
+| BR-9 | Published slots will appear in Player App (future — not MVP) | v2 prompt | ✅ Deferred |
+| BR-10 | Payments page manages ONLY membership payments, NOT booking payments | v2, v5 prompts | ✅ Confirmed |
+| BR-11 | Booking payments captured in wizard, status changeable post-creation | Client decision | ✅ Resolved |
+| BR-12 | Pricing blocks support weekday/weekend/peak/off-peak/per-court differentiation | v3 prompt | ✅ Confirmed |
+| BR-13 | Time blocks cannot overlap within the same court/day | v3 prompt | ✅ Confirmed |
+| BR-14 | Venue switching refreshes ALL data globally | v1 prompt | ✅ Confirmed |
+| BR-15 | Subscription model: static mock for MVP | Client decision | ✅ Resolved |
+| BR-16 | Booking start times at :00 or :30 only, whole-hour durations | Client decision | ✅ Resolved |
+| BR-17 | Hard-block overlapping bookings, owner force-book with confirmation | Client decision | ✅ Resolved |
+| BR-18 | Membership slots pre-block on schedule, owner can release per date | Client decision | ✅ Resolved |
+| BR-19 | Auto-calculate price from rules, allow owner override with flat discount | Client decision | ✅ Resolved |
+| BR-20 | Revenue breakdown: Booking Revenue + Membership Revenue = Total | Client decision | ✅ Resolved |
 
 ---
 
@@ -279,12 +309,15 @@ Profile → Court Schedule & Pricing → Manage Time Blocks & Pricing
 
 | Category | Requirement |
 |----------|-------------|
-| **Performance** | Dashboard content understandable within 10 seconds |
+| **Platform** | React Native (Expo) — Android primary, iOS secondary |
+| **Performance** | Schedule content understandable within 10 seconds |
 | **Usability** | One-handed usage, portrait orientation, fast daily operations |
 | **Design** | Material Design 3 patterns, 8pt grid, 16-20px border radius |
 | **Scalability** | Support 2 courts → 30+ courts without redesign |
-| **Multi-venue** | All screens must support venue-level data isolation |
-| **Offline** | Not specified (Open Question) |
-| **Localization** | Indian market (₹ currency, Indian phone numbers, Indian payment methods) |
-| **Accessibility** | Not specified (Open Question) |
-
+| **Multi-venue** | All screens must support venue-level data isolation via global selector |
+| **Offline** | Read-only cache for today's schedule + member list (MMKV). "Offline" banner. No offline writes. |
+| **Localization** | Indian market only (₹ currency, Indian phone numbers, Indian payment methods). No multi-language. |
+| **Accessibility** | Standard accessibility compliance, compatible with TalkBack/VoiceOver |
+| **Notifications** | Push notifications via FCM (owner-only for MVP) |
+| **Auth** | Phone + OTP. Max 3-4 concurrent sessions. Optional email recovery. |
+| **Backend** | Supabase (PostgreSQL + Auth + Storage + Edge Functions) |

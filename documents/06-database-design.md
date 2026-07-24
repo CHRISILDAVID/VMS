@@ -9,6 +9,7 @@
 - ENUMs for status fields to enforce valid states
 - Indexes on frequently queried/filtered columns
 - Multi-venue support baked into schema (every entity scoped to venue)
+- Booking time constraints: start at :00 or :30, whole-hour durations
 
 ---
 
@@ -16,15 +17,14 @@
 
 ```sql
 -- Authentication & Roles
-CREATE TYPE user_role AS ENUM ('owner', 'staff', 'player');
-CREATE TYPE staff_permission AS ENUM ('bookings', 'members', 'payments', 'reports', 'settings');
+CREATE TYPE user_role AS ENUM ('super_admin', 'owner');
 
 -- Booking & Court
 CREATE TYPE booking_status AS ENUM ('upcoming', 'ongoing', 'completed', 'cancelled');
-CREATE TYPE payment_status AS ENUM ('paid', 'partial', 'unpaid');
-CREATE TYPE slot_type AS ENUM ('available', 'booked', 'coaching', 'tournament', 'maintenance', 'blocked');
+CREATE TYPE booking_payment_status AS ENUM ('pending', 'partial', 'paid', 'refunded', 'cancelled');
+CREATE TYPE slot_type AS ENUM ('available', 'booked', 'coaching', 'tournament', 'maintenance', 'blocked', 'membership');
 CREATE TYPE booking_source AS ENUM ('online', 'offline', 'walk_in', 'membership');
-CREATE TYPE court_type AS ENUM ('wooden', 'synthetic', 'cement', 'acrylic', 'mat');
+CREATE TYPE court_type AS ENUM ('wooden', 'synthetic', 'cement', 'mat');
 
 -- Membership
 CREATE TYPE membership_pay_status AS ENUM ('paid', 'due', 'overdue');
@@ -35,13 +35,22 @@ CREATE TYPE guest_play_status AS ENUM ('upcoming', 'completed', 'accepted_member
 -- Payments
 CREATE TYPE payment_mode AS ENUM ('cash', 'upi', 'google_pay', 'phonepe', 'bank_transfer', 'cheque', 'card', 'online');
 
--- Subscription
+-- Subscription (mock for MVP)
 CREATE TYPE subscription_plan AS ENUM ('free', 'pro', 'enterprise');
 CREATE TYPE invoice_status AS ENUM ('paid', 'pending', 'failed', 'refunded');
 
 -- Days
 CREATE TYPE day_of_week AS ENUM ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
 ```
+
+> [!NOTE]
+> **Changes from original design:**
+> - Removed `staff_permission` enum (no staff roles in MVP)
+> - Removed `player` from `user_role` (Player App is deferred)
+> - Renamed `payment_status` to `booking_payment_status` to avoid ambiguity
+> - Added `refunded` and `cancelled` to `booking_payment_status`
+> - Added `membership` to `slot_type` for pre-blocked membership schedule blocks
+> - Added `super_admin` to `user_role` for admin panel
 
 ---
 
@@ -57,9 +66,10 @@ CREATE TABLE owners (
   id            UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name     TEXT NOT NULL,
   phone         TEXT NOT NULL UNIQUE,
-  email         TEXT,
+  email         TEXT,                              -- optional, for account recovery
   avatar_url    TEXT,
   business_name TEXT NOT NULL,
+  role          user_role NOT NULL DEFAULT 'owner',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at    TIMESTAMPTZ
@@ -85,6 +95,8 @@ CREATE TABLE venues (
   court_type      court_type,
   amenities       TEXT[] DEFAULT '{}',           -- Array of amenity names
   photos          TEXT[] DEFAULT '{}',           -- Array of storage URLs
+  gstin           TEXT,                           -- Optional GST number
+  gst_enabled     BOOLEAN NOT NULL DEFAULT FALSE, -- Toggle for GST on receipts
   is_active       BOOLEAN NOT NULL DEFAULT TRUE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -100,6 +112,7 @@ CREATE TABLE courts (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   venue_id    UUID NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,                     -- e.g., "Court 1"
+  court_type  court_type,                        -- Wooden, Synthetic, Cement, Mat (metadata only)
   sort_order  INTEGER NOT NULL DEFAULT 0,
   is_active   BOOLEAN NOT NULL DEFAULT TRUE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -108,27 +121,10 @@ CREATE TABLE courts (
 );
 
 CREATE INDEX idx_courts_venue ON courts(venue_id);
-
--- ═══════════════════════════════════════════════════════════════
--- STAFF
--- ═══════════════════════════════════════════════════════════════
-CREATE TABLE staff (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  owner_id    UUID NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
-  venue_id    UUID REFERENCES venues(id) ON DELETE SET NULL, -- NULL = all venues
-  full_name   TEXT NOT NULL,
-  phone       TEXT NOT NULL,
-  role_name   TEXT NOT NULL DEFAULT 'Staff',
-  permissions staff_permission[] DEFAULT '{}',
-  is_active   BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  deleted_at  TIMESTAMPTZ
-);
-
-CREATE INDEX idx_staff_owner ON staff(owner_id);
 ```
+
+> [!NOTE]
+> **Staff table removed for MVP.** Owner-only access. The 3-4 device login limit is sufficient. Staff roles may be added in a future version.
 
 ### 3.2 Schedule & Pricing
 
@@ -178,7 +174,7 @@ CREATE INDEX idx_pricing_schedule ON pricing_blocks(schedule_id);
 CREATE TABLE customers (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id      UUID NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
-  user_id       UUID REFERENCES auth.users(id),  -- linked if player has an account
+  user_id       UUID REFERENCES auth.users(id),  -- linked if player has an account (future)
   full_name     TEXT NOT NULL,
   phone         TEXT NOT NULL,
   email         TEXT,
@@ -204,26 +200,37 @@ CREATE TABLE bookings (
   venue_id        UUID NOT NULL REFERENCES venues(id),
   court_id        UUID NOT NULL REFERENCES courts(id),
   customer_id     UUID NOT NULL REFERENCES customers(id),
-  booked_by       UUID NOT NULL REFERENCES auth.users(id), -- staff or owner who created
+  booked_by       UUID NOT NULL REFERENCES auth.users(id), -- owner who created
   date            DATE NOT NULL,
   start_time      TIME NOT NULL,
   end_time        TIME NOT NULL,
   duration_minutes INTEGER NOT NULL,
-  amount          INTEGER NOT NULL,               -- paise
-  discount        INTEGER NOT NULL DEFAULT 0,     -- paise
-  advance         INTEGER NOT NULL DEFAULT 0,     -- paise
-  pending         INTEGER NOT NULL DEFAULT 0,     -- paise (calculated: amount - discount - advance)
+  base_amount     INTEGER NOT NULL,               -- auto-calculated price (paise)
+  discount        INTEGER NOT NULL DEFAULT 0,     -- discount amount (paise)
+  final_amount    INTEGER NOT NULL,               -- final price after discount (paise)
+  advance         INTEGER NOT NULL DEFAULT 0,     -- advance paid (paise)
+  pending         INTEGER NOT NULL DEFAULT 0,     -- remaining (paise)
   status          booking_status NOT NULL DEFAULT 'upcoming',
-  payment_status  payment_status NOT NULL DEFAULT 'unpaid',
+  payment_status  booking_payment_status NOT NULL DEFAULT 'pending',
   payment_mode    payment_mode,
   source          booking_source NOT NULL DEFAULT 'offline',
   slot_type       slot_type NOT NULL DEFAULT 'booked',
+  is_force_booked BOOLEAN NOT NULL DEFAULT FALSE, -- owner override on blocked/maintenance slot
   notes           TEXT,
+  payment_notes   TEXT,                            -- notes when payment status changes
   whatsapp_sent   BOOLEAN NOT NULL DEFAULT FALSE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at      TIMESTAMPTZ,
 
+  -- Start time must be on :00 or :30
+  CONSTRAINT valid_start_time CHECK (
+    EXTRACT(MINUTE FROM start_time) IN (0, 30)
+  ),
+  -- Duration must be in whole-hour increments (60, 120, 180, ...)
+  CONSTRAINT valid_duration CHECK (
+    duration_minutes > 0 AND duration_minutes % 60 = 0
+  ),
   CONSTRAINT valid_booking_time CHECK (end_time > start_time)
 );
 
@@ -233,6 +240,15 @@ CREATE INDEX idx_bookings_customer ON bookings(customer_id);
 CREATE INDEX idx_bookings_status ON bookings(status);
 CREATE INDEX idx_bookings_payment ON bookings(payment_status);
 ```
+
+> [!NOTE]
+> **Changes from original design:**
+> - Added `base_amount` and `final_amount` (store both for reporting accuracy)
+> - Added `payment_notes` field for notes when payment status changes
+> - Added `is_force_booked` flag for owner override on blocked/maintenance slots
+> - Added `valid_start_time` constraint (must be :00 or :30)
+> - Added `valid_duration` constraint (must be whole-hour multiples of 60)
+> - `booking_payment_status` now includes `refunded` and `cancelled`
 
 ### 3.4 Membership System
 
@@ -264,6 +280,19 @@ CREATE TABLE membership_slots (
 CREATE INDEX idx_membership_slots_venue ON membership_slots(venue_id);
 
 -- ═══════════════════════════════════════════════════════════════
+-- MEMBERSHIP SLOT RELEASES (per-date slot release for walk-ins)
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE membership_slot_releases (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slot_id         UUID NOT NULL REFERENCES membership_slots(id) ON DELETE CASCADE,
+  release_date    DATE NOT NULL,
+  released_by     UUID NOT NULL REFERENCES auth.users(id),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(slot_id, release_date)
+);
+
+-- ═══════════════════════════════════════════════════════════════
 -- MEMBERS (join table: customer ↔ membership_slot)
 -- ═══════════════════════════════════════════════════════════════
 CREATE TABLE members (
@@ -283,7 +312,7 @@ CREATE INDEX idx_members_slot ON members(slot_id);
 CREATE INDEX idx_members_customer ON members(customer_id);
 
 -- ═══════════════════════════════════════════════════════════════
--- MEMBERSHIP APPLICATIONS
+-- MEMBERSHIP APPLICATIONS (future — from Player App)
 -- ═══════════════════════════════════════════════════════════════
 CREATE TABLE membership_applications (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -323,6 +352,9 @@ CREATE TABLE guest_plays (
 CREATE INDEX idx_guest_plays_slot ON guest_plays(slot_id);
 ```
 
+> [!NOTE]
+> **Added `membership_slot_releases` table** — tracks when an owner releases a membership slot for a specific date, making it available for walk-in bookings.
+
 ### 3.5 Membership Payments
 
 ```sql
@@ -354,11 +386,11 @@ CREATE INDEX idx_membership_payments_status ON membership_payments(status);
 CREATE INDEX idx_membership_payments_due ON membership_payments(due_date);
 ```
 
-### 3.6 Subscription & Billing
+### 3.6 Subscription & Billing (Mock for MVP)
 
 ```sql
 -- ═══════════════════════════════════════════════════════════════
--- SUBSCRIPTIONS (SaaS billing for venue owners)
+-- SUBSCRIPTIONS (SaaS billing for venue owners — static mock for MVP)
 -- ═══════════════════════════════════════════════════════════════
 CREATE TABLE subscriptions (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -405,7 +437,21 @@ CREATE TABLE payment_methods (
 -- Enable RLS on all tables
 ALTER TABLE owners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE venues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE courts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE membership_slots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE membership_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE guest_plays ENABLE ROW LEVEL SECURITY;
+ALTER TABLE membership_payments ENABLE ROW LEVEL SECURITY;
 -- ... (all tables)
+
+-- SUPER-ADMIN: can see ALL data
+CREATE POLICY "Super-admin full access" ON venues
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM owners WHERE id = auth.uid() AND role = 'super_admin')
+  );
 
 -- OWNERS: can only see their own record
 CREATE POLICY "Owners see own data" ON owners
@@ -427,10 +473,8 @@ CREATE POLICY "Owner sees own bookings" ON bookings
     venue_id IN (SELECT id FROM venues WHERE owner_id = auth.uid())
   );
 
--- STAFF: can see data for venues they're assigned to
--- (extend policies based on staff_permission array)
-
 -- Pattern: All downstream tables follow the same venue-ownership chain
+-- Super-admin policies added to every table for admin panel access
 ```
 
 ---
@@ -451,7 +495,6 @@ CREATE POLICY "Owner sees own bookings" ON bookings
 ```mermaid
 erDiagram
     owners ||--o{ venues : owns
-    owners ||--o{ staff : employs
     owners ||--o{ customers : manages
     owners ||--o{ subscriptions : subscribes
     owners ||--o{ invoices : billed
@@ -472,6 +515,7 @@ erDiagram
     membership_slots ||--o{ membership_applications : receives
     membership_slots ||--o{ guest_plays : hosts
     membership_slots ||--o{ membership_payments : generates
+    membership_slots ||--o{ membership_slot_releases : releases
 
     members ||--o{ membership_payments : owes
 
@@ -484,9 +528,11 @@ erDiagram
         date date
         time start_time
         time end_time
-        int amount
+        int base_amount
+        int final_amount
         booking_status status
-        payment_status payment_status
+        booking_payment_status payment_status
+        booking_source source
     }
 
     membership_slots {
@@ -499,4 +545,25 @@ erDiagram
         int monthly_fee
         int capacity
     }
+```
+
+---
+
+## 7. Report Views (for Revenue Breakdown)
+
+```sql
+-- Revenue breakdown: Booking Revenue vs Membership Revenue
+CREATE VIEW revenue_summary AS
+SELECT
+  v.id AS venue_id,
+  v.name AS venue_name,
+  COALESCE(SUM(b.final_amount) FILTER (WHERE b.payment_status = 'paid'), 0) AS booking_revenue,
+  COALESCE(SUM(mp.amount) FILTER (WHERE mp.status = 'paid'), 0) AS membership_revenue,
+  COALESCE(SUM(b.final_amount) FILTER (WHERE b.payment_status = 'paid'), 0) +
+  COALESCE(SUM(mp.amount) FILTER (WHERE mp.status = 'paid'), 0) AS total_revenue
+FROM venues v
+LEFT JOIN bookings b ON b.venue_id = v.id AND b.deleted_at IS NULL
+LEFT JOIN membership_slots ms ON ms.venue_id = v.id AND ms.deleted_at IS NULL
+LEFT JOIN membership_payments mp ON mp.slot_id = ms.id
+GROUP BY v.id, v.name;
 ```

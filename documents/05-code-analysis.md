@@ -2,12 +2,14 @@
 
 ## 1. What We're Working With
 
-The exported project from Figma Make is a **React + Vite + Tailwind CSS v4** application wrapped in a 390×844 phone frame simulator. It was designed as a prototype/preview tool, not a production application.
+The project originated from a **Figma Make export** — a React + Vite + Tailwind CSS v4 prototype wrapped in a 390×844 phone frame simulator. This code is **not production code** — it serves as a **visual design reference only**.
 
-### Technology Stack (Current)
+The production Owner App will be built from scratch using **React Native (Expo)**, not React web.
+
+### Original Technology Stack (Figma Export)
 
 | Layer | Technology | Version |
-|-------|-----------|---------|
+|-------|-----------|---------| 
 | Framework | React | 19.0.0 |
 | Build Tool | Vite | 8.0.0 |
 | Language | TypeScript | 5.7.0 |
@@ -16,142 +18,115 @@ The exported project from Figma Make is a **React + Vite + Tailwind CSS v4** app
 | Charts | recharts | 3.9.2 |
 | Formatter | oxfmt | 0.2.0 |
 
-### Figma-Specific Artifacts (Must Remove in Production)
+### Figma Artifacts (Archived in `reference/`)
 
-| Artifact | Location | Action |
-|----------|----------|--------|
-| Figma HTML comments | `index.html` | Remove `<!-- figma:* -->` placeholders |
-| Phone frame wrapper | `App.tsx` (lines 80-148) | Remove 390×844 frame, dynamic island, status bar |
-| `figma-make-app` name | `package.json` | Rename |
-| `.figma/` directory references | `AGENTS.md` | Remove |
-| External screen picker | Removed in v2 | Already cleaned up |
+| Artifact | Original Location | Status |
+|----------|-------------------|--------|
+| Phone frame wrapper | `App.tsx` (lines 80-148) | Archived — not used in RN |
+| Dynamic island, StatusBar | `App.tsx` | Archived |
+| `figma-make-app` name | `package.json` | Will be renamed |
+| Figma HTML comments | `index.html` | Archived |
+| `.figma/` directory references | `AGENTS.md` | Replaced |
+| Figma prompts | `prompts/v1-v5.md` | Archived as `reference/prompts/` |
+| Pasted text imports | `src/imports/pasted_text/` | Archived |
 
 ---
 
-## 2. Folder Structure
+## 2. Archived Folder Structure
+
+The original Figma export has been moved to `reference/figma-src/`:
 
 ```
-E:\VMS\
-├── src/
-│   ├── App.tsx                          # Root component + phone frame + routing
-│   ├── main.tsx                         # React entry point
-│   ├── index.css                        # Design tokens + animations
-│   ├── vite-env.d.ts                    # Vite type declarations
-│   ├── components/                      # Shared components
-│   │   ├── BottomNav.tsx                # 5-tab navigation
-│   │   ├── FABMenu.tsx                  # Floating Action Button with 6 actions
-│   │   ├── VenueSelector.tsx            # Venue dropdown picker
-│   │   └── StatusChip.tsx               # Status pill component (13 variants)
-│   ├── screens/                         # All screen-level components
-│   │   ├── LoginScreen.tsx              # OTP login flow
-│   │   ├── DashboardScreen.tsx          # Business overview (ORPHANED)
-│   │   ├── ScheduleScreen.tsx           # Court timeline view
-│   │   ├── BookingsScreen.tsx           # Booking management
-│   │   ├── BookingDetailsScreen.tsx     # Booking detail view
-│   │   ├── NewBookingScreen.tsx         # 5-step booking wizard
-│   │   ├── CustomersScreen.tsx          # Customer management (ORPHANED)
-│   │   ├── MembersScreen.tsx            # Membership management (933 lines)
-│   │   ├── PaymentsScreen.tsx           # Membership payments
-│   │   ├── ProfileScreen.tsx            # Settings hub
-│   │   ├── ReportsScreen.tsx            # Standalone reports (ORPHANED)
-│   │   └── profile/                     # Profile sub-screens
-│   │       ├── CourtInformationScreen.tsx
-│   │       ├── CourtScheduleScreen.tsx
-│   │       ├── GrowBusinessScreen.tsx
-│   │       ├── SubscriptionBillingScreen.tsx
-│   │       └── HelpSupportScreen.tsx
+reference/
+├── figma-src/                          # Original Figma export (design reference)
+│   ├── App.tsx                         # Phone frame wrapper + state routing
+│   ├── main.tsx                        # React entry point
+│   ├── index.css                       # Design tokens + animations
+│   ├── components/
+│   │   ├── BottomNav.tsx               # 5-tab navigation
+│   │   ├── FABMenu.tsx                 # Floating Action Button
+│   │   ├── VenueSelector.tsx           # Venue dropdown
+│   │   └── StatusChip.tsx              # Status pill (13 variants)
+│   ├── screens/
+│   │   ├── LoginScreen.tsx             # OTP login flow
+│   │   ├── DashboardScreen.tsx         # REMOVED — not in production
+│   │   ├── ScheduleScreen.tsx          # Court timeline view
+│   │   ├── BookingsScreen.tsx          # Booking management
+│   │   ├── BookingDetailsScreen.tsx    # Booking detail view
+│   │   ├── NewBookingScreen.tsx        # 5-step booking wizard
+│   │   ├── CustomersScreen.tsx         # REMOVED — not in production
+│   │   ├── MembersScreen.tsx           # Membership management (933 lines)
+│   │   ├── PaymentsScreen.tsx          # Membership payments
+│   │   ├── ProfileScreen.tsx           # Settings hub
+│   │   ├── ReportsScreen.tsx           # REMOVED — reports inline in profile
+│   │   └── profile/                    # Profile sub-screens
 │   ├── data/
-│   │   └── bookings.ts                  # Mock booking data (8 records)
+│   │   └── bookings.ts                 # Mock booking data
 │   └── imports/
-│       └── pasted_text/
-│           └── bookings-page.md         # Original prompt text pasted as reference
-├── prompts/                             # All 5 Figma AI prompt versions
-│   ├── v1.md                            # Initial full app design prompt
-│   ├── v2.md                            # Bottom nav change + Bookings/Members/Payments
-│   ├── v3.md                            # Profile section redesign
-│   ├── v4.md                            # Auto-fix (no intentional change)
-│   └── v5.md                            # Members/Payments flow refinement
-├── index.html                           # Entry HTML (Figma placeholders)
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-├── AGENTS.md                            # Figma Make agent instructions
-└── CLAUDE.md                            # Empty/minimal
+│       └── pasted_text/                # Figma paste artifacts
+└── prompts/                            # Original AI prompt versions (v1-v5)
 ```
 
 ---
 
-## 3. Routing Approach
+## 3. What's Reusable as Design Reference
 
-**Current:** No routing library. Uses `useState<Screen>` in `App.tsx` with conditional rendering.
-
-```typescript
-type Screen = 'login' | 'schedule' | 'bookings' | 'booking-details' |
-              'new-booking' | 'members' | 'payments' | 'profile'
-```
-
-**Navigation methods:**
-- `BottomNav.onNavigate(screenId)` → `setScreen()`
-- `FABMenu.onAction('booking')` → `setScreen('new-booking')`
-- In-screen back buttons → `navigate(parentScreen)`
-- Profile sub-screens → internal `subScreen` state in ProfileScreen
-
-**Problems:**
-- No URL routing (no deep linking)
-- No browser history management
-- No route guards / protected routes
-- Profile sub-routing is a local concern
-- Screen transitions are basic CSS animations only
-
----
-
-## 4. State Management
-
-**Current:** Local `useState` only. No global state.
-
-| Concern | Current Approach | Problem |
-|---------|-----------------|---------|
-| Auth state | `loggedIn: boolean` in App.tsx | No persistence, no token management |
-| Selected venue | Local state in each screen | Not shared — each screen manages independently |
-| Booking data | Hardcoded array in `data/bookings.ts` | No API integration |
-| Membership data | Hardcoded inside `MembersScreen.tsx` | 65KB single file with embedded data |
-| Payment data | Hardcoded inside `PaymentsScreen.tsx` | Duplicates membership slot definitions |
-| Schedule data | Hardcoded inside `ScheduleScreen.tsx` | Static mock slots |
-| Current screen | `screen: Screen` in App.tsx | No route persistence |
-
-**Data Duplication Issue:** Membership slot definitions exist in **both** `MembersScreen.tsx` (full seedSlots) and `PaymentsScreen.tsx` (slotDefs). These should be a single source of truth.
-
----
-
-## 5. What's Reusable vs. Must Rewrite
-
-### ✅ Reusable (Design Reference)
+### ✅ Reusable (Visual Patterns — Reference Only)
 
 | Item | Value For |
-|------|-----------|
-| Color palette & tokens | Production design system |
+|------|-----------| 
+| Color palette & tokens | Production design system (ported to RN constants) |
 | Typography choices (Inter, Plus Jakarta Sans) | Font stack |
 | Spacing/radius conventions | Design system variables |
-| Icon selection (lucide-react) | Icon library choice |
+| Icon selection (Lucide) | Icon library (lucide-react-native) |
 | Screen layouts & hierarchy | UI wireframe reference |
 | Component visual patterns (cards, chips, sheets) | Component styling |
 | Navigation flow (tabs, sub-screens, FAB) | UX architecture |
-| recharts chart types | Visualization approach |
+| Chart types (recharts) | Visualization approach (Victory Native / chart-kit) |
 
-### ❌ Must Rewrite
+### ❌ Not Reusable (Must Build from Scratch in React Native)
 
 | Item | Reason |
 |------|--------|
-| App.tsx phone frame wrapper | Figma preview artifact |
-| useState-based routing | Need react-router-dom |
+| All React web components | React Native uses View/Text, not div/span |
+| HTML/CSS styling | RN uses StyleSheet or NativeWind |
+| useState-based routing | Expo Router (file-based) |
 | All hardcoded mock data | Need Supabase integration |
-| Inline styles (majority of styling) | Move to Tailwind classes |
-| MembersScreen.tsx (933 lines) | Needs decomposition |
-| Local state management | Need global state (Zustand/React Query) |
-| No form validation | Need Zod/React Hook Form |
-| No error handling | Need error boundaries |
-| No loading states | Need skeleton/spinners |
-| No authentication | Need Supabase Auth |
-| No API layer | Need Supabase client |
-| No protected routes | Need route guards |
-| No TypeScript type system for API | Need typed Supabase |
+| Phone frame wrapper | Figma preview artifact |
+| MembersScreen.tsx (933 lines) | Must decompose for RN |
+| recharts usage | Need RN-compatible charting |
+
+---
+
+## 4. Current State Management (Reference)
+
+| Concern | Figma Approach | Production Approach |
+|---------|---------------|-------------------|
+| Auth state | `loggedIn: boolean` in App.tsx | Supabase Auth + expo-secure-store |
+| Selected venue | Local state in each screen | Zustand global store |
+| Booking data | Hardcoded array | Supabase + React Query |
+| Membership data | Hardcoded inside MembersScreen | Supabase + React Query |
+| Payment data | Hardcoded inside PaymentsScreen | Supabase + React Query |
+| Schedule data | Hardcoded inside ScheduleScreen | Supabase + React Query |
+| Current screen | `screen: Screen` in App.tsx | Expo Router (URL-based) |
+| Form state | Unmanaged | React Hook Form + Zod |
+
+---
+
+## 5. Key Design Decisions from Figma Reference
+
+These visual/UX decisions from the Figma export are **confirmed for production:**
+
+1. **5-tab bottom navigation:** Schedule | Bookings | Members | Payments | Profile
+2. **Schedule as home screen** — the first screen after login
+3. **FAB on Schedule and Bookings** screens for quick actions
+4. **Bottom sheets** for slot actions, booking details, payment recording
+5. **4-tab Members screen:** Slots | Applications | Guest Play | Members
+6. **Payments page** manages membership payments ONLY
+7. **Profile** contains Court Info, Schedule & Pricing, Reports, Grow Business, Subscription, Help
+8. **Color-coded slots** on the schedule timeline
+
+These are **removed from production:**
+1. ~~Dashboard screen~~ (orphaned in Figma, confirmed removed)
+2. ~~Customers screen~~ (orphaned, customer management is inline in booking wizard)
+3. ~~Standalone Reports screen~~ (reports are inline within Profile)
