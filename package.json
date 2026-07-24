@@ -1,29 +1,18 @@
 {
-  "name": "figma-make-app",
+  "name": "vms",
   "private": true,
-  "version": "1.0.0",
-  "type": "module",
+  "version": "0.1.0",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview",
-    "format": "oxfmt"
+    "dev:owner": "pnpm --filter @vms/owner start",
+    "dev:admin": "pnpm --filter @vms/admin dev",
+    "build:admin": "pnpm --filter @vms/admin build",
+    "shared:build": "pnpm --filter @vms/shared build",
+    "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > packages/shared/src/types/database.ts",
+    "clean": "pnpm -r exec rm -rf node_modules dist .expo",
+    "typecheck": "pnpm -r typecheck"
   },
-  "dependencies": {
-    "lucide-react": "^1.23.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "recharts": "^3.9.2"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^6.0.0",
-    "oxfmt": "^0.2.0",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.0",
-    "vite": "^8.0.0"
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
   }
 }
