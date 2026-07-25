@@ -9,11 +9,13 @@ interface SlotBottomSheetProps {
   slot: any | null;
   court: Court | null;
   hour: number | null;
+  dateStr?: string;
   onClose: () => void;
+  onActionPress?: (actionLabel: string, slot: any | null, court: Court, hour: number) => void;
 }
 
 export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
-  ({ slot, court, hour, onClose }, ref) => {
+  ({ slot, court, hour, dateStr, onClose, onActionPress }, ref) => {
     const snapPoints = useMemo(() => ['50%', '75%'], []);
 
     const actions = useMemo(() => {
@@ -76,7 +78,10 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
                 <TouchableOpacity 
                   key={i} 
                   style={styles.actionButton}
-                  onPress={onClose} // Placeholder action
+                  onPress={() => {
+                    onClose();
+                    onActionPress?.(action.label, slot, court, hour);
+                  }}
                 >
                   <View style={styles.iconContainer}>
                     <Icon size={18} color={action.color} />

@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { useRouter } from 'expo-router';
 
 import { VenueSelector } from '../../components/domain/VenueSelector';
 import { DateSelector } from '../../features/schedule/components/DateSelector';
@@ -17,6 +18,7 @@ import { Court } from '@vms/shared/types';
 import { COLORS, SPACING } from '@vms/shared/utils';
 
 export default function ScheduleScreen() {
+  const router = useRouter();
   const { selectedVenueId } = useVenueStore();
   
   const [selectedDateStr, setSelectedDateStr] = useState(() => 
@@ -51,6 +53,22 @@ export default function ScheduleScreen() {
     setSelectedHour(null);
     bottomSheetRef.current?.close();
   }, []);
+
+  const handleFABPress = useCallback((actionId: string) => {
+    if (actionId === 'booking') {
+      router.push(`/booking/new?date=${selectedDateStr}` as any);
+    }
+  }, [router, selectedDateStr]);
+
+  const handleSlotActionPress = useCallback((actionLabel: string, slot: any | null, court: Court, hour: number) => {
+    if (actionLabel === 'View Booking' || actionLabel === 'Edit Booking') {
+      if (slot?.booking?.id) {
+        router.push(`/booking/${slot.booking.id}` as any);
+      }
+    } else if (actionLabel === 'New Booking') {
+      router.push(`/booking/new?courtId=${court.id}&hour=${hour}&date=${selectedDateStr}` as any);
+    }
+  }, [router, selectedDateStr]);
 
   const isLoading = isLoadingSchedule || isLoadingCourts;
 
@@ -94,14 +112,16 @@ export default function ScheduleScreen() {
         )}
       </View>
 
-      <SpeedDialFAB />
+      <SpeedDialFAB onPressItem={handleFABPress} />
 
       <SlotBottomSheet
         ref={bottomSheetRef}
         slot={selectedSlot}
         court={selectedCourt}
         hour={selectedHour}
+        dateStr={selectedDateStr}
         onClose={handleCloseBottomSheet}
+        onActionPress={handleSlotActionPress}
       />
     </SafeAreaView>
   );

@@ -21,7 +21,7 @@ export const createScheduleService = (supabase: SupabaseClient) => ({
     // 1. Fetch bookings
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
-      .select('*')
+      .select('*, customer:customers(*)')
       .eq('venue_id', venueId)
       .eq('date', dateStr)
       .is('deleted_at', null)
