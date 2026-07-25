@@ -1,145 +1,110 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { COLORS, SPACING, RADIUS } from '@vms/shared/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { COLORS } from '@vms/shared/utils';
 
 interface DateSelectorProps {
-  selectedDate: string; // yyyy-MM-dd
+  selectedDate: string; // 'yyyy-MM-dd'
   onDateChange: (date: string) => void;
 }
 
 export function DateSelector({ selectedDate, onDateChange }: DateSelectorProps) {
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => 
-    startOfWeek(new Date(selectedDate), { weekStartsOn: 1 }) // Monday start
-  );
-
   const selectedDateObj = new Date(selectedDate);
   const today = new Date();
-
-  const handlePrevWeek = () => setCurrentWeekStart(addDays(currentWeekStart, -7));
-  const handleNextWeek = () => setCurrentWeekStart(addDays(currentWeekStart, 7));
-
-  const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(currentWeekStart, i));
+  
+  // Start week from Monday
+  const weekStart = startOfWeek(selectedDateObj, { weekStartsOn: 1 });
+  
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    return addDays(weekStart, i);
+  });
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handlePrevWeek} style={styles.navButton}>
-          <ChevronLeft size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.monthLabel}>
-          {format(currentWeekStart, 'MMMM yyyy')}
-        </Text>
-        <TouchableOpacity onPress={handleNextWeek} style={styles.navButton}>
-          <ChevronRight size={24} color={COLORS.textPrimary} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.daysContainer}>
-        {weekDays.map((date) => {
-          const isSelected = isSameDay(date, selectedDateObj);
-          const isCurrentToday = isSameDay(date, today);
-
-          return (
-            <TouchableOpacity
-              key={date.toISOString()}
-              style={[
-                styles.dayButton,
-                isSelected && styles.dayButtonSelected,
-              ]}
-              onPress={() => onDateChange(format(date, 'yyyy-MM-dd'))}
-            >
-              <Text style={[
-                styles.dayName,
-                isSelected && styles.textSelected,
-              ]}>
-                {format(date, 'EEE')}
-              </Text>
-              <View style={[
-                styles.dateCircle,
-                isCurrentToday && !isSelected && styles.dateCircleToday,
-              ]}>
-                <Text style={[
-                  styles.dayNumber,
-                  isSelected && styles.textSelected,
-                  isCurrentToday && !isSelected && styles.textToday,
-                ]}>
-                  {format(date, 'd')}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {weekDays.map((date, i) => {
+        const isSelected = isSameDay(date, selectedDateObj);
+        const isToday = isSameDay(date, today);
+        
+        return (
+          <TouchableOpacity
+            key={i}
+            onPress={() => onDateChange(format(date, 'yyyy-MM-dd'))}
+            style={[
+              styles.dayButton,
+              isSelected && styles.dayButtonSelected,
+            ]}
+          >
+            <Text style={[
+              styles.dayName,
+              isSelected ? styles.textSelectedLight : styles.textUnselected
+            ]}>
+              {format(date, 'EEE')}
+            </Text>
+            
+            <Text style={[
+              styles.dayNumber,
+              isSelected ? styles.textSelected : isToday ? styles.textToday : styles.textPrimary
+            ]}>
+              {format(date, 'd')}
+            </Text>
+            
+            {isToday && !isSelected && <View style={styles.todayDot} />}
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.surface,
-    paddingVertical: SPACING.md,
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-  },
-  navButton: {
-    padding: SPACING.xs,
-  },
-  monthLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  daysContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
+    borderBottomColor: '#F1F5F9',
+    gap: 4,
   },
   dayButton: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING.sm,
-    width: 44,
-    borderRadius: RADIUS.lg,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
   },
   dayButtonSelected: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#2563EB',
   },
   dayName: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: COLORS.textSecondary,
-    marginBottom: 4,
+    fontSize: 10,
+    fontWeight: '600',
   },
-  dateCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  textUnselected: {
+    color: '#64748B',
   },
-  dateCircleToday: {
-    backgroundColor: 'rgba(239,68,68,0.1)', // Light red
+  textSelectedLight: {
+    color: 'rgba(255,255,255,0.8)',
   },
   dayNumber: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  textPrimary: {
+    color: '#0F172A',
   },
   textSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: '#fff',
   },
   textToday: {
-    color: COLORS.danger,
-    fontWeight: '700',
+    color: '#2563EB',
+  },
+  todayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#2563EB',
+    marginTop: 2,
   },
 });

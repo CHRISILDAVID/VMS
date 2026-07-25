@@ -8,6 +8,7 @@ import { VenueSelector } from '../../components/domain/VenueSelector';
 import { DateSelector } from '../../features/schedule/components/DateSelector';
 import { TimelineGrid } from '../../features/schedule/components/TimelineGrid';
 import { SlotBottomSheet } from '../../features/schedule/components/SlotBottomSheet';
+import { SpeedDialFAB } from '../../features/schedule/components/SpeedDialFAB';
 import { useSchedule } from '../../features/schedule/hooks/useSchedule';
 import { useCourts } from '../../hooks/useCourts';
 import { useVenueStore } from '../../stores/venueStore';
@@ -22,22 +23,33 @@ export default function ScheduleScreen() {
     format(new Date(), 'yyyy-MM-dd')
   );
   
-  const [selectedSlot, setSelectedSlot] = useState<ProcessedSlot | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   const { data: scheduleData, isLoading: isLoadingSchedule } = useSchedule(selectedDateStr);
   const { data: courts, isLoading: isLoadingCourts } = useCourts(selectedVenueId);
 
-  const handleSlotPress = useCallback((slot: ProcessedSlot, court: Court) => {
+  const handleSlotPress = useCallback((slot: any, court: Court) => {
     setSelectedSlot(slot);
     setSelectedCourt(court);
+    setSelectedHour(slot.startHour);
+    bottomSheetRef.current?.expand();
+  }, []);
+
+  const handleEmptyTap = useCallback((court: Court, hour: number) => {
+    setSelectedSlot(null);
+    setSelectedCourt(court);
+    setSelectedHour(hour);
     bottomSheetRef.current?.expand();
   }, []);
 
   const handleCloseBottomSheet = useCallback(() => {
     setSelectedSlot(null);
     setSelectedCourt(null);
+    setSelectedHour(null);
+    bottomSheetRef.current?.close();
   }, []);
 
   const isLoading = isLoadingSchedule || isLoadingCourts;
@@ -77,14 +89,18 @@ export default function ScheduleScreen() {
             memberships={scheduleData?.membershipBlocks || []}
             dateStr={selectedDateStr}
             onSlotPress={handleSlotPress}
+            onEmptyTap={handleEmptyTap}
           />
         )}
       </View>
+
+      <SpeedDialFAB />
 
       <SlotBottomSheet
         ref={bottomSheetRef}
         slot={selectedSlot}
         court={selectedCourt}
+        hour={selectedHour}
         onClose={handleCloseBottomSheet}
       />
     </SafeAreaView>

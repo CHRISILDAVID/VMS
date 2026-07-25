@@ -1,21 +1,43 @@
 import React, { forwardRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Court } from '@vms/shared/types';
-import { ProcessedSlot } from '../utils/scheduleHelpers';
-import { COLORS, SPACING, RADIUS } from '@vms/shared/utils';
+import { Eye, Pencil, CalendarPlus, Ban, Trophy, GraduationCap, Wrench, X } from 'lucide-react-native';
+import { COLORS } from '@vms/shared/utils';
 
 interface SlotBottomSheetProps {
-  slot: ProcessedSlot | null;
+  slot: any | null;
   court: Court | null;
+  hour: number | null;
   onClose: () => void;
 }
 
 export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
-  ({ slot, court, onClose }, ref) => {
-    const snapPoints = useMemo(() => ['40%', '50%'], []);
+  ({ slot, court, hour, onClose }, ref) => {
+    const snapPoints = useMemo(() => ['50%', '75%'], []);
 
-    if (!slot || !court) return null;
+    const actions = useMemo(() => {
+      if (slot) {
+        return [
+          { icon: Eye, label: 'View Booking', color: '#2563EB' },
+          { icon: Pencil, label: 'Edit Booking', color: '#0F172A' },
+          { icon: CalendarPlus, label: 'New Booking', color: '#16A34A' },
+          { icon: Ban, label: 'Block Slot', color: '#DC2626' },
+          { icon: Trophy, label: 'Tournament', color: '#7C3AED' },
+          { icon: GraduationCap, label: 'Coaching', color: '#D97706' },
+          { icon: Wrench, label: 'Maintenance', color: '#64748B' },
+        ];
+      }
+      return [
+        { icon: CalendarPlus, label: 'New Booking', color: '#2563EB' },
+        { icon: Ban, label: 'Block Slot', color: '#DC2626' },
+        { icon: Trophy, label: 'Tournament', color: '#7C3AED' },
+        { icon: GraduationCap, label: 'Coaching', color: '#D97706' },
+        { icon: Wrench, label: 'Maintenance', color: '#64748B' },
+      ];
+    }, [slot]);
+
+    if (!court || hour === null) return null;
 
     return (
       <BottomSheet
@@ -28,43 +50,41 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
           <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
         )}
         backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.handleIndicator}
       >
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>{court.name}</Text>
-          <Text style={styles.time}>{slot.time}</Text>
-          
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(slot.status) }]}>
-            <Text style={styles.statusText}>{slot.status.toUpperCase()}</Text>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.titleText}>
+                {court.name} · {hour}:00
+              </Text>
+              {slot && (
+                <Text style={styles.subtitleText}>
+                  {slot.label} · {slot.duration}h
+                </Text>
+              )}
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <X size={16} color="#64748B" />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.actionsContainer}>
-            {slot.status === 'available' && (
-              <>
-                <TouchableOpacity style={[styles.button, styles.primaryButton]}>
-                  <Text style={styles.buttonText}>New Booking</Text>
+          <View style={styles.actionsList}>
+            {actions.map((action, i) => {
+              const Icon = action.icon;
+              return (
+                <TouchableOpacity 
+                  key={i} 
+                  style={styles.actionButton}
+                  onPress={onClose} // Placeholder action
+                >
+                  <View style={styles.iconContainer}>
+                    <Icon size={18} color={action.color} />
+                  </View>
+                  <Text style={styles.actionLabel}>{action.label}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.secondaryButton]}>
-                  <Text style={styles.secondaryButtonText}>Block Slot</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {slot.status === 'booked' && (
-              <>
-                <TouchableOpacity style={[styles.button, styles.primaryButton]}>
-                  <Text style={styles.buttonText}>View Booking</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.secondaryButton]}>
-                  <Text style={styles.secondaryButtonText}>Cancel Booking</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {slot.status === 'membership' && (
-              <TouchableOpacity style={[styles.button, styles.secondaryButton]}>
-                <Text style={styles.secondaryButtonText}>Release for Today</Text>
-              </TouchableOpacity>
-            )}
+              );
+            })}
           </View>
         </View>
       </BottomSheet>
@@ -74,75 +94,70 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
 
 SlotBottomSheet.displayName = 'SlotBottomSheet';
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'available': return COLORS.success;
-    case 'booked': return COLORS.primary;
-    case 'coaching': return COLORS.warning;
-    case 'tournament': return '#9333ea';
-    case 'membership': return '#0d9488';
-    case 'blocked': return COLORS.danger;
-    default: return COLORS.textMuted;
-  }
-}
-
 const styles = StyleSheet.create({
   bottomSheetBackground: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#fff',
+    borderRadius: 24,
   },
-  contentContainer: {
+  handleIndicator: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#E2E8F0',
+    marginTop: 8,
+  },
+  content: {
     flex: 1,
-    padding: SPACING.lg,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  time: {
+  titleText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.md,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: RADIUS.full,
-    marginBottom: SPACING.xl,
-  },
-  statusText: {
-    color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 12,
+    color: '#0F172A',
   },
-  actionsContainer: {
-    gap: SPACING.md,
+  subtitleText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
   },
-  button: {
-    height: 48,
-    borderRadius: RADIUS.md,
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryButton: {
-    backgroundColor: COLORS.primary,
+  actionsList: {
+    padding: 16,
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginBottom: 4,
   },
-  buttonText: {
-    color: '#FFFFFF',
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionLabel: {
+    fontSize: 15,
     fontWeight: '600',
-    fontSize: 16,
-  },
-  secondaryButtonText: {
-    color: COLORS.textPrimary,
-    fontWeight: '600',
-    fontSize: 16,
+    color: '#0F172A',
   },
 });

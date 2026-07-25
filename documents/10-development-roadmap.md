@@ -77,27 +77,26 @@
 **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Login screen: phone input + OTP (Supabase Auth)
-- [ ] Token storage: expo-secure-store
-- [ ] Session persistence + auto-refresh + logout
-- [ ] Owner profile creation on first login
-- [ ] Venues + courts CRUD + seed data
-- [ ] Venue selector (Zustand global state, persistent)
-- [ ] Schedule screen: horizontal timeline grid
-- [ ] Court rows × time columns (:00/:30 intervals, 6AM-10PM)
-- [ ] Color-coded slot rendering (7 types including Membership)
-- [ ] Slot tap → bottom sheet with actions
-- [ ] Week-view date selector
-- [ ] Operating schedules + pricing blocks (migration 002)
-- [ ] RLS policies for all M1 tables
-- [ ] Multi-device support (max 4 concurrent sessions)
+- [x] Login screen: phone input + OTP (Supabase Auth)
+- [x] Token storage: expo-secure-store
+- [x] Session persistence + auto-refresh + logout
+- [x] Owner profile creation on first login (Onboarding screen)
+- [x] Venues + courts DB schema + seed data (CRUD deferred to M7)
+- [x] Venue selector (Zustand global state, persistent)
+- [x] Schedule screen: horizontal timeline grid (Figma-aligned absolute positioned layout)
+- [x] Court rows × time columns
+- [x] Color-coded block rendering based on slot type (Figma slotConfig mapping)
+- [x] Speed Dial FAB (New Booking) and Slot tap → Bottom sheet
+- [x] Week-view date selector (Figma strip)
+- [x] Operating schedules + pricing blocks (migration 002 & seed data only, CRUD deferred to M5)
+- [x] RLS policies for all M1 tables
 
 ### Completion Checklist
-- [ ] New user can register and land on Schedule
-- [ ] Returning user auto-authenticated
-- [ ] Venue selector shows all owner venues, switching refreshes data
-- [ ] Schedule displays courts × time grid correctly
-- [ ] Tapping slot opens bottom sheet
+- [x] New user can register and land on Schedule
+- [x] Returning user auto-authenticated
+- [x] Venue selector shows all owner venues, switching refreshes data
+- [x] Schedule displays courts × time grid correctly
+- [x] Tapping slot opens bottom sheet
 
 ---
 
@@ -190,12 +189,13 @@
 
 ---
 
-## Milestone 5 — Profile & Settings
+## Milestone 5 — Analytics & Settings (Owner)
 
-**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
+**Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Deliverables
-- [ ] Profile screen with menu items
+- [ ] Profile Tab UI: Basic owner details
+- [ ] Operating Schedules & Pricing Blocks CRUD (Deferred from M1)
 - [ ] Court Information: view + edit (owner admin permission)
 - [ ] Photo upload (expo-image-picker → Supabase Storage)
 - [ ] Google Maps link

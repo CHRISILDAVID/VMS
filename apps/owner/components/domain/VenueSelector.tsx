@@ -35,18 +35,11 @@ export function VenueSelector() {
         style={styles.container} 
         onPress={() => setModalVisible(true)}
       >
-        <View style={styles.iconContainer}>
-          <MapPin size={20} color={COLORS.primary} />
-        </View>
-        <View style={styles.textContainer}>
-          <Text style={styles.label}>Current Venue</Text>
-          <View style={styles.nameRow}>
-            <Text style={styles.venueName} numberOfLines={1}>
-              {selectedVenue.name}
-            </Text>
-            <ChevronDown size={16} color={COLORS.textSecondary} />
-          </View>
-        </View>
+        <MapPin size={14} color="#2563EB" />
+        <Text style={styles.venueName} numberOfLines={1}>
+          {selectedVenue.name}
+        </Text>
+        <ChevronDown size={14} color="#2563EB" />
       </TouchableOpacity>
 
       <Modal
@@ -102,33 +95,20 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.md,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#EFF6FF', // Light blue background
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  iconContainer: {
-    marginRight: SPACING.sm,
-  },
-  textContainer: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 2,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    borderColor: '#BFDBFE', // Light blue border
+    gap: 6,
+    maxWidth: '60%', // Prevent taking up the whole header
   },
   venueName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: '#2563EB',
+    flexShrink: 1, // Shrink text with ellipsis if too long
   },
   noVenues: {
     color: COLORS.textSecondary,
