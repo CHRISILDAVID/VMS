@@ -14,5 +14,9 @@
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"
+  },
+  "pnpm": {
+    "minimumReleaseAge": 0,
+    "minimumReleaseAgeExclude": ["*", "undici"]
   }
 }
