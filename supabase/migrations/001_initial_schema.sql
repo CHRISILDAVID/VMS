@@ -108,21 +108,28 @@ ALTER TABLE owners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE venues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE courts ENABLE ROW LEVEL SECURITY;
 
+-- Function to check super_admin without recursion
+CREATE OR REPLACE FUNCTION is_super_admin()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.owners WHERE id = auth.uid() AND role = 'super_admin'
+  );
+END;
+$$;
+
 -- Super-admin: full access to all tables
 CREATE POLICY "Super-admin full access on owners" ON owners
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM owners o WHERE o.id = auth.uid() AND o.role = 'super_admin')
-  );
+  FOR ALL USING (is_super_admin());
 
 CREATE POLICY "Super-admin full access on venues" ON venues
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM owners o WHERE o.id = auth.uid() AND o.role = 'super_admin')
-  );
+  FOR ALL USING (is_super_admin());
 
 CREATE POLICY "Super-admin full access on courts" ON courts
-  FOR ALL USING (
-    EXISTS (SELECT 1 FROM owners o WHERE o.id = auth.uid() AND o.role = 'super_admin')
-  );
+  FOR ALL USING (is_super_admin());
 
 -- Owners: see/edit own data
 CREATE POLICY "Owners see own record" ON owners
@@ -130,6 +137,9 @@ CREATE POLICY "Owners see own record" ON owners
 
 CREATE POLICY "Owners update own record" ON owners
   FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Owners insert own record" ON owners
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Owners: see/manage own venues
 CREATE POLICY "Owners see own venues" ON venues

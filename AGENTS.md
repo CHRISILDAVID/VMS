@@ -50,3 +50,7 @@ VMS/
 
 - **Owner App:** NativeWind (Tailwind CSS for React Native)
 - **Admin Panel:** Tailwind CSS v4
+
+## Design Reference (Important Rule)
+
+When designing frontend pages (especially in the Owner App or Admin Panel), **always refer to the `reference/` folder**. This folder contains the initial Figma exports from the founder. Do not invent random UI designs or layouts without first consulting this reference. The goal is to perfectly match the original intent shown in `reference/figma-src`.

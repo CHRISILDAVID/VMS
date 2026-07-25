@@ -1,1 +1,1 @@
-export { getSupabaseClient, resetSupabaseClient } from './supabase'
+export { getSupabaseClient } from './supabase'

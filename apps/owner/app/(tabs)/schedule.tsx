@@ -1,19 +1,92 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useRef, useCallback } from 'react';
+import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '@vms/shared/utils';
+import { format } from 'date-fns';
+import BottomSheet from '@gorhom/bottom-sheet';
+
+import { VenueSelector } from '../../components/domain/VenueSelector';
+import { DateSelector } from '../../features/schedule/components/DateSelector';
+import { TimelineGrid } from '../../features/schedule/components/TimelineGrid';
+import { SlotBottomSheet } from '../../features/schedule/components/SlotBottomSheet';
+import { useSchedule } from '../../features/schedule/hooks/useSchedule';
+import { useCourts } from '../../hooks/useCourts';
+import { useVenueStore } from '../../stores/venueStore';
+import { ProcessedSlot } from '../../features/schedule/utils/scheduleHelpers';
+import { Court } from '@vms/shared/types';
+import { COLORS, SPACING } from '@vms/shared/utils';
 
 export default function ScheduleScreen() {
+  const { selectedVenueId } = useVenueStore();
+  
+  const [selectedDateStr, setSelectedDateStr] = useState(() => 
+    format(new Date(), 'yyyy-MM-dd')
+  );
+  
+  const [selectedSlot, setSelectedSlot] = useState<ProcessedSlot | null>(null);
+  const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
+  const { data: scheduleData, isLoading: isLoadingSchedule } = useSchedule(selectedDateStr);
+  const { data: courts, isLoading: isLoadingCourts } = useCourts(selectedVenueId);
+
+  const handleSlotPress = useCallback((slot: ProcessedSlot, court: Court) => {
+    setSelectedSlot(slot);
+    setSelectedCourt(court);
+    bottomSheetRef.current?.expand();
+  }, []);
+
+  const handleCloseBottomSheet = useCallback(() => {
+    setSelectedSlot(null);
+    setSelectedCourt(null);
+  }, []);
+
+  const isLoading = isLoadingSchedule || isLoadingCourts;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Schedule</Text>
-        <Text style={styles.subtitle}>Court timeline view</Text>
+        <VenueSelector />
       </View>
+
+      {/* Date Selector */}
+      <DateSelector 
+        selectedDate={selectedDateStr} 
+        onDateChange={setSelectedDateStr} 
+      />
+
+      {/* Grid */}
       <View style={styles.content}>
-        <Text style={styles.placeholder}>🏸</Text>
-        <Text style={styles.placeholderText}>Court schedule will appear here</Text>
-        <Text style={styles.milestone}>Coming in Milestone 1</Text>
+        {!selectedVenueId ? (
+          <View style={styles.centerContainer}>
+            <Text style={styles.messageText}>Please select a venue first.</Text>
+          </View>
+        ) : isLoading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+        ) : (!courts || courts.length === 0) ? (
+          <View style={styles.centerContainer}>
+            <Text style={styles.messageText}>No courts found for this venue.</Text>
+          </View>
+        ) : (
+          <TimelineGrid
+            courts={courts}
+            bookings={scheduleData?.bookings || []}
+            memberships={scheduleData?.membershipBlocks || []}
+            dateStr={selectedDateStr}
+            onSlotPress={handleSlotPress}
+          />
+        )}
       </View>
+
+      <SlotBottomSheet
+        ref={bottomSheetRef}
+        slot={selectedSlot}
+        court={selectedCourt}
+        onClose={handleCloseBottomSheet}
+      />
     </SafeAreaView>
   );
 }
@@ -24,41 +97,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
     backgroundColor: COLORS.surface,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     color: COLORS.textPrimary,
   },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
   content: {
     flex: 1,
-    alignItems: 'center',
+  },
+  centerContainer: {
+    flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    alignItems: 'center',
   },
-  placeholder: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  placeholderText: {
+  messageText: {
     fontSize: 16,
+    fontWeight: '600',
     color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
-  milestone: {
-    fontSize: 13,
-    color: COLORS.textMuted,
-    marginTop: 8,
   },
 });

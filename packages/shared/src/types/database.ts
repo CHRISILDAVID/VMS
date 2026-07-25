@@ -78,6 +78,23 @@ export interface Court extends BaseEntity {
   is_active: boolean
 }
 
+export interface OperatingSchedule extends BaseEntity {
+  venue_id: string
+  day_of_week: DayOfWeek
+  is_closed: boolean
+  is_24h: boolean
+}
+
+export interface PricingBlock extends BaseEntity {
+  schedule_id: string
+  start_time: string
+  end_time: string
+  price_per_hour: number
+  court_ids: string[]
+  is_active: boolean
+  sort_order: number
+}
+
 // --- Bookings ---
 
 export interface Customer extends BaseEntity {
