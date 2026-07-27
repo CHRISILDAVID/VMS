@@ -2,7 +2,7 @@ import React, { forwardRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Court } from '@vms/shared/types';
-import { Eye, Pencil, CalendarPlus, Ban, Trophy, GraduationCap, X } from 'lucide-react-native';
+import { Eye, Pencil, CalendarPlus, Ban, Trophy, GraduationCap, X, Users, Unlock } from 'lucide-react-native';
 import { COLORS } from '@vms/shared/utils';
 import { isHourPast } from '../utils/scheduleHelpers';
 
@@ -28,11 +28,20 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
     const actions = useMemo(() => {
       if (isPast) {
         if (slot) {
+          if (slot.status === 'membership') {
+            return [{ icon: Users, label: 'View Membership', color: '#15803D' }];
+          }
           return [{ icon: Eye, label: 'View Booking', color: '#2563EB' }];
         }
         return [];
       }
       if (slot) {
+        if (slot.status === 'membership') {
+          return [
+            { icon: Users, label: 'View Membership', color: '#15803D' },
+            { icon: Unlock, label: 'Release Slot', color: '#DC2626' },
+          ];
+        }
         return [
           { icon: Eye, label: 'View Booking', color: '#2563EB' },
           { icon: Pencil, label: 'Edit Booking', color: '#0F172A' },

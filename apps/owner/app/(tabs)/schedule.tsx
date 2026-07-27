@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -14,12 +14,14 @@ import { useSchedule } from '../../features/schedule/hooks/useSchedule';
 import { useCourts } from '../../hooks/useCourts';
 import { useVenueStore } from '../../stores/venueStore';
 import { ProcessedSlot } from '../../features/schedule/utils/scheduleHelpers';
+import { useReleaseSlot } from '../../features/members/hooks/useMemberships';
 import { Court } from '@vms/shared/types';
 import { COLORS, SPACING } from '@vms/shared/utils';
 
 export default function ScheduleScreen() {
   const router = useRouter();
   const { selectedVenueId } = useVenueStore();
+  const releaseSlotMutation = useReleaseSlot();
   
   const [selectedDateStr, setSelectedDateStr] = useState(() => 
     format(new Date(), 'yyyy-MM-dd')
@@ -69,8 +71,41 @@ export default function ScheduleScreen() {
       }
     } else if (actionLabel === 'New Booking') {
       router.push(`/booking/new?courtId=${court.id}&hour=${hour}&date=${selectedDateStr}` as any);
+    } else if (actionLabel === 'View Membership') {
+      if (slot?.membership?.id) {
+        router.push(`/members?slotId=${slot.membership.id}` as any);
+      } else {
+        router.push('/members' as any);
+      }
+    } else if (actionLabel === 'Release Slot') {
+      if (slot?.membership?.id) {
+        Alert.alert(
+          'Release Slot',
+          `Are you sure you want to release this membership slot for walk-in bookings on ${selectedDateStr}?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Release',
+              style: 'destructive',
+              onPress: () => {
+                releaseSlotMutation.mutate(
+                  { slotId: slot.membership.id, releaseDate: selectedDateStr },
+                  {
+                    onSuccess: () => {
+                      Alert.alert('Success', 'Slot released for this date.');
+                    },
+                    onError: (err: any) => {
+                      Alert.alert('Error', err.message || 'Failed to release slot.');
+                    },
+                  }
+                );
+              },
+            },
+          ]
+        );
+      }
     }
-  }, [router, selectedDateStr]);
+  }, [router, selectedDateStr, releaseSlotMutation]);
 
   const isLoading = isLoadingSchedule || isLoadingCourts;
 

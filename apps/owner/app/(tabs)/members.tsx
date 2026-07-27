@@ -1,33 +1,217 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '@vms/shared/utils';
+import { Plus } from 'lucide-react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { MembershipSlotWithDetails } from '@vms/shared/services';
+import { useMembershipSlots, useApplications, useGuestPlays } from '../../features/members/hooks/useMemberships';
+import { SummaryCards } from '../../features/members/components/SummaryCards';
+import { SlotsTab } from '../../features/members/components/SlotsTab';
+import { ApplicationsTab } from '../../features/members/components/ApplicationsTab';
+import { GuestPlayTab } from '../../features/members/components/GuestPlayTab';
+import { MembersListTab } from '../../features/members/components/MembersListTab';
+import { SlotMembersView } from '../../features/members/components/SlotMembersView';
+import { CreateSlotSheet } from '../../features/members/components/CreateSlotSheet';
+
+const TABS = ['Slots', 'Applications', 'Guest Play', 'Members'] as const;
+type Tab = typeof TABS[number];
 
 export default function MembersScreen() {
+  const [tab, setTab] = useState<Tab>('Slots');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<MembershipSlotWithDetails | null>(null);
+  const [viewingSlot, setViewingSlot] = useState<MembershipSlotWithDetails | null>(null);
+
+  const { data: slots = [] } = useMembershipSlots();
+  const { data: applications = [] } = useApplications();
+  const { data: upcomingGuestPlays = [] } = useGuestPlays('upcoming');
+
+  const params = useLocalSearchParams<{ slotId?: string }>();
+  const [handledParamId, setHandledParamId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (params.slotId && params.slotId !== handledParamId && slots.length > 0) {
+      const found = slots.find(s => s.id === params.slotId);
+      if (found) {
+        setViewingSlot(found);
+        setHandledParamId(params.slotId);
+      }
+    }
+  }, [params.slotId, handledParamId, slots]);
+
+  const pendingAppsCount = applications.filter(a => a.status === 'pending' || a.status === 'invited_guest' || !a.status).length;
+  const upcomingGuestCount = upcomingGuestPlays.length;
+
+  if (viewingSlot) {
+    const latestSlot = slots.find(s => s.id === viewingSlot.id) || viewingSlot;
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <SlotMembersView
+          slot={latestSlot}
+          allSlots={slots}
+          onBack={() => setViewingSlot(null)}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Members</Text>
-        <Text style={styles.subtitle}>Membership management</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.title}>Members</Text>
+            <Text style={styles.subtitle}>Membership management</Text>
+          </View>
+          {tab === 'Slots' && (
+            <TouchableOpacity style={styles.newBtn} onPress={() => setCreateOpen(true)}>
+              <Plus size={15} color="#fff" />
+              <Text style={styles.newBtnText}>New Slot</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.tabsRow}>
+          {TABS.map(t => {
+            const badge = t === 'Applications' ? pendingAppsCount : t === 'Guest Play' ? upcomingGuestCount : 0;
+            const isSelected = tab === t;
+
+            return (
+              <TouchableOpacity
+                key={t}
+                style={[styles.tabBtn, isSelected && styles.tabBtnSelected]}
+                onPress={() => setTab(t)}
+              >
+                <View style={styles.tabContent}>
+                  <Text style={[styles.tabText, isSelected && styles.tabTextSelected]}>{t}</Text>
+                  {badge > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>{badge}</Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
+
+      {/* Summary cards */}
+      <SummaryCards slots={slots} pendingAppsCount={pendingAppsCount} />
+
+      {/* Tab content */}
       <View style={styles.content}>
-        <Text style={styles.placeholder}>👥</Text>
-        <Text style={styles.placeholderText}>Membership slots and members will appear here</Text>
-        <Text style={styles.milestone}>Coming in Milestone 3</Text>
+        {tab === 'Slots' && (
+          <SlotsTab
+            slots={slots}
+            onCreateSlot={() => setCreateOpen(true)}
+            onEditSlot={s => setEditingSlot(s)}
+            onViewMembers={s => setViewingSlot(s)}
+          />
+        )}
+        {tab === 'Applications' && <ApplicationsTab />}
+        {tab === 'Guest Play' && <GuestPlayTab />}
+        {tab === 'Members' && <MembersListTab slots={slots} onViewSlotMembers={s => setViewingSlot(s)} />}
       </View>
+
+      {/* Create Slot Modal */}
+      <CreateSlotSheet
+        visible={createOpen || !!editingSlot}
+        onClose={() => {
+          setCreateOpen(false);
+          setEditingSlot(null);
+        }}
+        slotToEdit={editingSlot}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: {
-    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12,
-    backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.border,
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary },
-  subtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 2 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  placeholder: { fontSize: 64, marginBottom: 16 },
-  placeholderText: { fontSize: 16, color: COLORS.textSecondary, textAlign: 'center' },
-  milestone: { fontSize: 13, color: COLORS.textMuted, marginTop: 8 },
+  header: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  subtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  newBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  newBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  tabsRow: {
+    flexDirection: 'row',
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    marginBottom: -1,
+  },
+  tabBtnSelected: {
+    borderBottomColor: '#2563EB',
+  },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  tabTextSelected: {
+    color: '#2563EB',
+    fontWeight: '700',
+  },
+  badge: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 10,
+    minWidth: 16,
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  content: {
+    flex: 1,
+  },
 });

@@ -176,3 +176,33 @@ export interface MembershipPayment {
   created_at: string
   updated_at: string
 }
+
+export interface MembershipSlotRelease extends BaseEntity {
+  slot_id: string
+  release_date: string
+  released_by: string
+}
+
+export interface MembershipApplication extends BaseEntity {
+  slot_id: string
+  applicant_name: string
+  phone: string
+  photo_url: string | null
+  skill_level: SkillLevel | null
+  experience: string | null
+  preferred_days: DayOfWeek[] | null
+  status: ApplicationStatus
+  reviewed_at: string | null
+  reviewed_by: string | null
+}
+
+export interface GuestPlay extends BaseEntity {
+  slot_id: string
+  application_id: string | null
+  player_name: string
+  phone: string
+  scheduled_date: string
+  status: GuestPlayStatus
+  notes: string | null
+}
+

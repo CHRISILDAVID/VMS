@@ -37,7 +37,7 @@ export function processBookingsToBlocks(
   const blocks: any[] = [];
 
   const courtBookings = bookings.filter((b) => b.court_id === court.id);
-  const courtMemberships = memberships.filter((m) => m.court_id === court.id);
+  const courtMemberships = memberships.filter((m) => !m.court_id || m.court_id === court.id);
 
   const addBlock = (startTime: string, endTime: string, status: SlotStatus, label: string, data?: any) => {
     // Parse time strings (e.g. "06:00:00")
@@ -82,7 +82,7 @@ export function processBookingsToBlocks(
   });
 
   courtMemberships.forEach((m) => {
-    addBlock(m.start_time, m.end_time, 'membership', 'Membership', m);
+    addBlock(m.start_time, m.end_time, 'membership', m.name || 'Membership', m);
   });
 
   return blocks;
@@ -141,14 +141,14 @@ export function getSlotStatus(
 
   // Check memberships
   const membership = memberships.find(m => {
-    if (m.court_id !== courtId) return false;
+    if (m.court_id && m.court_id !== courtId) return false;
     const mStart = m.start_time.substring(0, 5);
     const mEnd = m.end_time.substring(0, 5);
     return timeStr >= mStart && timeStr < mEnd;
   });
 
   if (membership) {
-    return { status: 'membership', label: 'Membership', membership };
+    return { status: 'membership', label: membership.name || 'Membership', membership };
   }
 
   return { status: 'available' };
