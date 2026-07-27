@@ -188,10 +188,12 @@ export default function NewBookingWizardScreen() {
 
       // Trigger WhatsApp if checked and customer has phone
       if (sendWhatsapp && selectedCustomer.phone) {
+        const cleanPhone = selectedCustomer.phone.replace(/\D/g, '');
+        const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
         const courtName = courts?.find(c => c.id === selectedCourtId)?.name || 'Court';
         const msg = `Hi ${selectedCustomer.full_name}, your booking (${created.booking_number}) is confirmed for ${selectedDate} at ${selectedTime.slice(0, 5)} on ${courtName}. Total: ₹${finalTotalRs}. Thank you!`;
-        Linking.openURL(`whatsapp://send?phone=${selectedCustomer.phone}&text=${encodeURIComponent(msg)}`).catch(() => {
-          console.log('WhatsApp not installed on device, skipping auto-launch.');
+        Linking.openURL(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`).catch(() => {
+          console.log('WhatsApp or browser could not be opened on device, skipping auto-launch.');
         });
       }
 

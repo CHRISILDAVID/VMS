@@ -60,6 +60,6 @@ Before taking any action or writing code, you MUST adhere to the following rules
    When developing or fixing features in mobile applications (`apps/owner/`):
    - **Always verify changes on the Android Emulator.** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
    - **Never assume a bug fix or feature is complete without E2E verification.** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the feature works as intended.
-3. **Database**: Track any database schema changes with proper numbered migrations in `supabase/migrations/`.
+3. **Database**: Track any database schema changes with proper numbered migrations in `supabase/         migrations/` and numbered seed query files.
 
-Good luck! Start by checking out the roadmap and formulating an Implementation Plan for Milestone 3, I will review the plan after which we will start development!
+Good luck! Start by checking out the roadmap and formulating an Implementation Plan for Milestone 3(Membership Management), I will review the plan after which we will start development!

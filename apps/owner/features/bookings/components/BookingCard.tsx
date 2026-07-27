@@ -48,9 +48,11 @@ export function BookingCard({ booking, onPress, onCollectPress }: BookingCardPro
 
   const handleWhatsAppPress = () => {
     if (phone) {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
       const msg = `Hi ${customerName}, regarding your badminton booking ${booking.booking_number} on ${booking.date} at ${formattedStart} at ${booking.court?.name || 'our venue'}.`;
-      Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
-        Alert.alert('WhatsApp Not Installed', 'Could not open WhatsApp on this device.');
+      Linking.openURL(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`).catch(() => {
+        Alert.alert('Error', 'Could not open WhatsApp or browser on this device.');
       });
     }
   };
