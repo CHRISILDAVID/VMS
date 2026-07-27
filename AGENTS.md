@@ -58,5 +58,9 @@ When designing frontend pages (especially in the Owner App or Admin Panel), **al
 ## Mobile App Testing Rule (Important Rule)
 
 When developing or fixing features in mobile applications (such as the Owner App in `apps/owner/`):
-- **Always verify changes on the Android Emulator:** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
-- **Never assume a bug fix is complete without E2E verification:** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the issue is actually resolved.
+- **Always verify changes on the Android Emulator.** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
+- **Never assume a bug fix or feature is complete without E2E verification.** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the issue is actually resolved.
+
+## Database Tracking (Important Rule)
+
+Track any database schema changes with proper numbered migrations in `supabase/migrations/` and numbered seed query files.

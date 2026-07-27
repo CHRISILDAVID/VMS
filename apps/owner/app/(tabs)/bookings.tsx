@@ -93,6 +93,11 @@ export default function BookingsScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Bookings</Text>
+          <VenueSelector />
+        </View>
+
+        {/* New Booking Button Row (right below venue filter) */}
+        <View style={styles.newBtnRow}>
           <TouchableOpacity
             style={styles.newBtn}
             onPress={() => router.push('/booking/new' as any)}
@@ -100,11 +105,6 @@ export default function BookingsScreen() {
             <Plus size={18} color="#fff" />
             <Text style={styles.newBtnText}>New</Text>
           </TouchableOpacity>
-        </View>
-
-        {/* Venue Selector Row */}
-        <View style={styles.venueRow}>
-          <VenueSelector />
         </View>
 
         {/* Search Bar & Filter Button */}
@@ -223,14 +223,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F172A',
   },
-  venueRow: {
+  newBtnRow: {
     flexDirection: 'row',
+    justifyContent: 'flex-end',
     marginBottom: 12,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   newBtn: {
     flexDirection: 'row',

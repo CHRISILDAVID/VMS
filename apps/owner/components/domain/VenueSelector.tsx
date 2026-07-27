@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BFDBFE', // Light blue border
     gap: 6,
-    maxWidth: '85%', // Allow enough space for full venue names without overflowing screen edges
+    maxWidth: '65%', // Fit cleanly beside page titles (Bookings, Schedule) without overlapping
   },
   venueName: {
     fontSize: 13,
