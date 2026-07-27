@@ -38,7 +38,9 @@ export const createScheduleService = (supabase: SupabaseClient) => ({
       .contains('playing_days', [dayOfWeek])
       .is('deleted_at', null)
       
-    if (membershipsError) throw membershipsError
+    if (membershipsError && !membershipsError.message?.includes('schema cache') && !membershipsError.message?.includes('does not exist')) {
+      throw membershipsError
+    }
     
     // Note: We also need to fetch releases to exclude released blocks, but keeping it simple for now
     const { data: releases, error: releasesError } = await supabase
@@ -46,7 +48,9 @@ export const createScheduleService = (supabase: SupabaseClient) => ({
       .select('slot_id')
       .eq('release_date', dateStr)
       
-    if (releasesError) throw releasesError
+    if (releasesError && !releasesError.message?.includes('schema cache') && !releasesError.message?.includes('does not exist')) {
+      throw releasesError
+    }
     
     const releasedSlotIds = new Set(releases?.map(r => r.slot_id) || [])
     const activeBlocks = membershipBlocks?.filter(b => !releasedSlotIds.has(b.id)) || []

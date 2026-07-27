@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BFDBFE', // Light blue border
     gap: 6,
-    maxWidth: '60%', // Prevent taking up the whole header
+    maxWidth: '85%', // Allow enough space for full venue names without overflowing screen edges
   },
   venueName: {
     fontSize: 13,

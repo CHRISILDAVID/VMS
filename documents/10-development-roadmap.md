@@ -105,31 +105,31 @@
 **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Customers table + search + create (migration 003)
-- [ ] Bookings table with constraints (start :00/:30, whole-hour duration)
-- [ ] Bookings list: tabs (Upcoming/Ongoing/Completed/Cancelled)
-- [ ] Search by name, phone, booking ID
-- [ ] Filter by court, date
-- [ ] BookingCard component
-- [ ] Booking detail screen
-- [ ] Payment status update: dropdown (Pending→Partial→Paid→Refunded→Cancelled) + note
-- [ ] 5-step booking wizard with price auto-calc + override + flat discount
-- [ ] Status transitions (upcoming → ongoing → completed)
-- [ ] Cancel with confirmation
-- [ ] Move booking (change time/court)
-- [ ] Hard-block overlapping bookings + owner force-book override
-- [ ] Schedule → New Booking + FAB → New Booking
-- [ ] Booking source: Offline/Walk-in (immutable)
-- [ ] WhatsApp deep link for confirmation
-- [ ] RLS policies
+- [x] Customers table + search + create (migration 003)
+- [x] Bookings table with constraints (start :00/:30, whole-hour duration)
+- [x] Bookings list: tabs (Upcoming/Ongoing/Completed/Cancelled)
+- [x] Search by name, phone, booking ID
+- [x] Filter by court, date
+- [x] BookingCard component
+- [x] Booking detail screen
+- [x] Payment status update: dropdown (Pending→Partial→Paid→Refunded→Cancelled) + note
+- [x] 5-step booking wizard with price auto-calc + override + flat discount
+- [x] Status transitions (upcoming → ongoing → completed)
+- [x] Cancel with confirmation
+- [x] Move booking (change time/court)
+- [x] Hard-block overlapping bookings + owner force-book override
+- [x] Schedule → New Booking + FAB → New Booking
+- [x] Booking source: Offline/Walk-in (immutable)
+- [x] WhatsApp deep link for confirmation
+- [x] RLS policies
 
 ### Completion Checklist
-- [ ] Can create booking from schedule or FAB
-- [ ] Booking appears on schedule grid
-- [ ] Can search, filter, complete, cancel, edit bookings
-- [ ] Price calculated correctly, owner can override
-- [ ] Payment status changeable post-creation
-- [ ] Double-booking prevented
+- [x] Can create booking from schedule or FAB
+- [x] Booking appears on schedule grid
+- [x] Can search, filter, complete, cancel, edit bookings
+- [x] Price calculated correctly, owner can override
+- [x] Payment status changeable post-creation
+- [x] Double-booking prevented
 
 ---
 

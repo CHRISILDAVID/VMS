@@ -43,6 +43,7 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
         ref={ref}
         index={-1}
         snapPoints={snapPoints}
+        enableDynamicSizing={false}
         enablePanDownToClose
         backdropComponent={(props) => (
           <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />

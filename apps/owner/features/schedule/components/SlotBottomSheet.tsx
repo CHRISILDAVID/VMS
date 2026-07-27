@@ -2,8 +2,9 @@ import React, { forwardRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Court } from '@vms/shared/types';
-import { Eye, Pencil, CalendarPlus, Ban, Trophy, GraduationCap, Wrench, X } from 'lucide-react-native';
+import { Eye, Pencil, CalendarPlus, Ban, Trophy, GraduationCap, X } from 'lucide-react-native';
 import { COLORS } from '@vms/shared/utils';
+import { isHourPast } from '../utils/scheduleHelpers';
 
 interface SlotBottomSheetProps {
   slot: any | null;
@@ -18,7 +19,19 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
   ({ slot, court, hour, dateStr, onClose, onActionPress }, ref) => {
     const snapPoints = useMemo(() => ['50%', '75%'], []);
 
+    const isPast = useMemo(() => {
+      if (slot && slot.isPast !== undefined) return slot.isPast;
+      if (hour !== null && dateStr) return isHourPast(hour, dateStr);
+      return false;
+    }, [slot, hour, dateStr]);
+
     const actions = useMemo(() => {
+      if (isPast) {
+        if (slot) {
+          return [{ icon: Eye, label: 'View Booking', color: '#2563EB' }];
+        }
+        return [];
+      }
       if (slot) {
         return [
           { icon: Eye, label: 'View Booking', color: '#2563EB' },
@@ -27,7 +40,6 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
           { icon: Ban, label: 'Block Slot', color: '#DC2626' },
           { icon: Trophy, label: 'Tournament', color: '#7C3AED' },
           { icon: GraduationCap, label: 'Coaching', color: '#D97706' },
-          { icon: Wrench, label: 'Maintenance', color: '#64748B' },
         ];
       }
       return [
@@ -35,17 +47,15 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
         { icon: Ban, label: 'Block Slot', color: '#DC2626' },
         { icon: Trophy, label: 'Tournament', color: '#7C3AED' },
         { icon: GraduationCap, label: 'Coaching', color: '#D97706' },
-        { icon: Wrench, label: 'Maintenance', color: '#64748B' },
       ];
-    }, [slot]);
-
-    if (!court || hour === null) return null;
+    }, [slot, isPast]);
 
     return (
       <BottomSheet
         ref={ref}
         index={-1}
         snapPoints={snapPoints}
+        enableDynamicSizing={false}
         enablePanDownToClose
         onClose={onClose}
         backdropComponent={(props) => (
@@ -58,7 +68,7 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
           <View style={styles.header}>
             <View>
               <Text style={styles.titleText}>
-                {court.name} · {hour}:00
+                {court ? court.name : 'Select Court'} · {hour !== null ? `${hour}:00` : ''}
               </Text>
               {slot && (
                 <Text style={styles.subtitleText}>
@@ -72,24 +82,32 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
           </View>
 
           <View style={styles.actionsList}>
-            {actions.map((action, i) => {
-              const Icon = action.icon;
-              return (
-                <TouchableOpacity 
-                  key={i} 
-                  style={styles.actionButton}
-                  onPress={() => {
-                    onClose();
-                    onActionPress?.(action.label, slot, court, hour);
-                  }}
-                >
-                  <View style={styles.iconContainer}>
-                    <Icon size={18} color={action.color} />
-                  </View>
-                  <Text style={styles.actionLabel}>{action.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
+            {actions.length === 0 ? (
+              <View style={styles.emptyActionsContainer}>
+                <Text style={styles.emptyActionsText}>Past time slots cannot be modified or booked.</Text>
+              </View>
+            ) : (
+              actions.map((action, i) => {
+                const Icon = action.icon;
+                return (
+                  <TouchableOpacity 
+                    key={i} 
+                    style={styles.actionButton}
+                    onPress={() => {
+                      onClose();
+                      if (court && hour !== null) {
+                        onActionPress?.(action.label, slot, court, hour);
+                      }
+                    }}
+                  >
+                    <View style={styles.iconContainer}>
+                      <Icon size={18} color={action.color} />
+                    </View>
+                    <Text style={styles.actionLabel}>{action.label}</Text>
+                  </TouchableOpacity>
+                );
+              })
+            )}
           </View>
         </View>
       </BottomSheet>
@@ -164,5 +182,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#0F172A',
+  },
+  emptyActionsContainer: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyActionsText: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
   },
 });

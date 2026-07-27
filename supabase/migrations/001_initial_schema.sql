@@ -8,7 +8,7 @@
 CREATE TYPE user_role AS ENUM ('super_admin', 'owner');
 CREATE TYPE booking_status AS ENUM ('upcoming', 'ongoing', 'completed', 'cancelled');
 CREATE TYPE booking_payment_status AS ENUM ('pending', 'partial', 'paid', 'refunded', 'cancelled');
-CREATE TYPE slot_type AS ENUM ('available', 'booked', 'coaching', 'tournament', 'maintenance', 'blocked', 'membership');
+CREATE TYPE slot_type AS ENUM ('available', 'booked', 'coaching', 'tournament', 'blocked', 'membership');
 CREATE TYPE booking_source AS ENUM ('online', 'offline', 'walk_in', 'membership');
 CREATE TYPE court_type AS ENUM ('wooden', 'synthetic', 'cement', 'mat');
 CREATE TYPE membership_pay_status AS ENUM ('paid', 'due', 'overdue');

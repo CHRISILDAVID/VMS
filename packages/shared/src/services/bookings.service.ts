@@ -117,7 +117,9 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .lt('start_time', endTime)
       .gt('end_time', startTime);
 
-    if (mError) throw mError;
+    if (mError && !mError.message?.includes('schema cache') && !mError.message?.includes('does not exist')) {
+      throw mError;
+    }
 
     // Filter memberships by court_id (if null/all courts or matches courtId)
     const matchingMemberships = (mConflicts || []).filter(

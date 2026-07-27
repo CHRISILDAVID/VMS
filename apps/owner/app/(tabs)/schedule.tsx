@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
@@ -34,6 +34,7 @@ export default function ScheduleScreen() {
   const { data: courts, isLoading: isLoadingCourts } = useCourts(selectedVenueId);
 
   const handleSlotPress = useCallback((slot: any, court: Court) => {
+    console.log('handleSlotPress tapped:', slot?.label, court.name);
     setSelectedSlot(slot);
     setSelectedCourt(court);
     setSelectedHour(slot.startHour);
@@ -41,6 +42,7 @@ export default function ScheduleScreen() {
   }, []);
 
   const handleEmptyTap = useCallback((court: Court, hour: number) => {
+    console.log('handleEmptyTap tapped:', court.name, hour);
     setSelectedSlot(null);
     setSelectedCourt(court);
     setSelectedHour(hour);

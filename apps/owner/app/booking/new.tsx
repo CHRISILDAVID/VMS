@@ -156,7 +156,7 @@ export default function NewBookingWizardScreen() {
     const advPaise = Math.round((parseFloat(advanceRs) || 0) * 100);
     const pendingPaise = Math.max(0, totalPaise - advPaise);
 
-    let paymentStatus = 'unpaid';
+    let paymentStatus = 'pending';
     if (pendingPaise === 0 && totalPaise > 0) paymentStatus = 'paid';
     else if (advPaise > 0) paymentStatus = 'partial';
 
@@ -168,12 +168,12 @@ export default function NewBookingWizardScreen() {
       start_time: selectedTime,
       end_time: endTime,
       duration_minutes: selectedDurationMins,
-      total_amount: totalPaise,
-      discount_amount: 0,
+      base_amount: totalPaise,
+      discount: 0,
       final_amount: totalPaise,
       advance: advPaise,
       pending: pendingPaise,
-      status: 'confirmed',
+      status: 'upcoming',
       payment_status: paymentStatus,
       payment_mode: paymentMode,
       source: bookingSource,
@@ -190,7 +190,9 @@ export default function NewBookingWizardScreen() {
       if (sendWhatsapp && selectedCustomer.phone) {
         const courtName = courts?.find(c => c.id === selectedCourtId)?.name || 'Court';
         const msg = `Hi ${selectedCustomer.full_name}, your booking (${created.booking_number}) is confirmed for ${selectedDate} at ${selectedTime.slice(0, 5)} on ${courtName}. Total: ₹${finalTotalRs}. Thank you!`;
-        Linking.openURL(`whatsapp://send?phone=${selectedCustomer.phone}&text=${encodeURIComponent(msg)}`);
+        Linking.openURL(`whatsapp://send?phone=${selectedCustomer.phone}&text=${encodeURIComponent(msg)}`).catch(() => {
+          console.log('WhatsApp not installed on device, skipping auto-launch.');
+        });
       }
 
       setStep(4); // Move to Step 4 (Confirm screen)
@@ -477,7 +479,7 @@ export default function NewBookingWizardScreen() {
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitleText}>PAYMENT METHOD</Text>
               <View style={styles.paymentMethodsRow}>
-                {(['cash', 'upi', 'card', 'other'] as PaymentMode[]).map(m => {
+                {(['cash', 'upi', 'card', 'online'] as PaymentMode[]).map(m => {
                   const active = paymentMode === m;
                   return (
                     <TouchableOpacity
@@ -495,8 +497,9 @@ export default function NewBookingWizardScreen() {
 
               <Text style={[styles.summaryTitleText, { marginTop: 16 }]}>BOOKING SOURCE</Text>
               <View style={styles.sourcesRow}>
-                {['offline', 'online', 'phone', 'walk-in'].map(src => {
+                {['offline', 'online', 'walk_in'].map(src => {
                   const active = bookingSource === src;
+                  const label = src === 'walk_in' ? 'Walk-in' : src.charAt(0).toUpperCase() + src.slice(1);
                   return (
                     <TouchableOpacity
                       key={src}
@@ -504,7 +507,7 @@ export default function NewBookingWizardScreen() {
                       onPress={() => setBookingSource(src)}
                     >
                       <Text style={[styles.sourceText, active && styles.sourceTextActive]}>
-                        {src.charAt(0).toUpperCase() + src.slice(1)}
+                        {label}
                       </Text>
                     </TouchableOpacity>
                   );

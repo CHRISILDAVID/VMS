@@ -9,7 +9,8 @@ import {
   END_HOUR,
   HEADER_HEIGHT,
   ROW_HEIGHT,
-  slotConfig 
+  slotConfig,
+  isHourPast
 } from '../utils/scheduleHelpers';
 
 interface TimelineGridProps {
@@ -77,13 +78,19 @@ export function TimelineGrid({
               <View style={styles.gridArea}>
                 {courts.map(court => (
                   <View key={court.id} style={styles.gridRow}>
-                    {hours.map(h => (
-                      <TouchableOpacity 
-                        key={h} 
-                        style={styles.gridCell}
-                        onPress={() => onEmptyTap(court, h)}
-                      />
-                    ))}
+                    {hours.map(h => {
+                      const past = isHourPast(h, dateStr);
+                      return (
+                        <TouchableOpacity 
+                          key={h} 
+                          style={[styles.gridCell, past && styles.pastGridCell]}
+                          onPress={() => {
+                            if (!past) onEmptyTap(court, h);
+                          }}
+                          activeOpacity={past ? 1 : 0.2}
+                        />
+                      );
+                    })}
                   </View>
                 ))}
 
@@ -107,6 +114,7 @@ export function TimelineGrid({
                           width: block.duration * HOUR_WIDTH - 4,
                           backgroundColor: cfg.bg,
                           borderColor: cfg.border,
+                          opacity: block.isPast ? 0.6 : 1,
                         }
                       ]}
                     >
@@ -134,7 +142,6 @@ export function TimelineGrid({
             booked: 'Booked', 
             coaching: 'Coaching', 
             tournament: 'Tournament', 
-            maintenance: 'Maint.', 
             blocked: 'Blocked',
             membership: 'Member'
           }).map(([k, label]) => (
@@ -230,6 +237,9 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#F1F5F9',
     backgroundColor: '#fff',
+  },
+  pastGridCell: {
+    backgroundColor: '#F1F5F9',
   },
   bookingBlock: {
     position: 'absolute',

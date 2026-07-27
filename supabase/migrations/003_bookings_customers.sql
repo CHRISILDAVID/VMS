@@ -52,7 +52,7 @@ CREATE TABLE bookings (
   payment_mode    payment_mode,
   source          booking_source NOT NULL DEFAULT 'offline',
   slot_type       slot_type NOT NULL DEFAULT 'booked',
-  is_force_booked BOOLEAN NOT NULL DEFAULT FALSE, -- owner override on blocked/maintenance slot
+  is_force_booked BOOLEAN NOT NULL DEFAULT FALSE, -- owner override on blocked slot
   notes           TEXT,
   payment_notes   TEXT,                            -- notes when payment status changes
   whatsapp_sent   BOOLEAN NOT NULL DEFAULT FALSE,

@@ -11,7 +11,7 @@ export type BookingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
 
 export type BookingPaymentStatus = 'pending' | 'partial' | 'paid' | 'refunded' | 'cancelled'
 
-export type SlotType = 'available' | 'booked' | 'coaching' | 'tournament' | 'maintenance' | 'blocked' | 'membership'
+export type SlotType = 'available' | 'booked' | 'coaching' | 'tournament' | 'blocked' | 'membership'
 
 export type BookingSource = 'online' | 'offline' | 'walk_in' | 'membership'
 

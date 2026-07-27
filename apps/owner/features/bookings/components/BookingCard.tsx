@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Phone, MessageCircle, MapPin, Clock, IndianRupee } from 'lucide-react-native';
 import { BookingWithDetails } from '@vms/shared/services';
 import { StatusChip } from '../../../components/domain/StatusChip';
@@ -40,14 +40,18 @@ export function BookingCard({ booking, onPress, onCollectPress }: BookingCardPro
 
   const handlePhonePress = () => {
     if (phone) {
-      Linking.openURL(`tel:${phone}`);
+      Linking.openURL(`tel:${phone}`).catch(() => {
+        Alert.alert('Error', 'Could not open phone dialer.');
+      });
     }
   };
 
   const handleWhatsAppPress = () => {
     if (phone) {
       const msg = `Hi ${customerName}, regarding your badminton booking ${booking.booking_number} on ${booking.date} at ${formattedStart} at ${booking.court?.name || 'our venue'}.`;
-      Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`);
+      Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
+        Alert.alert('WhatsApp Not Installed', 'Could not open WhatsApp on this device.');
+      });
     }
   };
 

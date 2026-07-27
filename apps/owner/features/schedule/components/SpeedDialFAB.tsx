@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Plus, X, CalendarPlus, Ban, Trophy, GraduationCap, Wrench } from 'lucide-react-native';
+import { Plus, X, CalendarPlus, Ban, Trophy, GraduationCap } from 'lucide-react-native';
 
 interface SpeedDialFABProps {
   onPressItem?: (action: string) => void;
@@ -14,7 +14,6 @@ export function SpeedDialFAB({ onPressItem }: SpeedDialFABProps) {
     { id: 'block', icon: Ban, label: 'Block Slot', color: '#DC2626' },
     { id: 'tournament', icon: Trophy, label: 'Tournament', color: '#7C3AED' },
     { id: 'coaching', icon: GraduationCap, label: 'Coaching', color: '#D97706' },
-    { id: 'maintenance', icon: Wrench, label: 'Maintenance', color: '#64748B' },
     { id: 'membership', icon: CalendarPlus, label: 'Membership', color: '#16A34A' },
   ];
 

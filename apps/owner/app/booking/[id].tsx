@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, Calendar, IndianRupee, Pencil, MoveRight, XCircle } from 'lucide-react-native';
+import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, Calendar, IndianRupee, Pencil, MoveRight, XCircle, PlayCircle, CheckCircle2 } from 'lucide-react-native';
 import { format, parse } from 'date-fns';
 
 import { StatusChip } from '../../components/domain/StatusChip';
@@ -14,6 +14,7 @@ import {
   useUpdatePaymentStatus,
   useCancelBooking,
   useMoveBooking,
+  useUpdateBookingStatus,
 } from '../../features/bookings/hooks/useBookings';
 import { useCourts } from '../../hooks/useCourts';
 
@@ -31,6 +32,18 @@ export default function BookingDetailsScreen() {
   const updatePaymentMutation = useUpdatePaymentStatus();
   const cancelBookingMutation = useCancelBooking();
   const moveBookingMutation = useMoveBooking();
+  const updateStatusMutation = useUpdateBookingStatus();
+
+  const handleStatusChange = async (newStatus: any) => {
+    try {
+      await updateStatusMutation.mutateAsync({
+        id: booking!.id,
+        status: newStatus,
+      });
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update booking status.');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -72,13 +85,19 @@ export default function BookingDetailsScreen() {
   const pendingRs = (booking.pending || 0) / 100;
 
   const handlePhonePress = () => {
-    if (phone) Linking.openURL(`tel:${phone}`);
+    if (phone) {
+      Linking.openURL(`tel:${phone}`).catch(() => {
+        Alert.alert('Error', 'Could not open phone dialer.');
+      });
+    }
   };
 
   const handleWhatsAppPress = () => {
     if (phone) {
       const msg = `Hi ${customerName}, regarding your badminton booking ${booking.booking_number} on ${booking.date} at ${formattedStart}.`;
-      Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`);
+      Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
+        Alert.alert('WhatsApp Not Installed', 'Could not open WhatsApp on this device.');
+      });
     }
   };
 
@@ -163,7 +182,13 @@ export default function BookingDetailsScreen() {
         </View>
 
         {/* Payment Section */}
-        <View style={styles.card}>
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          style={styles.card}
+          onPress={() => {
+            if (booking.status !== 'cancelled') setPaymentModalVisible(true);
+          }}
+        >
           <Text style={styles.cardHeader}>PAYMENT</Text>
           <RowItem label="Total" value={`₹${totalRs}`} />
           <RowItem label="Advance Paid" value={`₹${advanceRs}`} />
@@ -174,7 +199,7 @@ export default function BookingDetailsScreen() {
           <View style={styles.paymentStatusRow}>
             <StatusChip status={booking.payment_status} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Notes Section */}
         {booking.notes ? (
@@ -194,6 +219,26 @@ export default function BookingDetailsScreen() {
           >
             <IndianRupee size={18} color="#fff" />
             <Text style={styles.collectBtnText}>Collect ₹{pendingRs}</Text>
+          </TouchableOpacity>
+        )}
+
+        {booking.status === 'upcoming' && (
+          <TouchableOpacity
+            style={[styles.collectBtn, { backgroundColor: '#7C3AED', marginBottom: 10 }]}
+            onPress={() => handleStatusChange('ongoing')}
+          >
+            <PlayCircle size={18} color="#fff" />
+            <Text style={styles.collectBtnText}>Mark as Ongoing</Text>
+          </TouchableOpacity>
+        )}
+
+        {booking.status === 'ongoing' && (
+          <TouchableOpacity
+            style={[styles.collectBtn, { backgroundColor: '#16A34A', marginBottom: 10 }]}
+            onPress={() => handleStatusChange('completed')}
+          >
+            <CheckCircle2 size={18} color="#fff" />
+            <Text style={styles.collectBtnText}>Complete Booking</Text>
           </TouchableOpacity>
         )}
 

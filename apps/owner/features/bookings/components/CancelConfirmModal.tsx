@@ -12,7 +12,7 @@ interface CancelConfirmModalProps {
 
 const commonReasons = [
   'Customer requested cancellation',
-  'Court maintenance required',
+  'Court blocked / unavailable',
   'No-show',
   'Payment not received',
 ];

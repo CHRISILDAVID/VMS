@@ -9,7 +9,6 @@ export const SLOT_COLORS: Record<SlotType, { bg: string; border: string; text: s
   booked:      { bg: '#EFF6FF', border: '#93C5FD', text: '#1E40AF' },
   coaching:    { bg: '#FFFBEB', border: '#FCD34D', text: '#92400E' },
   tournament:  { bg: '#F5F3FF', border: '#C4B5FD', text: '#5B21B6' },
-  maintenance: { bg: '#F8FAFC', border: '#CBD5E1', text: '#475569' },
   blocked:     { bg: '#FEF2F2', border: '#FCA5A5', text: '#991B1B' },
   membership:  { bg: '#F0FDFA', border: '#5EEAD4', text: '#115E59' },
 }

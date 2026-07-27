@@ -18,7 +18,6 @@ const statusConfig: Record<string, { label: string; bg: string; text: string }> 
   blocked: { label: 'Blocked', bg: '#FEF2F2', text: '#DC2626' },
   coaching: { label: 'Coaching', bg: '#FFFBEB', text: '#D97706' },
   tournament: { label: 'Tournament', bg: '#F5F3FF', text: '#7C3AED' },
-  maintenance: { label: 'Maintenance', bg: '#F8FAFC', text: '#64748B' },
   frequent: { label: 'Frequent', bg: '#EFF6FF', text: '#2563EB' },
   recent: { label: 'Recent', bg: '#F0FDF4', text: '#16A34A' },
   outstanding: { label: 'Outstanding', bg: '#FEF2F2', text: '#DC2626' },

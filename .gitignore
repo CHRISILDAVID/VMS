@@ -45,3 +45,9 @@ supabase/.temp/
 
 # OS
 Thumbs.db
+
+# UI Test Dumps
+dump.xml
+window_dump.xml
+Agent_test_dump_files/
+

@@ -12,12 +12,11 @@ export const slotConfig: Record<string, { bg: string; border: string; text: stri
   booked: { bg: '#EFF6FF', border: '#93C5FD', text: '#1D4ED8' },
   coaching: { bg: '#FFFBEB', border: '#FCD34D', text: '#92400E' },
   tournament: { bg: '#F5F3FF', border: '#C4B5FD', text: '#5B21B6' },
-  maintenance: { bg: '#F8FAFC', border: '#CBD5E1', text: '#475569' },
   blocked: { bg: '#FEF2F2', border: '#FCA5A5', text: '#991B1B' },
   membership: { bg: '#F0FDF4', border: '#86EFAC', text: '#15803D' },
 };
 
-export type SlotStatus = 'available' | 'booked' | 'coaching' | 'tournament' | 'maintenance' | 'blocked' | 'membership';
+export type SlotStatus = 'available' | 'booked' | 'coaching' | 'tournament' | 'blocked' | 'membership';
 
 export interface ProcessedSlot {
   time: string; // HH:mm format
@@ -61,8 +60,9 @@ export function processBookingsToBlocks(
       time: startTime,
       endTime: endTime,
       status,
-      isPast: false, // Not heavily used in new UI, we show current time line instead
-      bookingInfo: data,
+      isPast: isSlotPast(endTime.substring(0, 5), dateStr),
+      booking: status === 'membership' ? undefined : data,
+      membership: status === 'membership' ? data : undefined,
       // Pass these directly for UI rendering
       startHour: clampedStart,
       duration,
@@ -74,7 +74,6 @@ export function processBookingsToBlocks(
     let status: SlotStatus = 'booked';
     if (b.notes?.includes('[COACHING]')) status = 'coaching';
     if (b.notes?.includes('[TOURNAMENT]')) status = 'tournament';
-    if (b.notes?.includes('[MAINTENANCE]')) status = 'maintenance';
     if (b.notes?.includes('[BLOCKED]')) status = 'blocked';
     
     // For M1, we don't have joined customer info in the booking type yet.
@@ -131,11 +130,10 @@ export function getSlotStatus(
     // We could map these or just use 'booked' for the UI and handle colors based on booking type
     
     // Actually the status coloring usually depends on the booking "source" or specific flags
-    // The spec says: Green=Available, Blue=Booked, Yellow=Coaching, Purple=Tournament, Grey=Maintenance, Red=Blocked, Teal=Membership
+    // The spec says: Green=Available, Blue=Booked, Yellow=Coaching, Purple=Tournament, Red=Blocked, Teal=Membership
     
     if (booking.notes?.includes('[COACHING]')) status = 'coaching';
     if (booking.notes?.includes('[TOURNAMENT]')) status = 'tournament';
-    if (booking.notes?.includes('[MAINTENANCE]')) status = 'maintenance';
     if (booking.notes?.includes('[BLOCKED]')) status = 'blocked';
     
     return { status, label: 'Booked', booking };
@@ -167,6 +165,14 @@ export function isSlotPast(timeStr: string, dateStr: string): boolean {
   slotTime.setHours(hours, minutes, 0, 0);
   
   return isBefore(slotTime, new Date());
+}
+
+export function isHourPast(hour: number, dateStr: string): boolean {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  if (dateStr < todayStr) return true;
+  if (dateStr > todayStr) return false;
+  return hour < today.getHours();
 }
 
 export function mapCourtsToGrid(
