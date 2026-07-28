@@ -1,33 +1,78 @@
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '@vms/shared/utils';
+import { router } from 'expo-router';
+import { useVenueStore } from '../../stores/venueStore';
+import { useMembershipSlots } from '../../features/members/hooks/useMemberships';
+import { VenueSelector } from '../../components/domain/VenueSelector';
+import { PaymentsDashboard } from '../../features/payments/components/PaymentsDashboard';
+import { SlotPaymentCard } from '../../features/payments/components/SlotPaymentCard';
 
 export default function PaymentsScreen() {
+  const { currentVenue } = useVenueStore();
+  const { data: slots, isLoading } = useMembershipSlots();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Payments</Text>
-        <Text style={styles.subtitle}>Membership payment tracking</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Payments</Text>
+          <VenueSelector />
+        </View>
       </View>
-      <View style={styles.content}>
-        <Text style={styles.placeholder}>💰</Text>
-        <Text style={styles.placeholderText}>Payment dashboard will appear here</Text>
-        <Text style={styles.milestone}>Coming in Milestone 4</Text>
-      </View>
+
+      <PaymentsDashboard venueId={currentVenue?.id} />
+
+      <FlatList
+        data={slots}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <SlotPaymentCard 
+            slot={item} 
+            onPress={() => router.push(`/payments/slot-payments?slotId=${item.id}`)} 
+          />
+        )}
+        ListEmptyComponent={() => (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>No membership slots found.</Text>
+          </View>
+        )}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: {
-    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12,
-    backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.border,
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
   },
-  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary },
-  subtitle: { fontSize: 14, color: COLORS.textSecondary, marginTop: 2 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  placeholder: { fontSize: 64, marginBottom: 16 },
-  placeholderText: { fontSize: 16, color: COLORS.textSecondary, textAlign: 'center' },
-  milestone: { fontSize: 13, color: COLORS.textMuted, marginTop: 8 },
+  header: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  listContent: {
+    paddingVertical: 16,
+  },
+  empty: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#64748B',
+    fontSize: 14,
+  },
 });

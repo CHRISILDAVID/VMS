@@ -4,6 +4,8 @@ import { Eye, ToggleLeft, ToggleRight, Edit2, Trash2, Plus } from 'lucide-react-
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 import { useDeleteSlot, useToggleOpenSlot } from '../hooks/useMemberships';
 
+import { formatCurrency } from '@vms/shared/utils';
+
 interface SlotsTabProps {
   slots: MembershipSlotWithDetails[];
   onViewMembers: (slot: MembershipSlotWithDetails) => void;
@@ -114,7 +116,7 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
               </View>
               <View style={styles.priceArea}>
                 <Text style={styles.fee}>
-                  ₹{s.monthly_fee}
+                  {formatCurrency(s.monthly_fee)}
                   <Text style={styles.mo}>/mo</Text>
                 </Text>
                 <View style={[styles.skillBadge, { backgroundColor: sc.bg }]}>

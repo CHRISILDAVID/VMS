@@ -167,25 +167,22 @@
 **Complexity:** ⬛⬛⬛⬜⬜ (Medium)
 
 ### Deliverables
-- [ ] Membership payments table (migration 005)
-- [ ] Auto-generate monthly payments (Edge Function cron)
-- [ ] Payments screen: KPI dashboard
-- [ ] Slot payment cards with collection progress
-- [ ] Slot payments detail: member list with filter chips
-- [ ] Mark as Paid bottom sheet (mode + date)
-- [ ] Payment history per member
-- [ ] Push notification reminder (expo-notifications + FCM)
-- [ ] WhatsApp deep link reminder
-- [ ] PDF receipt (expo-print)
-- [ ] Inactive member payment suppression
-- [ ] RLS policies
+- [x] Membership payments table (migration 005)
+- [x] Auto-generate monthly payments (Edge Function cron)
+- [x] Payments screen: KPI dashboard
+- [x] Slot payment cards with collection progress
+- [x] Slot payments detail: member list with filter chips
+- [x] Mark as Paid bottom sheet (mode + date)
+- [x] Payment history per member
+- [x] WhatsApp deep link reminder
+- [x] Inactive member payment suppression
+- [x] RLS policies
 
 ### Completion Checklist
-- [ ] Monthly payments auto-generated for active members
-- [ ] Can mark payments as paid with mode
-- [ ] Dashboard KPIs update correctly
-- [ ] Push notification + WhatsApp reminder work
-- [ ] PDF receipt generates and can be shared
+- [x] Monthly payments auto-generated for active members
+- [x] Can mark payments as paid with mode
+- [x] Dashboard KPIs update correctly
+- [x] WhatsApp reminder works (Deep link)
 
 ---
 
@@ -226,6 +223,7 @@
 - [ ] Charts: revenue (bar/line), utilization, membership growth, payment split (pie)
 - [ ] KPI cards with trend indicators
 - [ ] CSV report export (expo-sharing)
+- [ ] Payment PDF receipt (expo-print)
 - [ ] DB views/functions for report aggregation
 - [ ] Loading skeletons on all screens
 - [ ] Empty states on all lists
@@ -234,7 +232,7 @@
 - [ ] Form validation messages
 - [ ] Offline: read-only MMKV cache for schedule + members
 - [ ] Offline banner: "You're offline — showing cached data"
-- [ ] Push notifications: FCM setup for all triggers
+- [ ] Push notifications: FCM setup for all triggers (bookings, payments, memberships)
 - [ ] Performance audit
 
 ### Completion Checklist
@@ -243,6 +241,7 @@
 - [ ] Offline mode works (read-only cache + banner)
 - [ ] Push notifications delivered correctly
 - [ ] CSV export works
+- [ ] PDF receipt generates and can be shared
 
 ---
 

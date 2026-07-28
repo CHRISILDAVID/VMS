@@ -73,8 +73,8 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       setStartTime(slotToEdit.start_time?.slice(0, 5) || '06:00');
       setEndTime(slotToEdit.end_time?.slice(0, 5) || '08:00');
       setCapacity(String(slotToEdit.capacity || 10));
-      setMonthlyFee(String(slotToEdit.monthly_fee || 0));
-      setGuestPlayFee(String(slotToEdit.guest_play_fee || 0));
+      setMonthlyFee(String((slotToEdit.monthly_fee || 0) / 100));
+      setGuestPlayFee(String((slotToEdit.guest_play_fee || 0) / 100));
       setAllowGuestPlay(slotToEdit.allow_guest_play ?? true);
       setSkillLevel(slotToEdit.skill_level || 'intermediate');
       setPlayingDays(slotToEdit.playing_days || []);
@@ -167,8 +167,8 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       start_time: st,
       end_time: et,
       capacity: parseInt(capacity, 10) || 10,
-      monthly_fee: parseFloat(monthlyFee) || 0,
-      guest_play_fee: parseFloat(guestPlayFee) || 0,
+      monthly_fee: Math.round((parseFloat(monthlyFee) || 0) * 100),
+      guest_play_fee: Math.round((parseFloat(guestPlayFee) || 0) * 100),
       allow_guest_play: allowGuestPlay,
       skill_level: skillLevel,
       playing_days: playingDays,
