@@ -37,7 +37,7 @@ export function processBookingsToBlocks(
   const blocks: any[] = [];
 
   const courtBookings = bookings.filter((b) => b.court_id === court.id);
-  const courtMemberships = memberships.filter((m) => !m.court_id || m.court_id === court.id);
+  const courtMemberships = memberships.filter((m) => m.court_id === court.id);
 
   const addBlock = (startTime: string, endTime: string, status: SlotStatus, label: string, data?: any) => {
     // Parse time strings (e.g. "06:00:00")

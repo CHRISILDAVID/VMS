@@ -53,7 +53,9 @@ VMS/
 
 ## Design Reference (Important Rule)
 
-When designing frontend pages (especially in the Owner App or Admin Panel), **always refer to the `reference/` folder**. This folder contains the initial Figma exports from the founder. Do not invent random UI designs or layouts without first consulting this reference. The goal is to perfectly match the original intent shown in `reference/figma-src`.
+When designing frontend pages (especially in the Owner App or Admin Panel), **always refer to the `reference/` folder**. This folder contains the initial Figma exports from the founder. 
+However, **always make sure the new page is consistent with the rest of the existing app**. Do not blindly follow the Figma if it conflicts with the established UI patterns in the codebase (e.g., standard headers, FABs, paddings). 
+Do not invent random UI designs or layouts without first consulting the reference and the existing app structure. The goal is to match the original intent shown in `reference/figma-src` while maintaining global UI consistency.
 
 ## Mobile App Testing Rule (Important Rule)
 

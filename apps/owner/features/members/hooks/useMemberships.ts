@@ -232,7 +232,14 @@ export function useTransferMember() {
 
   const mutation = useMutation({
     mutationFn: async ({ memberId, toSlotId }: { memberId: string; toSlotId: string }) => {
-      return await membershipsService.transferMember(memberId, toSlotId);
+      try {
+        return await membershipsService.transferMember(memberId, toSlotId);
+      } catch (err: any) {
+        if (err.code === '23505' || err.message?.includes('members_slot_id_customer_id_key')) {
+          throw new Error('This player is already enrolled in the destination slot.');
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['membership-slots'] });

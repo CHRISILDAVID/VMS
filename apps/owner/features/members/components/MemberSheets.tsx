@@ -27,6 +27,10 @@ export function AddMemberModal({ slotId, visible, onClose }: AddMemberModalProps
       Alert.alert('Validation', 'Please provide name and phone number.');
       return;
     }
+    if (!/^\d{10}$/.test(phone.trim())) {
+      Alert.alert('Validation', 'Phone number must be exactly 10 digits.');
+      return;
+    }
 
     addMutation.mutate(
       { slotId, customerData: { full_name: name.trim(), phone: phone.trim() } },
@@ -108,6 +112,10 @@ export function EditMemberModal({ member, onClose }: EditMemberModalProps) {
   const handleSubmit = () => {
     if (!name.trim() || !phone.trim()) {
       Alert.alert('Validation', 'Please provide name and phone number.');
+      return;
+    }
+    if (!/^\d{10}$/.test(phone.trim())) {
+      Alert.alert('Validation', 'Phone number must be exactly 10 digits.');
       return;
     }
 

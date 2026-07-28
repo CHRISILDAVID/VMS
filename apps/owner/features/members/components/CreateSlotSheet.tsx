@@ -15,7 +15,9 @@ import {
 import { X, Plus, Trash2, Edit2 } from 'lucide-react-native';
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 import { SkillLevel, DayOfWeek } from '@vms/shared/types';
-import { useCreateSlot, useUpdateSlot } from '../hooks/useMemberships';
+import { useCreateSlot, useUpdateSlot, useMembershipSlots } from '../hooks/useMemberships';
+import { useCourts } from '../../../hooks/useCourts';
+import { useVenueStore } from '../../../stores/venueStore';
 
 interface CreateSlotSheetProps {
   visible: boolean;
@@ -44,6 +46,9 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
   const isEdit = !!slotToEdit;
   const createMutation = useCreateSlot();
   const updateMutation = useUpdateSlot();
+  const { selectedVenueId } = useVenueStore();
+  const { data: courts } = useCourts(selectedVenueId);
+  const { data: existingSlots } = useMembershipSlots();
 
   const [name, setName] = useState('');
   const [startTime, setStartTime] = useState('06:00');
@@ -54,6 +59,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
   const [allowGuestPlay, setAllowGuestPlay] = useState(true);
   const [skillLevel, setSkillLevel] = useState<SkillLevel>('intermediate');
   const [playingDays, setPlayingDays] = useState<DayOfWeek[]>(['mon', 'wed', 'fri']);
+  const [courtId, setCourtId] = useState<string>('');
 
   const [initialMembers, setInitialMembers] = useState<{ name: string; phone: string }[]>([]);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -72,6 +78,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       setAllowGuestPlay(slotToEdit.allow_guest_play ?? true);
       setSkillLevel(slotToEdit.skill_level || 'intermediate');
       setPlayingDays(slotToEdit.playing_days || []);
+      setCourtId(slotToEdit.court_id || '');
     } else {
       setName('');
       setStartTime('06:00');
@@ -82,6 +89,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       setAllowGuestPlay(true);
       setSkillLevel('intermediate');
       setPlayingDays(['mon', 'wed', 'fri']);
+      setCourtId('');
       setInitialMembers([]);
     }
   }, [slotToEdit, visible]);
@@ -95,6 +103,10 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
   const handleSaveMember = () => {
     if (!mName.trim() || !mPhone.trim()) {
       Alert.alert('Validation', 'Name and phone are required.');
+      return;
+    }
+    if (!/^\d{10}$/.test(mPhone.trim())) {
+      Alert.alert('Validation', 'Phone number must be exactly 10 digits.');
       return;
     }
     if (editMemberIdx !== null) {
@@ -126,11 +138,34 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       Alert.alert('Validation', 'Please select at least one playing day.');
       return;
     }
+    if (!courtId) {
+      Alert.alert('Validation', 'Please select a court.');
+      return;
+    }
+
+    const st = startTime + (startTime.length === 5 ? ':00' : '');
+    const et = endTime + (endTime.length === 5 ? ':00' : '');
+
+    if (existingSlots) {
+      const isCollision = existingSlots.some(s => {
+        if (isEdit && slotToEdit && s.id === slotToEdit.id) return false;
+        if (s.court_id !== courtId) return false;
+        const daysIntersect = s.playing_days.some(d => playingDays.includes(d));
+        if (!daysIntersect) return false;
+        return (st < (s.end_time || '') && et > (s.start_time || ''));
+      });
+
+      if (isCollision) {
+        Alert.alert('Collision', 'Another membership slot is already assigned to this court during the selected timings and days.');
+        return;
+      }
+    }
 
     const payload = {
       name: name.trim(),
-      start_time: startTime + (startTime.length === 5 ? ':00' : ''),
-      end_time: endTime + (endTime.length === 5 ? ':00' : ''),
+      court_id: courtId,
+      start_time: st,
+      end_time: et,
       capacity: parseInt(capacity, 10) || 10,
       monthly_fee: parseFloat(monthlyFee) || 0,
       guest_play_fee: parseFloat(guestPlayFee) || 0,
@@ -199,6 +234,25 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
                 value={name}
                 onChangeText={setName}
               />
+
+              <View style={styles.row}>
+                <View style={[styles.col, { flex: 1 }]}>
+                  <Text style={styles.label}>Court</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.courtScroll} contentContainerStyle={styles.courtContainer}>
+                    {courts?.map(c => (
+                      <TouchableOpacity
+                        key={c.id}
+                        style={[styles.courtBtn, courtId === c.id && styles.courtBtnActive]}
+                        onPress={() => setCourtId(c.id)}
+                      >
+                        <Text style={[styles.courtBtnText, courtId === c.id && styles.courtBtnTextActive]}>
+                          {c.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
 
               <View style={styles.row}>
                 <View style={styles.col}>
@@ -515,6 +569,32 @@ const styles = StyleSheet.create({
   chipSelected: {
     borderColor: '#2563EB',
     backgroundColor: '#EFF6FF',
+  },
+  courtScroll: {
+    marginBottom: 16,
+  },
+  courtContainer: {
+    gap: 8,
+  },
+  courtBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  courtBtnActive: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#4F46E5',
+  },
+  courtBtnText: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  courtBtnTextActive: {
+    color: '#4F46E5',
+    fontWeight: '600',
   },
   chipText: {
     fontSize: 13,

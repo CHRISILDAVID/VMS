@@ -12,6 +12,7 @@ import { GuestPlayTab } from '../../features/members/components/GuestPlayTab';
 import { MembersListTab } from '../../features/members/components/MembersListTab';
 import { SlotMembersView } from '../../features/members/components/SlotMembersView';
 import { CreateSlotSheet } from '../../features/members/components/CreateSlotSheet';
+import { VenueSelector } from '../../components/domain/VenueSelector';
 
 const TABS = ['Slots', 'Applications', 'Guest Play', 'Members'] as const;
 type Tab = typeof TABS[number];
@@ -60,16 +61,8 @@ export default function MembersScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.title}>Members</Text>
-            <Text style={styles.subtitle}>Membership management</Text>
-          </View>
-          {tab === 'Slots' && (
-            <TouchableOpacity style={styles.newBtn} onPress={() => setCreateOpen(true)}>
-              <Plus size={15} color="#fff" />
-              <Text style={styles.newBtnText}>New Slot</Text>
-            </TouchableOpacity>
-          )}
+          <Text style={styles.title}>Membership</Text>
+          <VenueSelector />
         </View>
 
         {/* Tabs */}
@@ -125,6 +118,15 @@ export default function MembersScreen() {
         }}
         slotToEdit={editingSlot}
       />
+
+      {tab === 'Slots' && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setCreateOpen(true)}
+        >
+          <Plus size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }
@@ -137,38 +139,21 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
   headerTop: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     color: '#0F172A',
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  newBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
-  newBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
   },
   tabsRow: {
     flexDirection: 'row',
@@ -209,7 +194,23 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#fff',
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   content: {
     flex: 1,

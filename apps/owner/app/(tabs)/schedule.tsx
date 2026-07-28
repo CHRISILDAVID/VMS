@@ -170,9 +170,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
     backgroundColor: COLORS.surface,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
   },
   content: {

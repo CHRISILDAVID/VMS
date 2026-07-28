@@ -96,17 +96,6 @@ export default function BookingsScreen() {
           <VenueSelector />
         </View>
 
-        {/* New Booking Button Row (right below venue filter) */}
-        <View style={styles.newBtnRow}>
-          <TouchableOpacity
-            style={styles.newBtn}
-            onPress={() => router.push('/booking/new' as any)}
-          >
-            <Plus size={18} color="#fff" />
-            <Text style={styles.newBtnText}>New</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Search Bar & Filter Button */}
         <View style={styles.searchRow}>
           <View style={styles.searchBar}>
@@ -195,6 +184,13 @@ export default function BookingsScreen() {
         onClose={() => setPaymentModalBooking(null)}
         onSave={handleSavePayment}
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/booking/new' as any)}
+      >
+        <Plus size={24} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -222,25 +218,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: '#0F172A',
-  },
-  newBtnRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 12,
-  },
-  newBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  newBtnText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
   },
   searchRow: {
     flexDirection: 'row',
@@ -347,5 +324,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#94A3B8',
     textAlign: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });

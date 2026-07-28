@@ -138,27 +138,27 @@
 **Complexity:** ⬛⬛⬛⬛⬜ (High)
 
 ### Deliverables
-- [ ] Membership slots CRUD (migration 004)
-- [ ] Members add/edit/remove
-- [ ] Members screen: 4 tabs (Slots, Applications, Guest Play, Members)
-- [ ] Summary KPI cards
-- [ ] Slots tab: cards with capacity bar, open/close toggle
-- [ ] Create/edit slot forms with initial members
-- [ ] Slot members view with active/inactive toggle
-- [ ] Member transfer between slots
-- [ ] Membership applications: accept/reject/invite-to-guest-play
-- [ ] Guest play: upcoming/completed, accept-as-member
-- [ ] Capacity enforcement
-- [ ] Membership slots pre-block on schedule
-- [ ] Release slot for specific date (membership_slot_releases table)
-- [ ] RLS policies
+- [x] Membership slots CRUD (migration 004)
+- [x] Members add/edit/remove
+- [x] Members screen: 4 tabs (Slots, Applications, Guest Play, Members)
+- [x] Summary KPI cards
+- [x] Slots tab: cards with capacity bar, open/close toggle
+- [x] Create/edit slot forms with initial members
+- [x] Slot members view with active/inactive toggle
+- [x] Member transfer between slots
+- [x] Membership applications: accept/reject/invite-to-guest-play
+- [x] Guest play: upcoming/completed, accept-as-member
+- [x] Capacity enforcement
+- [x] Membership slots pre-block on schedule
+- [x] Release slot for specific date (membership_slot_releases table)
+- [x] RLS policies
 
 ### Completion Checklist
-- [ ] Can create slot with all fields + initial members
-- [ ] Can manage members (add/edit/transfer/remove/toggle)
-- [ ] Membership blocks appear on schedule
-- [ ] Can release slot for specific date
-- [ ] Capacity limits enforced
+- [x] Can create slot with all fields + initial members
+- [x] Can manage members (add/edit/transfer/remove/toggle)
+- [x] Membership blocks appear on schedule
+- [x] Can release slot for specific date
+- [x] Capacity limits enforced
 
 ---
 

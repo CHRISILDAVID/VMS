@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { Eye, ToggleLeft, ToggleRight, Edit2, Trash2, Plus } from 'lucide-react-native';
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 import { useDeleteSlot, useToggleOpenSlot } from '../hooks/useMemberships';
@@ -87,7 +87,7 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {slots.map(s => {
         const sc = skillColors[s.skill_level] ?? { bg: '#F8FAFC', text: '#64748B' };
         const activeCount = s.active_count || 0;
@@ -96,7 +96,7 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
         const progressWidth = Math.min((activeCount / Math.max(s.capacity, 1)) * 100, 100);
 
         return (
-          <View key={s.id} style={styles.card}>
+          <TouchableOpacity key={s.id} style={styles.card} onPress={() => onViewMembers(s)} activeOpacity={0.7}>
             {/* Top Row */}
             <View style={styles.headerRow}>
               <View style={styles.titleArea}>
@@ -168,10 +168,10 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
                 <Trash2 size={15} color="#DC2626" />
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
