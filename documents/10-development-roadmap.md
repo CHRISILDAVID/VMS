@@ -193,10 +193,7 @@
 ### Deliverables
 - [ ] Profile Tab UI: Basic owner details
 - [ ] Operating Schedules & Pricing Blocks CRUD (Deferred from M1)
-- [ ] Court Information: view + edit (owner admin permission)
-- [ ] Photo upload (expo-image-picker → Supabase Storage)
-- [ ] Google Maps link
-- [ ] Court type metadata (Wooden/Synthetic/Cement/Mat)
+- [ ] Court Information: View-only map launch (React Native Linking API using lat/lon)
 - [ ] Court Schedule & Pricing: weekly calendar, pricing blocks CRUD, copy day, close/24h
 - [ ] Grow Your Business: 4 placeholder CTA pages
 - [ ] Subscription & Billing: static mock from design
@@ -206,8 +203,7 @@
 
 ### Completion Checklist
 - [ ] All profile menu items navigable
-- [ ] Court info editable and persisted
-- [ ] Photos upload and display
+- [ ] Court info viewable
 - [ ] Pricing blocks CRUD works
 - [ ] Schedule copy-to-days works
 
@@ -255,10 +251,12 @@
 ### Deliverables
 - [ ] Admin auth: email/password (Supabase)
 - [ ] Admin RLS policies (super_admin role)
-- [ ] Venues: create, edit, deactivate
+- [ ] Venues: create, edit, deactivate (and make `owner_id` nullable in DB)
 - [ ] Courts: create, edit per venue
 - [ ] Owners: view accounts, assign to venues
-- [ ] Initial court info setup (feed into DB)
+- [ ] Owner App Onboarding: Change text input to a dropdown for selecting pre-created unassigned venues
+- [ ] Court Information configuration: edit details, court type metadata, map coordinates
+- [ ] Photo upload (Admin Panel → Supabase Storage)
 - [ ] Simple dashboard: aggregate stats (total venues, owners, bookings)
 - [ ] Desktop-first layout: sidebar + content area
 - [ ] Deploy to Vercel
