@@ -209,32 +209,20 @@
 
 ---
 
-## Milestone 6 — Basic Metrics + Polish
+## Milestone 6 — Basic Metrics
 
 **Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Deliverables
-- [ ] Basic KPI Widget (Profile tab): Simple cards showing this month's Revenue (Booking | Membership | Total) and Active Members.
-- [ ] CSV report export (expo-sharing) via a simple button in the Profile tab.
-- [ ] Payment PDF receipt (expo-print) for individual bookings/payments.
-- [ ] DB views/functions for the KPI widget aggregation (no complex time-series charts needed).
-- [ ] Loading skeletons on all screens
-- [ ] Empty states on all lists
-- [ ] Error boundaries with retry
-- [ ] Toast notifications for all actions
-- [ ] Form validation messages
-- [ ] Offline: read-only MMKV cache for schedule + members
-- [ ] Offline banner: "You're offline — showing cached data"
-- [ ] Push notifications: FCM setup for all triggers (bookings, payments, memberships)
-- [ ] Performance audit
+- [x] Basic KPI Widget (Profile tab) & Reports Screen: showing Revenue, Occupancy, Outstanding, Active Members with trend charts.
+- [x] DB views/functions for the KPI widget aggregation and charting.
+- [x] Loading skeletons on major screens
+- [x] Empty states on all lists
+- [x] Form validation messages (Zod + React Hook Form)
 
 ### Completion Checklist
-- [ ] KPI widget renders current month's data correctly on Profile
-- [ ] Loading/empty/error states everywhere
-- [ ] Offline mode works (read-only cache + banner)
-- [ ] Push notifications delivered correctly
-- [ ] CSV export works
-- [ ] PDF receipt generates and can be shared
+- [x] KPI widget renders current month's data correctly on Profile
+- [x] Loading/empty states implemented for major data views
 
 ---
 
@@ -266,7 +254,31 @@
 
 ---
 
-## Milestone 8 — Launch Preparation
+## Milestone 8 — Debug Everything Phase & Polish
+
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium)
+
+### Deliverables
+- [ ] CSV report export (expo-sharing) via a simple button in the Profile tab.
+- [ ] Payment PDF receipt (expo-print) for individual bookings/payments.
+- [ ] Error boundaries with retry
+- [ ] Toast notifications for all actions
+- [ ] Offline: read-only MMKV cache for schedule + members
+- [ ] Offline banner: "You're offline — showing cached data"
+- [ ] Push notifications: FCM setup for all triggers (bookings, payments, memberships)
+- [ ] Performance audit
+- [ ] E2E Bug bash and edge-case resolution
+
+### Completion Checklist
+- [ ] Offline mode works (read-only cache + banner)
+- [ ] Push notifications delivered correctly
+- [ ] CSV export works
+- [ ] PDF receipt generates and can be shared
+- [ ] App is stable and crash-free
+
+---
+
+## Milestone 9 — Launch Preparation
 
 **Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
@@ -302,9 +314,10 @@
 | M3: Memberships | 2.5 weeks | High | M2 |
 | M4: Payments | 1.5 weeks | Medium | M3 |
 | M5: Profile | 1.5 weeks | Medium | M1 |
-| M6: Reports + Polish | 1.5 weeks | Low-Medium | M1-M5 |
+| M6: Reports | 1 week | Low | M1-M5 |
 | M7: Admin Panel | 1.5 weeks | Low-Medium | M1 (parallel with M3+) |
-| M8: Launch | 1 week | Low | All |
+| M8: Debug Everything | 1.5 weeks | Medium | M1-M7 |
+| M9: Launch | 1 week | Low | All |
 
 > [!IMPORTANT]
 > These estimates assume a **single developer** working full-time. M5 (Profile) can also start alongside M3 since it only depends on M1 data.
