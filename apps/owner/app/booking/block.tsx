@@ -69,7 +69,21 @@ export default function BlockSlotScreen() {
           router.back();
         },
         onError: (err: any) => {
-          Alert.alert('Error', err.message || 'Failed to block slot.');
+          if (err.code === 'OVERLAP_DETECTED' || err.message?.includes('OVERLAP_DETECTED')) {
+            const conflict = err.conflicts?.[0];
+            if (conflict) {
+              Alert.alert('Booking Conflict', 'This slot is already booked.');
+              const formattedTime = conflict.start_time.substring(0, 5);
+              router.navigate({
+                pathname: '/(tabs)/schedule',
+                params: { conflictCourtId: conflict.court_id, conflictTime: formattedTime }
+              });
+            } else {
+              Alert.alert('Error', 'Slot Overlap Detected! Another booking or membership exists during this time.');
+            }
+          } else {
+            Alert.alert('Error', err.message || 'Failed to block slot.');
+          }
         },
       }
     );

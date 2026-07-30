@@ -208,7 +208,7 @@ export default function NewBookingWizardScreen() {
       setConfirmedBooking(created);
 
       // Trigger WhatsApp if checked and customer has phone
-      if (sendWhatsapp && selectedCustomer.phone) {
+      if (sendWhatsapp && selectedCustomer?.phone) {
         const cleanPhone = selectedCustomer.phone.replace(/\D/g, '');
         const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
         const courtName = courts?.find(c => c.id === selectedCourtId)?.name || 'Court';
@@ -224,7 +224,11 @@ export default function NewBookingWizardScreen() {
         const conflict = err.conflicts?.[0];
         if (conflict) {
           Alert.alert('Booking Conflict', 'This slot is already booked.');
-          router.replace(`/(tabs)?conflictCourtId=${conflict.court_id}&conflictTime=${conflict.start_time}` as any);
+          const formattedTime = conflict.start_time.substring(0, 5);
+          router.navigate({
+            pathname: '/(tabs)/schedule',
+            params: { conflictCourtId: conflict.court_id, conflictTime: formattedTime }
+          });
         } else {
           setOverlapError('Slot Overlap Detected! Another booking or membership exists during this time.');
         }

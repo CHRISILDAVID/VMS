@@ -6,7 +6,8 @@ import {
   ChevronRight, Building2, Zap, BarChart2, TrendingUp,
   CreditCard, HelpCircle, LogOut 
 } from 'lucide-react-native';
-import { COLORS } from '@vms/shared/utils';
+import { COLORS, formatCurrency } from '@vms/shared/utils';
+import { createReportsService } from '@vms/shared/services';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -55,29 +56,13 @@ export default function ProfileScreen() {
 
   const currentVenue = venues?.find((v: any) => v.id === selectedVenueId);
 
-  const { data: courtsCount } = useQuery({
-    queryKey: ['courtsCount', selectedVenueId],
+  const { data: kpiData } = useQuery({
+    queryKey: ['venueKPIs', selectedVenueId],
     queryFn: async () => {
-      if (!selectedVenueId) return 0;
-      const { count } = await supabase.from('courts').select('id', { count: 'exact', head: true }).eq('venue_id', selectedVenueId);
-      return count || 0;
+      if (!selectedVenueId || selectedVenueId === 'all') return null;
+      return createReportsService(supabase).getVenueKPIs(selectedVenueId);
     },
-    enabled: !!selectedVenueId
-  });
-
-  const { data: membersCount } = useQuery({
-    queryKey: ['membersCount', selectedVenueId],
-    queryFn: async () => {
-      if (!selectedVenueId) return 0;
-      // Get all slots for this venue
-      const { data: slots } = await supabase.from('membership_slots').select('id').eq('venue_id', selectedVenueId);
-      if (!slots || slots.length === 0) return 0;
-      const slotIds = slots.map(s => s.id);
-      
-      const { count } = await supabase.from('members').select('id', { count: 'exact', head: true }).in('slot_id', slotIds).eq('is_active', true);
-      return count || 0;
-    },
-    enabled: !!selectedVenueId
+    enabled: !!selectedVenueId && selectedVenueId !== 'all'
   });
 
   const handleSignOut = () => {
@@ -141,14 +126,30 @@ export default function ProfileScreen() {
           
           <View style={styles.statsContainer}>
             <View style={[styles.statBlock, styles.statBorder]}>
-              <Text style={styles.statValue}>{courtsCount ?? '-'}</Text>
-              <Text style={styles.statLabel}>Courts</Text>
+              <Text style={styles.statValue}>{kpiData ? formatCurrency(kpiData.total_revenue) : '-'}</Text>
+              <Text style={styles.statLabel}>Total Rev</Text>
             </View>
-            <View style={styles.statBlock}>
-              <Text style={styles.statValue}>{membersCount ?? '-'}</Text>
+            <View style={[styles.statBlock, styles.statBorder]}>
+              <Text style={styles.statValue}>{kpiData?.active_members ?? '-'}</Text>
               <Text style={styles.statLabel}>Members</Text>
             </View>
+            <View style={styles.statBlock}>
+              <Text style={styles.statValue}>{kpiData?.total_bookings ?? '-'}</Text>
+              <Text style={styles.statLabel}>Bookings</Text>
+            </View>
           </View>
+          {kpiData && (kpiData.booking_revenue > 0 || kpiData.membership_revenue > 0) ? (
+            <View style={styles.revenueBreakdown}>
+              <View style={styles.revRow}>
+                <Text style={styles.revLabel}>Bookings</Text>
+                <Text style={styles.revValue}>{formatCurrency(kpiData.booking_revenue)}</Text>
+              </View>
+              <View style={styles.revRow}>
+                <Text style={styles.revLabel}>Memberships</Text>
+                <Text style={styles.revValue}>{formatCurrency(kpiData.membership_revenue)}</Text>
+              </View>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -288,6 +289,28 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: 'rgba(255,255,255,0.65)',
     fontWeight: '500',
+  },
+  revenueBreakdown: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+    gap: 8,
+  },
+  revRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  revLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '500',
+  },
+  revValue: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '700',
   },
   scrollContainer: { flex: 1 },
   menuContainer: { padding: 16 },

@@ -209,18 +209,15 @@
 
 ---
 
-## Milestone 6 — Reports + Polish
+## Milestone 6 — Basic Metrics + Polish
 
-**Complexity:** ⬛⬛⬜⬜⬜ (Low-Medium)
+**Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Deliverables
-- [ ] Reports screen: period selector (Week/Month/Year)
-- [ ] Revenue breakdown: Booking Revenue | Membership Revenue | Total
-- [ ] Charts: revenue (bar/line), utilization, membership growth, payment split (pie)
-- [ ] KPI cards with trend indicators
-- [ ] CSV report export (expo-sharing)
-- [ ] Payment PDF receipt (expo-print)
-- [ ] DB views/functions for report aggregation
+- [ ] Basic KPI Widget (Profile tab): Simple cards showing this month's Revenue (Booking | Membership | Total) and Active Members.
+- [ ] CSV report export (expo-sharing) via a simple button in the Profile tab.
+- [ ] Payment PDF receipt (expo-print) for individual bookings/payments.
+- [ ] DB views/functions for the KPI widget aggregation (no complex time-series charts needed).
 - [ ] Loading skeletons on all screens
 - [ ] Empty states on all lists
 - [ ] Error boundaries with retry
@@ -232,7 +229,7 @@
 - [ ] Performance audit
 
 ### Completion Checklist
-- [ ] All reports render with real data
+- [ ] KPI widget renders current month's data correctly on Profile
 - [ ] Loading/empty/error states everywhere
 - [ ] Offline mode works (read-only cache + banner)
 - [ ] Push notifications delivered correctly

@@ -51,10 +51,11 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
       keyExtractor={item => item.id}
       contentContainerStyle={styles.listContent}
       renderItem={({ item }) => {
-        const memberName = item.members?.customer?.full_name || 'Unknown Member';
-        const phone = item.members?.customer?.phone || '';
-        const slotName = item.membership_slots?.name || 'Unknown Slot';
-        const isDeleted = item.membership_slots?.deleted_at != null;
+        const anyItem = item as any;
+        const memberName = anyItem.members?.customer?.full_name || 'Unknown Member';
+        const phone = anyItem.members?.customer?.phone || '';
+        const slotName = anyItem.membership_slots?.name || 'Unknown Slot';
+        const isDeleted = anyItem.membership_slots?.deleted_at != null;
         
         return (
           <View style={styles.card}>

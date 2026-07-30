@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { useDefaulters, useVoidPayment } from '../hooks/usePayments';
+import { useDefaulters, useVoidPayment } from '@/features/payments/hooks/usePayments';
 import { formatCurrency } from '@vms/shared/utils';
 import { Check, X, AlertCircle } from 'lucide-react-native';
 
@@ -51,10 +51,11 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
       keyExtractor={item => item.id}
       contentContainerStyle={styles.listContent}
       renderItem={({ item }) => {
-        const memberName = item.members?.customer?.full_name || 'Unknown Member';
-        const phone = item.members?.customer?.phone || '';
-        const slotName = item.membership_slots?.name || 'Unknown Slot';
-        const isDeleted = item.membership_slots?.deleted_at != null;
+        const itemAny = item as any;
+        const memberName = itemAny.members?.customer?.full_name || 'Unknown Member';
+        const phone = itemAny.members?.customer?.phone || '';
+        const slotName = itemAny.membership_slots?.name || 'Unknown Slot';
+        const isDeleted = itemAny.membership_slots?.deleted_at != null;
         
         return (
           <View style={styles.card}>
