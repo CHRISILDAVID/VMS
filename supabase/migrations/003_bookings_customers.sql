@@ -36,7 +36,7 @@ CREATE TABLE bookings (
   booking_number  TEXT NOT NULL UNIQUE,           -- human-readable ID (e.g., BK-20260726-1001)
   venue_id        UUID NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
   court_id        UUID NOT NULL REFERENCES courts(id) ON DELETE CASCADE,
-  customer_id     UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+  customer_id     UUID REFERENCES customers(id) ON DELETE RESTRICT,
   booked_by       UUID NOT NULL REFERENCES auth.users(id), -- owner who created
   date            DATE NOT NULL,
   start_time      TIME NOT NULL,
@@ -64,9 +64,9 @@ CREATE TABLE bookings (
   CONSTRAINT valid_start_time CHECK (
     EXTRACT(MINUTE FROM start_time) IN (0, 30)
   ),
-  -- Duration must be in whole-hour increments (60, 120, 180, ...)
+  -- Duration must be in 30-min increments (30, 60, 90, 120, ...)
   CONSTRAINT valid_duration CHECK (
-    duration_minutes > 0 AND duration_minutes % 60 = 0
+    duration_minutes > 0 AND duration_minutes % 30 = 0
   ),
   CONSTRAINT valid_booking_time CHECK (end_time > start_time)
 );

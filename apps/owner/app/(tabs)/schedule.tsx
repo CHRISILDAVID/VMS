@@ -15,6 +15,7 @@ import { useCourts } from '../../hooks/useCourts';
 import { useVenueStore } from '../../stores/venueStore';
 import { ProcessedSlot } from '../../features/schedule/utils/scheduleHelpers';
 import { useReleaseSlot } from '../../features/members/hooks/useMemberships';
+import { useUnblockSlot } from '../../features/bookings/hooks/useBookings';
 import { Court } from '@vms/shared/types';
 import { COLORS, SPACING } from '@vms/shared/utils';
 
@@ -22,6 +23,7 @@ export default function ScheduleScreen() {
   const router = useRouter();
   const { selectedVenueId } = useVenueStore();
   const releaseSlotMutation = useReleaseSlot();
+  const unblockSlotMutation = useUnblockSlot();
   const { conflictCourtId, conflictTime } = useLocalSearchParams<{ conflictCourtId?: string; conflictTime?: string }>();
   
   const [selectedDateStr, setSelectedDateStr] = useState(() => 
@@ -105,8 +107,35 @@ export default function ScheduleScreen() {
           ]
         );
       }
+    } else if (actionLabel === 'Block Slot') {
+      router.push(`/booking/block?courtId=${court.id}&hour=${hour}&date=${selectedDateStr}` as any);
+    } else if (actionLabel === 'Unblock Slot') {
+      if (slot?.booking?.id) {
+        Alert.alert(
+          'Unblock Slot',
+          'Are you sure you want to remove this block?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Unblock',
+              style: 'destructive',
+              onPress: () => {
+                unblockSlotMutation.mutate(slot.booking.id, {
+                  onSuccess: () => {
+                    Alert.alert('Success', 'Slot is now available.');
+                    handleCloseBottomSheet();
+                  },
+                  onError: (err: any) => {
+                    Alert.alert('Error', err.message || 'Failed to unblock slot.');
+                  },
+                });
+              },
+            },
+          ]
+        );
+      }
     }
-  }, [router, selectedDateStr, releaseSlotMutation]);
+  }, [router, selectedDateStr, releaseSlotMutation, unblockSlotMutation, handleCloseBottomSheet]);
 
   const isLoading = isLoadingSchedule || isLoadingCourts;
 

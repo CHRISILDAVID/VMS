@@ -5,6 +5,7 @@ export default function BookingLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="[id]" />
       <Stack.Screen name="new" />
+      <Stack.Screen name="block" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

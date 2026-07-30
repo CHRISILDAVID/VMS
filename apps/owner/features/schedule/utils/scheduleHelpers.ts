@@ -82,12 +82,12 @@ export function processBookingsToBlocks(
 
   filteredBookings.forEach((b) => {
     let status: SlotStatus = 'booked';
-    if (b.notes?.includes('[COACHING]')) status = 'coaching';
-    if (b.notes?.includes('[TOURNAMENT]')) status = 'tournament';
-    if (b.notes?.includes('[BLOCKED]')) status = 'blocked';
+    if (b.slot_type === 'coaching' || b.notes?.includes('[COACHING]')) status = 'coaching';
+    if (b.slot_type === 'tournament' || b.notes?.includes('[TOURNAMENT]')) status = 'tournament';
+    if (b.slot_type === 'blocked' || b.notes?.includes('[BLOCKED]')) status = 'blocked';
     
     // For M1, we don't have joined customer info in the booking type yet.
-    const label = (b as any).customer_name || 'Booked';
+    const label = b.slot_type === 'blocked' ? 'Blocked' : ((b as any).customer_name || 'Booked');
     addBlock(b.start_time, b.end_time, status, label, b);
   });
 
@@ -142,11 +142,11 @@ export function getSlotStatus(
     // Actually the status coloring usually depends on the booking "source" or specific flags
     // The spec says: Green=Available, Blue=Booked, Yellow=Coaching, Purple=Tournament, Red=Blocked, Teal=Membership
     
-    if (booking.notes?.includes('[COACHING]')) status = 'coaching';
-    if (booking.notes?.includes('[TOURNAMENT]')) status = 'tournament';
-    if (booking.notes?.includes('[BLOCKED]')) status = 'blocked';
+    if (booking.slot_type === 'coaching' || booking.notes?.includes('[COACHING]')) status = 'coaching';
+    if (booking.slot_type === 'tournament' || booking.notes?.includes('[TOURNAMENT]')) status = 'tournament';
+    if (booking.slot_type === 'blocked' || booking.notes?.includes('[BLOCKED]')) status = 'blocked';
     
-    return { status, label: 'Booked', booking };
+    return { status, label: status === 'blocked' ? 'Blocked' : 'Booked', booking };
   }
 
   // Check memberships

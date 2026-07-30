@@ -174,3 +174,36 @@ export function useMoveBooking() {
 
   return mutation;
 }
+
+export function useBlockSlot() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (params: {
+      venue_id: string;
+      court_id: string;
+      date: string;
+      start_time: string;
+      end_time: string;
+      duration_minutes: number;
+      notes?: string;
+      booked_by: string;
+    }) => bookingsService.blockSlot(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
+    },
+  });
+  return mutation;
+}
+
+export function useUnblockSlot() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (bookingId: string) => bookingsService.unblockSlot(bookingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule'] });
+    },
+  });
+  return mutation;
+}

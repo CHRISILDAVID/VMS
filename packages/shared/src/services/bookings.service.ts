@@ -297,5 +297,53 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
 
     if (error) throw error;
     return updated as BookingWithDetails;
+  },
+
+  async blockSlot(params: {
+    venue_id: string;
+    court_id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    duration_minutes: number;
+    notes?: string;
+    booked_by: string;
+  }): Promise<any> {
+    // Generate a random booking number for the block
+    const booking_number = `BLK-${params.date.replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert({
+        booking_number,
+        venue_id: params.venue_id,
+        court_id: params.court_id,
+        booked_by: params.booked_by,
+        date: params.date,
+        start_time: params.start_time,
+        end_time: params.end_time,
+        duration_minutes: params.duration_minutes,
+        base_amount: 0,
+        final_amount: 0,
+        status: 'completed',
+        payment_status: 'paid',
+        slot_type: 'blocked',
+        notes: params.notes,
+        is_force_booked: true, // Bypass overlap in UI logic, but still a real row
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async unblockSlot(bookingId: string): Promise<void> {
+    const { error } = await supabase
+      .from('bookings')
+      .delete()
+      .eq('id', bookingId);
+      
+    if (error) throw error;
   }
 })

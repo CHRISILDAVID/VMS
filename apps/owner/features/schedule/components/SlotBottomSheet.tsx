@@ -42,6 +42,11 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
             { icon: Unlock, label: 'Release Slot', color: '#DC2626' },
           ];
         }
+        if (slot.status === 'blocked') {
+          return [
+            { icon: Unlock, label: 'Unblock Slot', color: '#DC2626' },
+          ];
+        }
         return [
           { icon: Eye, label: 'View Booking', color: '#2563EB' },
           { icon: Pencil, label: 'Edit Booking', color: '#0F172A' },

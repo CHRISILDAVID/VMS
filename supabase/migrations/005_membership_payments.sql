@@ -20,6 +20,7 @@ CREATE TABLE membership_payments (
   recorded_by     UUID REFERENCES auth.users(id),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  is_voided       BOOLEAN NOT NULL DEFAULT false,
 
   UNIQUE(member_id, billing_period)
 );
