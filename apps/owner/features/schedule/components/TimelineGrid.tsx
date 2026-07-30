@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Animated } from 'react-native';
 import { Court, Booking, MembershipSlot } from '@vms/shared/types';
 import { 
   processBookingsToBlocks, 
@@ -20,6 +20,8 @@ interface TimelineGridProps {
   dateStr: string;
   onSlotPress: (slot: any, court: Court) => void;
   onEmptyTap: (court: Court, hour: number) => void;
+  conflictCourtId?: string;
+  conflictTime?: string;
 }
 
 export function TimelineGrid({
@@ -28,8 +30,24 @@ export function TimelineGrid({
   memberships,
   dateStr,
   onSlotPress,
-  onEmptyTap
+  onEmptyTap,
+  conflictCourtId,
+  conflictTime
 }: TimelineGridProps) {
+  const blinkAnim = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    if (conflictCourtId && conflictTime) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(blinkAnim, { toValue: 0.2, duration: 400, useNativeDriver: true }),
+          Animated.timing(blinkAnim, { toValue: 1, duration: 400, useNativeDriver: true })
+        ])
+      ).start();
+    } else {
+      blinkAnim.setValue(1);
+    }
+  }, [conflictCourtId, conflictTime, blinkAnim]);
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
 
   const blocks = useMemo(() => {
@@ -99,6 +117,8 @@ export function TimelineGrid({
                   const cfg = slotConfig[block.status] || slotConfig.booked;
                   const courtIndex = courts.findIndex(c => c.id === block.courtId);
                   
+                  const isConflict = block.courtId === conflictCourtId && block.time === conflictTime;
+                  
                   return (
                     <TouchableOpacity
                       key={`${block.courtId}-${i}`}
@@ -113,14 +133,17 @@ export function TimelineGrid({
                           top: courtIndex * ROW_HEIGHT + 6,
                           width: block.duration * HOUR_WIDTH - 4,
                           backgroundColor: cfg.bg,
-                          borderColor: cfg.border,
+                          borderColor: isConflict ? '#EF4444' : cfg.border,
+                          borderWidth: isConflict ? 2 : 1,
                           opacity: block.isPast ? 0.6 : 1,
                         }
                       ]}
                     >
-                      <Text style={[styles.bookingBlockText, { color: cfg.text }]} numberOfLines={1}>
-                        {block.label}
-                      </Text>
+                      <Animated.View style={{ flex: 1, opacity: isConflict ? blinkAnim : 1 }}>
+                        <Text style={[styles.bookingBlockText, { color: cfg.text }]} numberOfLines={1}>
+                          {block.label}
+                        </Text>
+                      </Animated.View>
                     </TouchableOpacity>
                   );
                 })}

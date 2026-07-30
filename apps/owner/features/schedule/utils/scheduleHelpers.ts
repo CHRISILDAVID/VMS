@@ -70,7 +70,17 @@ export function processBookingsToBlocks(
     });
   };
 
-  courtBookings.forEach((b) => {
+  const filteredBookings = courtBookings.filter(b => {
+    // If a booking overlaps with a membership slot, hide the booking 
+    // since Membership takes visual precedence and court is considered blocked.
+    return !courtMemberships.some(m => {
+      return (b.start_time >= m.start_time && b.start_time < m.end_time) || 
+             (b.end_time > m.start_time && b.end_time <= m.end_time) ||
+             (b.start_time <= m.start_time && b.end_time >= m.end_time);
+    });
+  });
+
+  filteredBookings.forEach((b) => {
     let status: SlotStatus = 'booked';
     if (b.notes?.includes('[COACHING]')) status = 'coaching';
     if (b.notes?.includes('[TOURNAMENT]')) status = 'tournament';

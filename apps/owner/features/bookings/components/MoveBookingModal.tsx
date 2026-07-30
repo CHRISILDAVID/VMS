@@ -200,7 +200,7 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Duration</Text>
               <View style={styles.pillsContainer}>
-                {[1, 2, 3, 4].map((h) => {
+                {[0.5, 1, 1.5, 2, 2.5, 3].map((h) => {
                   const active = durationHours === h;
                   return (
                     <TouchableOpacity

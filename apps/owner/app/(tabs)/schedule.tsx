@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import BottomSheet from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 import { VenueSelector } from '../../components/domain/VenueSelector';
 import { DateSelector } from '../../features/schedule/components/DateSelector';
@@ -22,6 +22,7 @@ export default function ScheduleScreen() {
   const router = useRouter();
   const { selectedVenueId } = useVenueStore();
   const releaseSlotMutation = useReleaseSlot();
+  const { conflictCourtId, conflictTime } = useLocalSearchParams<{ conflictCourtId?: string; conflictTime?: string }>();
   
   const [selectedDateStr, setSelectedDateStr] = useState(() => 
     format(new Date(), 'yyyy-MM-dd')
@@ -145,6 +146,8 @@ export default function ScheduleScreen() {
             dateStr={selectedDateStr}
             onSlotPress={handleSlotPress}
             onEmptyTap={handleEmptyTap}
+            conflictCourtId={conflictCourtId}
+            conflictTime={conflictTime}
           />
         )}
       </View>

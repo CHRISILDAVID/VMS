@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'rea
 import { Eye, ToggleLeft, ToggleRight, Edit2, Trash2, Plus } from 'lucide-react-native';
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 import { useDeleteSlot, useToggleOpenSlot } from '../hooks/useMemberships';
+import { useVoidPaymentsForSlot } from '../../payments/hooks/usePayments';
 
 import { formatCurrency } from '@vms/shared/utils';
 
@@ -55,17 +56,27 @@ function formatTime(time?: string): string {
 export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: SlotsTabProps) {
   const deleteMutation = useDeleteSlot();
   const toggleMutation = useToggleOpenSlot();
+  const voidMutation = useVoidPaymentsForSlot();
 
   const handleDelete = (slot: MembershipSlotWithDetails) => {
     Alert.alert(
       'Delete Slot',
-      `Are you sure you want to delete "${slot.name}"? This cannot be undone.`,
+      `Are you sure you want to delete "${slot.name}"? This cannot be undone.\n\nWhat would you like to do with any unpaid dues from members in this slot?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Keep Dues & Delete',
           style: 'destructive',
           onPress: () => deleteMutation.mutate(slot.id),
+        },
+        {
+          text: 'Void Dues & Delete',
+          style: 'destructive',
+          onPress: () => {
+            voidMutation.mutate(slot.id, {
+              onSuccess: () => deleteMutation.mutate(slot.id),
+            });
+          },
         },
       ]
     );

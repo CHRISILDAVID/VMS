@@ -38,3 +38,44 @@ export const useMarkPaymentAsPaid = () => {
     },
   });
 };
+
+export const useDefaulters = (venueId?: string) => {
+  return useQuery({
+    queryKey: ['payments', 'defaulters', venueId],
+    queryFn: () => paymentsService.getDefaulters(venueId!),
+    enabled: !!venueId,
+  });
+};
+
+export const useVoidPayment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (paymentId: string) => paymentsService.voidPayment(paymentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
+  });
+};
+
+export const useVoidPaymentsForMember = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (memberId: string) => paymentsService.voidPaymentsForMember(memberId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
+  });
+};
+
+export const useVoidPaymentsForSlot = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (slotId: string) => paymentsService.voidPaymentsForSlot(slotId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
+  });
+};

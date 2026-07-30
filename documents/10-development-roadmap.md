@@ -191,21 +191,21 @@
 **Complexity:** ⬛⬛⬜⬜⬜ (Low)
 
 ### Deliverables
-- [ ] Profile Tab UI: Basic owner details
-- [ ] Operating Schedules & Pricing Blocks CRUD (Deferred from M1)
-- [ ] Court Information: View-only map launch (React Native Linking API using lat/lon)
-- [ ] Court Schedule & Pricing: weekly calendar, pricing blocks CRUD, copy day, close/24h
-- [ ] Grow Your Business: 4 placeholder CTA pages
-- [ ] Subscription & Billing: static mock from design
-- [ ] Help & Support: FAQ accordion, contact, legal
-- [ ] Account recovery: optional email backup
-- [ ] Logout with confirmation
+- [x] Profile Tab UI: Basic owner details
+- [x] Operating Schedules & Pricing Blocks CRUD (Deferred from M1)
+- [x] Court Information: View-only map launch (React Native Linking API using lat/lon)
+- [x] Court Schedule & Pricing: weekly calendar, pricing blocks CRUD, copy day, close/24h
+- [x] Grow Your Business: 4 placeholder CTA pages
+- [x] Subscription & Billing: static mock from design
+- [x] Help & Support: FAQ accordion, contact, legal
+- [x] Account recovery: optional email backup
+- [x] Logout with confirmation
 
 ### Completion Checklist
-- [ ] All profile menu items navigable
-- [ ] Court info viewable
-- [ ] Pricing blocks CRUD works
-- [ ] Schedule copy-to-days works
+- [x] All profile menu items navigable
+- [x] Court info viewable
+- [x] Pricing blocks CRUD works
+- [x] Schedule copy-to-days works
 
 ---
 

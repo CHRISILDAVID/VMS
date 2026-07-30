@@ -32,9 +32,10 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
         paidOn: new Date().toISOString().split('T')[0],
         notes,
       });
-      onClose();
     } catch (err) {
       console.error(err);
+    } finally {
+      onClose();
     }
   };
 

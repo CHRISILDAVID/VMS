@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } f
 import { ChevronLeft, Plus, Edit2, ArrowRightLeft, UserX } from 'lucide-react-native';
 import { MembershipSlotWithDetails, MemberWithDetails } from '@vms/shared/services';
 import { useMembers, useRemoveMember, useUpdateMember } from '../hooks/useMemberships';
+import { useVoidPaymentsForMember } from '../../payments/hooks/usePayments';
 import { AddMemberModal, EditMemberModal } from './MemberSheets';
 import { TransferSheet } from './TransferSheet';
 
@@ -20,6 +21,7 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
   const { data: members = [], isLoading } = useMembers(slot.id);
   const removeMutation = useRemoveMember();
   const updateMutation = useUpdateMember();
+  const voidMutation = useVoidPaymentsForMember();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<MemberWithDetails | null>(null);
@@ -37,13 +39,22 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
   const handleRemove = (m: MemberWithDetails) => {
     Alert.alert(
       'Remove Member',
-      `Are you sure you want to remove "${m.customer?.full_name}" from this slot?`,
+      `Are you sure you want to remove "${m.customer?.full_name}" from this slot?\n\nWhat would you like to do with their unpaid dues?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Remove',
+          text: 'Keep Dues & Remove',
           style: 'destructive',
           onPress: () => removeMutation.mutate(m.id),
+        },
+        {
+          text: 'Void Dues & Remove',
+          style: 'destructive',
+          onPress: () => {
+            voidMutation.mutate(m.id, {
+              onSuccess: () => removeMutation.mutate(m.id),
+            });
+          },
         },
       ]
     );

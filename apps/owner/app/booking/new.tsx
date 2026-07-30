@@ -59,6 +59,7 @@ export default function NewBookingWizardScreen() {
     return '07:00:00';
   });
   const [selectedDurationMins, setSelectedDurationMins] = useState<number>(60);
+  const [isBlockSlot, setIsBlockSlot] = useState<boolean>(false);
 
   // Step 2: Customer
   const [customerSearch, setCustomerSearch] = useState<string>('');
@@ -147,7 +148,8 @@ export default function NewBookingWizardScreen() {
   };
 
   const handleConfirmBooking = async (force = false) => {
-    if (!selectedVenueId || !selectedCourtId || !selectedCustomer) return;
+    if (!selectedVenueId || !selectedCourtId) return;
+    if (!isBlockSlot && !selectedCustomer) return;
     setOverlapError(null);
     setIsSubmitting(true);
 
@@ -160,10 +162,28 @@ export default function NewBookingWizardScreen() {
     if (pendingPaise === 0 && totalPaise > 0) paymentStatus = 'paid';
     else if (advPaise > 0) paymentStatus = 'partial';
 
-    const payload = {
+    const payload = isBlockSlot ? {
       venue_id: selectedVenueId,
       court_id: selectedCourtId,
-      customer_id: selectedCustomer.id,
+      customer_id: null,
+      date: selectedDate,
+      start_time: selectedTime,
+      end_time: endTime,
+      duration_minutes: selectedDurationMins,
+      base_amount: 0,
+      discount: 0,
+      final_amount: 0,
+      advance: 0,
+      pending: 0,
+      status: 'confirmed', // blocked slots don't need payment
+      payment_status: 'paid',
+      payment_mode: null,
+      source: 'offline',
+      slot_type: 'blocked',
+    } : {
+      venue_id: selectedVenueId,
+      court_id: selectedCourtId,
+      customer_id: selectedCustomer?.id,
       date: selectedDate,
       start_time: selectedTime,
       end_time: endTime,
@@ -177,6 +197,7 @@ export default function NewBookingWizardScreen() {
       payment_status: paymentStatus,
       payment_mode: paymentMode,
       source: bookingSource,
+      slot_type: 'booked',
     };
 
     try {
@@ -200,7 +221,13 @@ export default function NewBookingWizardScreen() {
       setStep(4); // Move to Step 4 (Confirm screen)
     } catch (err: any) {
       if (err.code === 'OVERLAP_DETECTED' || err.message?.includes('OVERLAP_DETECTED')) {
-        setOverlapError('Slot Overlap Detected! Another booking or membership exists during this time.');
+        const conflict = err.conflicts?.[0];
+        if (conflict) {
+          Alert.alert('Booking Conflict', 'This slot is already booked.');
+          router.replace(`/(tabs)?conflictCourtId=${conflict.court_id}&conflictTime=${conflict.start_time}` as any);
+        } else {
+          setOverlapError('Slot Overlap Detected! Another booking or membership exists during this time.');
+        }
       } else {
         Alert.alert('Error', err.message || 'Failed to create booking');
       }
@@ -363,6 +390,19 @@ export default function NewBookingWizardScreen() {
                   );
                 })}
               </View>
+            </View>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Block Court</Text>
+              <TouchableOpacity
+                style={[styles.durationCard, isBlockSlot && styles.durationCardActive, { marginTop: 8 }]}
+                onPress={() => setIsBlockSlot(!isBlockSlot)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.durationLabel, isBlockSlot && styles.durationLabelActive]}>Block this slot</Text>
+                  <Text style={{ fontSize: 13, color: '#64748B', marginTop: 2 }}>No customer required. Court will be marked as blocked.</Text>
+                </View>
+                {isBlockSlot && <Check size={20} color="#2563EB" />}
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -609,8 +649,13 @@ export default function NewBookingWizardScreen() {
               <TouchableOpacity
                 style={[styles.nextStepBtn, !canNext() && styles.nextStepBtnDisabled]}
                 onPress={() => {
-                  if (step < 3) setStep(step + 1);
-                  else handleConfirmBooking(false);
+                  if (step === 1 && isBlockSlot) {
+                    handleConfirmBooking(false);
+                  } else if (step < 3) {
+                    setStep(step + 1);
+                  } else {
+                    handleConfirmBooking(false);
+                  }
                 }}
                 disabled={!canNext() || isSubmitting}
               >
@@ -619,7 +664,7 @@ export default function NewBookingWizardScreen() {
                 ) : (
                   <>
                     <Text style={[styles.nextStepText, !canNext() && { color: '#94A3B8' }]}>
-                      {step === 3 ? 'Confirm Booking' : 'Continue'}
+                      {(step === 3 || (step === 1 && isBlockSlot)) ? (isBlockSlot ? 'Block Court' : 'Confirm Booking') : 'Continue'}
                     </Text>
                     <ArrowRight size={18} color={canNext() ? '#fff' : '#94A3B8'} />
                   </>

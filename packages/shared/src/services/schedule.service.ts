@@ -59,5 +59,97 @@ export const createScheduleService = (supabase: SupabaseClient) => ({
       bookings: bookings as Booking[],
       membershipBlocks: activeBlocks as MembershipSlot[]
     }
+  },
+
+  async upsertOperatingSchedule(schedule: Partial<OperatingSchedule> & { venue_id: string, day_of_week: DayOfWeek }) {
+    const { data, error } = await supabase
+      .from('operating_schedules')
+      .upsert({
+        id: schedule.id,
+        venue_id: schedule.venue_id,
+        day_of_week: schedule.day_of_week,
+        is_closed: schedule.is_closed ?? false,
+        is_24h: schedule.is_24h ?? false,
+      }, { onConflict: 'venue_id, day_of_week' })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as OperatingSchedule
+  },
+
+  async upsertPricingBlock(block: Partial<PricingBlock> & { schedule_id: string }) {
+    const { data, error } = await supabase
+      .from('pricing_blocks')
+      .upsert({
+        id: block.id,
+        schedule_id: block.schedule_id,
+        start_time: block.start_time,
+        end_time: block.end_time,
+        price_per_hour: block.price_per_hour,
+        court_ids: block.court_ids || [],
+        is_active: block.is_active ?? true,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as PricingBlock
+  },
+
+  async deletePricingBlock(id: string) {
+    const { error } = await supabase
+      .from('pricing_blocks')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  async copyScheduleAndPricingToDays(
+    venueId: string, 
+    sourceDay: DayOfWeek, 
+    targetDays: DayOfWeek[]
+  ) {
+    // Get source schedule and pricing blocks
+    const sourceSchedule = await this.getOperatingSchedule(venueId, sourceDay)
+    if (!sourceSchedule) throw new Error("Source schedule not found")
+
+    // For each target day
+    for (const targetDay of targetDays) {
+      // 1. Upsert operating schedule
+      const targetSchedule = await this.upsertOperatingSchedule({
+        venue_id: venueId,
+        day_of_week: targetDay,
+        is_closed: sourceSchedule.is_closed,
+        is_24h: sourceSchedule.is_24h
+      })
+
+      // 2. Delete existing pricing blocks for target day
+      const { error: deleteError } = await supabase
+        .from('pricing_blocks')
+        .delete()
+        .eq('schedule_id', targetSchedule.id)
+      
+      if (deleteError) throw deleteError
+
+      // 3. Insert copied pricing blocks
+      if (sourceSchedule.pricing_blocks && sourceSchedule.pricing_blocks.length > 0) {
+        const blocksToInsert = sourceSchedule.pricing_blocks.map(b => ({
+          schedule_id: targetSchedule.id,
+          start_time: b.start_time,
+          end_time: b.end_time,
+          price_per_hour: b.price_per_hour,
+          court_ids: b.court_ids,
+          is_active: b.is_active,
+        }))
+        
+        const { error: insertError } = await supabase
+          .from('pricing_blocks')
+          .insert(blocksToInsert)
+          
+        if (insertError) throw insertError
+      }
+    }
   }
 })
