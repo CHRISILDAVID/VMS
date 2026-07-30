@@ -66,3 +66,12 @@ When developing or fixing features in mobile applications (such as the Owner App
 ## Database Tracking (Important Rule)
 
 Track any database schema changes with proper numbered migrations in `supabase/migrations/` and numbered seed query files.
+
+## Remote Database Access (Important Rule)
+
+When an agent needs to access the remote Supabase database to inspect the schema or run queries, do **NOT** use `npx supabase db dump` or other CLI commands that require Docker. 
+Instead, create a short Node.js script (using the `pg` library) or Python script within a dedicated `database_temps/` folder, and use the direct PostgreSQL connection string to connect. Keep the codebase clean.
+
+## Documents Folder Analysis (Important Rule)
+
+Before starting any new phase, milestone, or significant feature implementation, **always fully analyze the `documents/` folder** (specifically files like `10-development-roadmap.md`, `07-backend-architecture.md`, `08-frontend-architecture.md`, and `06-database-design.md`). This ensures that you maintain the established priorities, understand the long-term architecture, and do not deviate from the core roadmap for the app.

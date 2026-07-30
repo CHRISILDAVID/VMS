@@ -51,3 +51,5 @@ dump.xml
 window_dump.xml
 Agent_test_dump_files/
 
+# DB secrets
+database_temps/

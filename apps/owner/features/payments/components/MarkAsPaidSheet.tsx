@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useMarkPaymentAsPaid } from '../hooks/usePayments';
 import { PaymentMode } from '@vms/shared/types';
@@ -22,6 +22,18 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
 
   const [mode, setMode] = useState<PaymentMode>('upi');
   const [notes, setNotes] = useState('');
+  
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
+  useEffect(() => {
+    if (payment) {
+      Keyboard.dismiss();
+      bottomSheetRef.current?.snapToIndex(0);
+    } else {
+      Keyboard.dismiss();
+      bottomSheetRef.current?.close();
+    }
+  }, [payment]);
 
   const handleSave = async () => {
     if (!payment) return;
@@ -35,16 +47,23 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
     } catch (err) {
       console.error(err);
     } finally {
+      Keyboard.dismiss();
+      bottomSheetRef.current?.close();
       onClose();
     }
   };
 
   return (
     <BottomSheet
+      ref={bottomSheetRef}
       index={payment ? 0 : -1}
       snapPoints={snapPoints}
       enablePanDownToClose
-      onClose={onClose}
+      onChange={(idx) => {
+        if (idx === -1 && payment) {
+          onClose();
+        }
+      }}
       backdropComponent={(props) => (
         <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
       )}

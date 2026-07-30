@@ -199,7 +199,7 @@ CREATE TABLE bookings (
   booking_number  TEXT NOT NULL UNIQUE,           -- human-readable ID (e.g., BK001)
   venue_id        UUID NOT NULL REFERENCES venues(id),
   court_id        UUID NOT NULL REFERENCES courts(id),
-  customer_id     UUID NOT NULL REFERENCES customers(id),
+  customer_id     UUID REFERENCES customers(id),  -- nullable for blocking the slots
   booked_by       UUID NOT NULL REFERENCES auth.users(id), -- owner who created
   date            DATE NOT NULL,
   start_time      TIME NOT NULL,
@@ -376,6 +376,7 @@ CREATE TABLE membership_payments (
   recorded_by     UUID REFERENCES auth.users(id),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  is_voided       BOOLEAN NOT NULL DEFAULT FALSE, -- Incase member is removed mid-month and owner ignores due
 
   UNIQUE(member_id, billing_period)
 );
