@@ -73,7 +73,7 @@
 Desktop-first sidebar + content layout:
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Header: Logo + Admin name + Logout                  │
+│  Header: Logo + Admin name + Logout + Theme Toggle   │
 ├──────────┬───────────────────────────────────────────┤
 │          │                                           │
 │ Sidebar  │  Content Area                             │
@@ -92,6 +92,7 @@ Desktop-first sidebar + content layout:
 │          │                                           │
 └──────────┴───────────────────────────────────────────┘
 ```
+**Theme Support:** The Admin panel must support Dark, Light, and System Default modes.
 
 ---
 
@@ -189,6 +190,7 @@ Shows:
 | Name | Text | ✅ | e.g., "Feathers Badminton" |
 | Owner | Dropdown | ❌ | Select from existing owners, or leave unassigned |
 | Address | Text | ❌ | Full address |
+| Map Link | Text | ❌ | Google Maps or other map link |
 | City | Text | ❌ | |
 | State | Text | ❌ | |
 | Pincode | Text | ❌ | |
@@ -196,11 +198,12 @@ Shows:
 | Longitude | Number | ❌ | For map coordinates |
 | Contact Phone | Text | ❌ | Venue contact number |
 | Contact Email | Email | ❌ | |
-| Court Type | Dropdown | ❌ | wooden / synthetic / cement / mat |
 | Amenities | Multi-select tags | ❌ | e.g., Parking, Washroom, Cafeteria, Wi-Fi |
 | GSTIN | Text | ❌ | GST number |
 | GST Enabled | Toggle | ❌ | Default: false |
 | Photos | File upload (multiple) | ❌ | Upload to Supabase Storage `venue-photos` bucket |
+
+*(Note: `Court Type` is intentionally omitted from the Venue level because venues can have multiple court types (e.g. 6 synthetic, 3 wooden). Court types will be defined individually when creating Courts.)*
 
 **After venue creation,** auto-navigate to venue detail page to add courts.
 
@@ -483,23 +486,26 @@ reorderCourts(venueId, orderedIds)  // Batch UPDATE sort_order
 
 ## 9. Implementation Phases
 
+### Phase 0: Database & Backend Pre-requisites
+- [ ] Create and run migration 010 (owner_id nullable + venue-photos bucket)
+- [ ] Create and deploy the `create-owner-account` Edge Function
+- [ ] Regenerate Supabase database types (`pnpm db:types`)
+
 ### Phase 1: Foundation (Infrastructure)
 - [ ] Install React Router, React Hook Form, Zod
-- [ ] Set up sidebar + content layout with React Router
+- [ ] Set up sidebar + content layout with React Router (including Theme Support)
 - [ ] Create reusable UI components: Table, Form, Modal, PageHeader, StatusBadge
 - [ ] Migrate existing BookingsTable and CustomersTable into the new routed layout
 - [ ] Create the Dashboard page with platform-wide KPIs
 
 ### Phase 2: Owner Management (Core)
-- [ ] Create the `create-owner-account` Edge Function
 - [ ] Build Owners list page (`/owners`)
-- [ ] Build Create Owner form
+- [ ] Build Create Owner form (integrating with Edge Function)
 - [ ] Build Owner detail page (`/owners/:id`)
 - [ ] Build Edit Owner form
 - [ ] Implement owner deactivation
 
 ### Phase 3: Venue & Court Management (Core)
-- [ ] Run migration 010 (owner_id nullable + venue-photos bucket)
 - [ ] Build Venues list page (`/venues`)
 - [ ] Build Create Venue form (`/venues/new`)
 - [ ] Build Venue detail page (`/venues/:id`)
@@ -565,19 +571,19 @@ reorderCourts(venueId, orderedIds)  // Batch UPDATE sort_order
 
 ---
 
-## 12. Open Questions
+## 12. Resolved Questions (From Brainstorming)
 
 > **Q1: Should the admin be able to create bookings on behalf of an owner?**
-> Current plan says NO — bookings are the owner's responsibility via the mobile app. Please confirm.
+> **Answer:** Not for the MVP.
 
 > **Q2: Should there be multiple super-admin accounts or just one?**
-> Current DB supports multiple (any owner with `role = 'super_admin'`). The admin panel login doesn't restrict this. Please confirm if single-admin is sufficient for MVP.
+> **Answer:** Maximum of 3 super_admin accounts (as backups).
 
 > **Q3: The owner's venues are currently seeded via SQL. After this change, should the existing seed data be migrated or is starting fresh acceptable?**
-> The existing "Feathers Badminton" venue and its courts were created via seed SQL with a hardcoded owner_id. After this change, the admin panel would be the canonical way to create venues.
+> **Answer:** The admin panel should be the ONLY way to create venues in production. We will truncate everything for production, though we will maintain dummy seed data scripts for local development/testing of the user app.
 
 > **Q4: Should the admin panel have the ability to impersonate an owner (view their schedule as they would see it)?**
-> This could be useful for debugging but is not in the current roadmap. Deferred unless you want it.
+> **Answer:** Not for the MVP.
 
 > **Q5: When creating an owner, should we send them an SMS notification that their account is ready?**
-> Could use Supabase's built-in SMS or a custom integration. Not in current scope but worth considering.
+> **Answer:** No need for now to save on costs. Will consider for the future.
