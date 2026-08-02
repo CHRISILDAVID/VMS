@@ -487,50 +487,66 @@ reorderCourts(venueId, orderedIds)  // Batch UPDATE sort_order
 ## 9. Implementation Phases
 
 ### Phase 0: Database & Backend Pre-requisites
-- [ ] Create and run migration 010 (owner_id nullable + venue-photos bucket)
-- [ ] Create and deploy the `create-owner-account` Edge Function
-- [ ] Regenerate Supabase database types (`pnpm db:types`)
+- [x] Create and run migration 010 (owner_id nullable + venue-photos bucket)
+- [x] Create and deploy the `create-owner-account` Edge Function
+- [x] Regenerate Supabase database types (`pnpm db:types`)
 
 ### Phase 1: Foundation (Infrastructure)
-- [ ] Install React Router, React Hook Form, Zod
-- [ ] Set up sidebar + content layout with React Router (including Theme Support)
-- [ ] Create reusable UI components: Table, Form, Modal, PageHeader, StatusBadge
-- [ ] Migrate existing BookingsTable and CustomersTable into the new routed layout
-- [ ] Create the Dashboard page with platform-wide KPIs
+- [x] Install React Router, React Hook Form, Zod
+- [x] Set up sidebar + content layout with React Router (including Theme Support)
+- [x] Create reusable UI components: Table, Form, Modal, PageHeader, StatusBadge
+- [x] Migrate existing BookingsTable and CustomersTable into the new routed layout
+- [x] Create the Dashboard page with platform-wide KPIs
+- [x] Add "Recent Activity" feed (last 10 bookings) to the Dashboard
+- [x] Implement empty state ("Get Started" CTA) for Dashboard when 0 venues/owners
+- [x] Convert Admin Login from Mobile/OTP to Email/Password (`LoginScreen` & `useAdminAuth`)
+- [x] Extend Shared Service Layer (`owners.service.ts`, `venues.service.ts`, `courts.service.ts`)
 
 ### Phase 2: Owner Management (Core)
-- [ ] Build Owners list page (`/owners`)
-- [ ] Build Create Owner form (integrating with Edge Function)
-- [ ] Build Owner detail page (`/owners/:id`)
-- [ ] Build Edit Owner form
-- [ ] Implement owner deactivation
+- [x] Build Owners list page (`/owners`)
+- [x] Build Create Owner form (integrating with Edge Function)
+- [x] Build Owner detail page (`/owners/:id`)
+- [x] Build Edit Owner form
+- [x] Implement owner deactivation
+- [x] Implement validation preventing deactivation of owners with active venues
 
 ### Phase 3: Venue & Court Management (Core)
-- [ ] Build Venues list page (`/venues`)
-- [ ] Build Create Venue form (`/venues/new`)
-- [ ] Build Venue detail page (`/venues/:id`)
-- [ ] Build Courts CRUD within venue detail
-- [ ] Build venue reassignment (owner dropdown)
-- [ ] Implement photo upload to Supabase Storage
+- [x] Build Venues list page (`/venues`)
+- [x] Build Create Venue form (`/venues/new`)
+- [x] Build Venue detail page (`/venues/:id`)
+- [x] Add Stats Summary (bookings, revenue, members) to Venue detail page
+- [x] Build Courts CRUD within venue detail
+- [x] Implement batch court creation ("Add N courts" feature)
+- [x] Implement venue deactivation with warning for future bookings
+- [x] Implement court deletion warning for active bookings
+- [x] Add warning indicator for venues with 0 active courts
+- [x] Build venue reassignment (owner dropdown)
+- [x] Implement photo upload to Supabase Storage
+- [x] **[Extra]** Inline Confirmation State (removed browser alerts for batch adds)
+- [x] **[Extra]** Owner Searchable Select (Combobox with pagination/limit for owner assignment)
+- [x] **[Extra]** Clone Court Feature (copy configurations automatically)
+- [x] **[Extra]** Direct Supabase Storage Photo Management (upload/delete sync with bucket)
+- [x] **[Extra]** Fix nested relational aggregate counts for soft-deleted entities
 
 ### Phase 4: Schedule & Pricing Configuration
-- [ ] Build Schedule & Pricing page within venue detail (`/venues/:id/schedule`)
-- [ ] Operating schedules weekly calendar UI
-- [ ] Pricing blocks CRUD per day
+- [x] Build Schedule & Pricing page within venue detail (`/venues/:id/schedule`)
+- [x] Operating schedules weekly calendar UI
+- [x] Pricing blocks CRUD per day
 
 ### Phase 5: Overview Pages (Read-Only)
-- [ ] Enhance Bookings table (cross-venue, date range, export)
-- [ ] Enhance Customers table (cross-venue)
-- [ ] Build Memberships overview page
-- [ ] Build Payments overview page
+- [x] Enhance Bookings table (cross-venue, date range, export)
+- [x] Enhance Customers table (cross-venue)
+- [x] Build Memberships overview page
+- [x] Build Payments overview page
 
-### Phase 6: Owner App Onboarding Change
-- [ ] Modify `_layout.tsx` AuthGuard to handle "no profile" case
-- [ ] Replace onboarding screen with "Account Not Configured" screen
-- [ ] Test full flow: Admin creates owner → Owner logs in → Lands on Schedule
+### Phase 6: Owner App Onboarding Change & UI Polish
+- [x] Modify `_layout.tsx` AuthGuard to handle "no profile" case
+- [x] Replace onboarding screen with "Account Not Configured" screen
+- [x] Test full flow: Admin creates owner → Owner logs in → Lands on Schedule
+- [x] Applied dark mode theme to admin overview cards (Bookings, Customers, Memberships, Payments)
 
 ### Phase 7: Polish & Deploy
-- [ ] Responsive design (mobile fallback)
+- [ ] Responsive design (mobile fallback)to: 
 - [ ] Error handling and toast notifications
 - [ ] Loading skeletons on all pages
 - [ ] Vercel deployment configuration

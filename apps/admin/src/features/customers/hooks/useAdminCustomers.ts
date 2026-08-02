@@ -7,7 +7,12 @@ export function useAdminCustomers(search?: string, tab?: string) {
     queryFn: async () => {
       let query = supabase
         .from('customers')
-        .select('*')
+        .select(`
+          *,
+          owner:owners (
+            full_name
+          )
+        `)
         .is('deleted_at', null)
         .order('total_visits', { ascending: false });
 
@@ -15,6 +20,9 @@ export function useAdminCustomers(search?: string, tab?: string) {
         const term = search.trim();
         query = query.or(`full_name.ilike.%${term}%,phone.ilike.%${term}%`);
       }
+
+      // Limit to 1000 for global view
+      query = query.limit(1000);
 
       const { data, error } = await query;
       if (error) throw error;

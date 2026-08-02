@@ -45,8 +45,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     } else if (session && !ownerProfile) {
       // Logged in, but no owner profile
-      if (segments.join('/') !== '(auth)/onboarding') {
-        router.replace('/(auth)/onboarding' as any);
+      if (segments.join('/') !== '(auth)/account-not-configured') {
+        router.replace('/(auth)/account-not-configured' as any);
       }
     } else if (session && ownerProfile) {
       // Fully logged in and profile exists

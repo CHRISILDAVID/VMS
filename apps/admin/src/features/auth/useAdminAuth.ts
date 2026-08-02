@@ -25,20 +25,10 @@ export function useAdminAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithOtp = async (phone: string) => {
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: formattedPhone,
-    });
-    if (error) throw error;
-  };
-
-  const verifyOtp = async (phone: string, token: string) => {
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone: formattedPhone,
-      token,
-      type: 'sms',
+  const signInWithEmail = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
     if (error) throw error;
     return data;
@@ -52,8 +42,7 @@ export function useAdminAuth() {
     session,
     user,
     isLoading,
-    signInWithOtp,
-    verifyOtp,
+    signInWithEmail,
     signOut,
   };
 }

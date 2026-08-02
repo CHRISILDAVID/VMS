@@ -6,7 +6,7 @@ const bookingsService = createBookingsService(supabase);
 const venuesService = createVenuesService(supabase);
 const courtsService = createCourtsService(supabase);
 
-export function useAdminBookings(venueId?: string, filters?: { status?: string; search?: string; date?: string; courtId?: string }) {
+export function useAdminBookings(venueId?: string, filters?: { status?: string; search?: string; startDate?: string; endDate?: string; courtId?: string }) {
   return useQuery({
     queryKey: ['admin-bookings', venueId, filters],
     queryFn: async () => {
@@ -14,18 +14,29 @@ export function useAdminBookings(venueId?: string, filters?: { status?: string; 
         .from('bookings')
         .select(`
           *,
-          court:courts!inner(*),
+          court:courts!inner(
+            *,
+            venue:venues (
+              name,
+              owner:owners (
+                full_name
+              )
+            )
+          ),
           customer:customers(*)
         `)
         .is('deleted_at', null)
-        .order('booking_date', { ascending: false })
+        .order('date', { ascending: false })
         .order('start_time', { ascending: true });
 
       if (venueId) {
         query = query.eq('court.venue_id', venueId);
       }
-      if (filters?.date) {
-        query = query.eq('booking_date', filters.date);
+      if (filters?.startDate) {
+        query = query.gte('date', filters.startDate);
+      }
+      if (filters?.endDate) {
+        query = query.lte('date', filters.endDate);
       }
       if (filters?.courtId && filters.courtId !== 'all' && filters.courtId !== 'All Courts') {
         query = query.eq('court_id', filters.courtId);
@@ -33,14 +44,19 @@ export function useAdminBookings(venueId?: string, filters?: { status?: string; 
       if (filters?.status && filters.status !== 'All' && filters.status !== 'all') {
         const s = filters.status.toLowerCase();
         if (s === 'upcoming') {
-          query = query.eq('status', 'confirmed').gte('booking_date', new Date().toISOString().split('T')[0]);
+          query = query.eq('status', 'upcoming').gte('date', new Date().toISOString().split('T')[0]);
         } else if (s === 'completed') {
           query = query.eq('status', 'completed');
         } else if (s === 'cancelled') {
           query = query.eq('status', 'cancelled');
         } else if (s === 'confirmed' || s === 'ongoing') {
-          query = query.eq('status', 'confirmed');
+          query = query.eq('status', 'upcoming');
         }
+      }
+
+      // Limit to 1000 for global view to avoid overloading client
+      if (!venueId) {
+        query = query.limit(1000);
       }
 
       const { data, error } = await query;

@@ -1,66 +1,28 @@
 import React, { useState } from 'react';
-import { Smartphone, ArrowRight, Shield, Loader2 } from 'lucide-react';
+import { Mail, ArrowRight, Shield, Loader2, Lock } from 'lucide-react';
 import { useAdminAuth } from './useAdminAuth';
 
 export default function LoginScreen() {
-  const { signInWithOtp, verifyOtp } = useAdminAuth();
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']); // Supabase 6 digit OTP by default
+  const { signInWithEmail } = useAdminAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone || phone.length < 10) {
-      setError('Please enter a valid 10-digit mobile number');
+    if (!email || !password) {
+      setError('Please enter both email and password');
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      await signInWithOtp(phone);
-      setStep('otp');
+      await signInWithEmail(email, password);
     } catch (err: any) {
-      setError(err.message || 'Failed to send OTP. Try again.');
+      setError(err.message || 'Invalid login credentials. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const token = otp.join('');
-    if (token.length < 6) {
-      setError('Please enter the 6-digit OTP');
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    try {
-      await verifyOtp(phone, token);
-    } catch (err: any) {
-      setError(err.message || 'Invalid OTP. Please check and try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) return;
-    const next = [...otp];
-    next[index] = value;
-    setOtp(next);
-    if (value && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      nextInput?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`);
-      prevInput?.focus();
     }
   };
 
@@ -93,128 +55,78 @@ export default function LoginScreen() {
 
           <div className="flex items-center gap-2 text-xs text-blue-200 relative z-10 font-medium">
             <Shield size={14} className="text-blue-200" />
-            <span>Secure OTP verification powered by Supabase</span>
+            <span>Secure Admin Access powered by Supabase</span>
           </div>
         </div>
 
         {/* Form Side */}
         <div className="p-10 flex flex-col justify-center bg-white">
-          {step === 'phone' ? (
-            <div>
-              <div className="flex items-center gap-2 text-blue-600 font-bold mb-2">
-                <Smartphone size={20} />
-                <span>Admin Login</span>
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Enter mobile number</h2>
-              <p className="text-sm text-slate-500 mb-6">
-                We'll send a one-time password (OTP) via SMS to verify your account.
-              </p>
-
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-                    Mobile Number
-                  </label>
-                  <div className="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus-within:border-blue-600 focus-within:bg-white transition-all">
-                    <span className="text-slate-400 font-semibold mr-2">+91</span>
-                    <input
-                      type="tel"
-                      placeholder="98765 43210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold placeholder:text-slate-300"
-                      autoFocus
-                    />
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="p-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-200">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading || phone.length < 10}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <>
-                      <span>Send OTP</span>
-                      <ArrowRight size={18} />
-                    </>
-                  )}
-                </button>
-              </form>
+          <div>
+            <div className="flex items-center gap-2 text-blue-600 font-bold mb-2">
+              <Shield size={20} />
+              <span>Admin Login</span>
             </div>
-          ) : (
-            <div>
-              <div className="flex items-center gap-2 text-blue-600 font-bold mb-2">
-                <Shield size={20} />
-                <span>Verification</span>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              Enter your credentials to access the admin panel.
+            </p>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  Email Address
+                </label>
+                <div className="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus-within:border-blue-600 focus-within:bg-white transition-all">
+                  <Mail size={18} className="text-slate-400 mr-2" />
+                  <input
+                    type="email"
+                    placeholder="admin@venueos.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold placeholder:text-slate-300"
+                    autoFocus
+                  />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Enter OTP</h2>
-              <p className="text-sm text-slate-500 mb-6">
-                Enter the 6-digit verification code sent to <strong className="text-slate-800">+91 {phone}</strong>
-              </p>
 
-              <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div className="flex gap-2 justify-between">
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      id={`otp-${index}`}
-                      type="text"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ''))}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-xl font-bold bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-blue-600 focus:bg-white outline-none text-slate-900 transition-all"
-                      autoFocus={index === 0}
-                    />
-                  ))}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  Password
+                </label>
+                <div className="flex items-center bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 focus-within:border-blue-600 focus-within:bg-white transition-all">
+                  <Lock size={18} className="text-slate-400 mr-2" />
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-transparent border-none outline-none w-full text-slate-900 font-semibold placeholder:text-slate-300"
+                  />
                 </div>
+              </div>
 
-                {error && (
-                  <div className="p-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-200">
-                    {error}
-                  </div>
+              {error && (
+                <div className="p-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-200">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !email || !password}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed mt-4"
+              >
+                {loading ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight size={18} />
+                  </>
                 )}
-
-                <div className="space-y-3">
-                  <button
-                    type="submit"
-                    disabled={loading || otp.join('').length < 6}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <>
-                        <span>Verify & Login</span>
-                        <ArrowRight size={18} />
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep('phone');
-                      setError(null);
-                      setOtp(['', '', '', '', '', '']);
-                    }}
-                    className="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
-                  >
-                    Change mobile number
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

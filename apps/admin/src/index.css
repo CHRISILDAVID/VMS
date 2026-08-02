@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --background: theme('colors.slate.50');
+    --foreground: theme('colors.slate.900');
+  }
+
+  .dark {
+    --background: theme('colors.slate.950');
+    --foreground: theme('colors.slate.100');
+  }
+}

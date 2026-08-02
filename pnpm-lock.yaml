@@ -17,6 +17,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^3.3.4
+        version: 3.3.4(react-hook-form@7.82.0(react@19.2.3))
       '@supabase/supabase-js':
         specifier: ^2.49.0
         version: 2.110.8
@@ -26,6 +29,9 @@ importers:
       '@vms/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
       lucide-react:
         specifier: ^1.23.0
         version: 1.26.0(react@19.2.3)
@@ -5487,6 +5493,10 @@ snapshots:
   '@hookform/resolvers@3.3.4(react-hook-form@7.82.0(react@19.1.0))':
     dependencies:
       react-hook-form: 7.82.0(react@19.1.0)
+
+  '@hookform/resolvers@3.3.4(react-hook-form@7.82.0(react@19.2.3))':
+    dependencies:
+      react-hook-form: 7.82.0(react@19.2.3)
 
   '@ide/backoff@1.0.0': {}
 

@@ -69,9 +69,23 @@ Track any database schema changes with proper numbered migrations in `supabase/m
 
 ## Remote Database Access (Important Rule)
 
-When an agent needs to access the remote Supabase database to inspect the schema or run queries, do **NOT** use `npx supabase db dump` or other CLI commands that require Docker. 
-Instead, create a short Node.js script (using the `pg` library) or Python script within a dedicated `database_temps/` folder, and use the direct PostgreSQL connection string to connect. Keep the codebase clean.
+When an agent needs to access the remote Supabase database to inspect the schema or run queries, you must **ALWAYS ask for the user's explicit permission** before connecting to or modifying the remote DB. Do **NOT** use `npx supabase db dump` or other CLI commands that require Docker. 
+Instead, after getting permission, create a short Node.js script (using the `pg` library) or Python script within a dedicated `database_temps/` folder, and use the direct PostgreSQL connection string to connect. Keep the codebase clean.
 
 ## Documents Folder Analysis (Important Rule)
 
 Before starting any new phase, milestone, or significant feature implementation, **always fully analyze the `documents/` folder** (specifically files like `10-development-roadmap.md`, `07-backend-architecture.md`, `08-frontend-architecture.md`, and `06-database-design.md`). This ensures that you maintain the established priorities, understand the long-term architecture, and do not deviate from the core roadmap for the app.
+
+## Web App Testing Rule (Important Rule)
+
+Test the admin panel using `pnpm dev:admin` and open browser to view `localhost:5173`, and then navigate through the app. Use this test admin account credential for testing admin panel: `admin@badmintonmanager.com` and password: `badmintonmanager2026`
+
+## Production DB Setup Rule (Important Rule)
+
+Whatever you do with the DB, analyze the `documents/11-supabase-production-setup.md` Document, so that when the user is setting up the prod environment in another account (e.g., the founder's Supabase account), they can review and follow along easily. Make sure any DB-level changes or deployments (like Edge Functions or Migrations) are documented there.
+
+## UI Consistency and Theming (Important Rule)
+
+When developing UI components, **do not manually hardcode giant strings of generic Tailwind classes (like `bg-white dark:bg-slate-900 border...`) everywhere**. Act like a senior developer:
+1. **Use a common theme:** Ensure your components match the established theme of the page (e.g., proper dark mode integration using Tailwind v4 standard variables or `ui/` components).
+2. **Use reusable components:** Always check `src/components/ui/` for existing standard components (like `Card`, `Input`, `Button`) before building elements from scratch. If a standard component doesn't exist for a basic input, create it in `ui/` to abstract the styles and use it everywhere.

@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -11,6 +11,31 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -701,7 +726,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
-          owner_id: string
+          owner_id: string | null
           photos: string[] | null
           pincode: string | null
           state: string | null
@@ -723,7 +748,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
-          owner_id: string
+          owner_id?: string | null
           photos?: string[] | null
           pincode?: string | null
           state?: string | null
@@ -745,7 +770,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
-          owner_id?: string
+          owner_id?: string | null
           photos?: string[] | null
           pincode?: string | null
           state?: string | null
@@ -945,6 +970,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       application_status: ["pending", "accepted", "rejected", "invited_guest"],
@@ -991,25 +1019,3 @@ export const Constants = {
     },
   },
 } as const
-export type Booking = Database['public']['Tables']['bookings']['Row']
-export type Court = Database['public']['Tables']['courts']['Row']
-export type Customer = Database['public']['Tables']['customers']['Row']
-export type GuestPlay = Database['public']['Tables']['guest_plays']['Row']
-export type Member = Database['public']['Tables']['members']['Row']
-export type MembershipApplication = Database['public']['Tables']['membership_applications']['Row']
-export type MembershipPayment = Database['public']['Tables']['membership_payments']['Row']
-export type MembershipSlotRelease = Database['public']['Tables']['membership_slot_releases']['Row']
-export type MembershipSlot = Database['public']['Tables']['membership_slots']['Row']
-export type OperatingSchedule = Database['public']['Tables']['operating_schedules']['Row']
-export type Owner = Database['public']['Tables']['owners']['Row']
-export type PricingBlock = Database['public']['Tables']['pricing_blocks']['Row']
-export type Venue = Database['public']['Tables']['venues']['Row']
-export type ApplicationStatus = Database['public']['Enums']['application_status']
-export type BookingPaymentStatus = Database['public']['Enums']['booking_payment_status']
-export type BookingStatus = Database['public']['Enums']['booking_status']
-export type DayOfWeek = Database['public']['Enums']['day_of_week']
-export type GuestPlayStatus = Database['public']['Enums']['guest_play_status']
-export type PaymentMode = Database['public']['Enums']['payment_mode']
-export type SlotType = Database['public']['Enums']['slot_type']
-export type MembershipPayStatus = Database['public']['Enums']['membership_pay_status']
-export type SkillLevel = Database['public']['Enums']['skill_level']
