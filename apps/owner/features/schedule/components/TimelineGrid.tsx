@@ -35,6 +35,7 @@ export function TimelineGrid({
   conflictTime
 }: TimelineGridProps) {
   const blinkAnim = React.useRef(new Animated.Value(1)).current;
+  const scrollRef = React.useRef<ScrollView>(null);
 
   React.useEffect(() => {
     if (conflictCourtId && conflictTime) {
@@ -60,6 +61,14 @@ export function TimelineGrid({
   const currentHourOffset = (currentHour - START_HOUR) * HOUR_WIDTH;
   const showCurrentTime = isToday && currentHour >= START_HOUR && currentHour < END_HOUR;
 
+  React.useEffect(() => {
+    if (showCurrentTime && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ x: Math.max(0, currentHourOffset - 40), animated: false });
+      }, 100);
+    }
+  }, [showCurrentTime, currentHourOffset]);
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
@@ -79,7 +88,7 @@ export function TimelineGrid({
           </View>
 
           {/* Right Scrollable Grid */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} ref={scrollRef}>
             <View>
               {/* Time Header */}
               <View style={styles.timeHeaderRow}>

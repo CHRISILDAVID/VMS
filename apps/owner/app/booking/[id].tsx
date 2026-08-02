@@ -224,26 +224,6 @@ export default function BookingDetailsScreen() {
           </TouchableOpacity>
         )}
 
-        {booking.status === 'upcoming' && (
-          <TouchableOpacity
-            style={[styles.collectBtn, { backgroundColor: '#7C3AED', marginBottom: 10 }]}
-            onPress={() => handleStatusChange('ongoing')}
-          >
-            <PlayCircle size={18} color="#fff" />
-            <Text style={styles.collectBtnText}>Mark as Ongoing</Text>
-          </TouchableOpacity>
-        )}
-
-        {booking.status === 'ongoing' && (
-          <TouchableOpacity
-            style={[styles.collectBtn, { backgroundColor: '#16A34A', marginBottom: 10 }]}
-            onPress={() => handleStatusChange('completed')}
-          >
-            <CheckCircle2 size={18} color="#fff" />
-            <Text style={styles.collectBtnText}>Complete Booking</Text>
-          </TouchableOpacity>
-        )}
-
         {booking.status !== 'cancelled' && (
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity

@@ -9,7 +9,7 @@ import { useCourts } from '../../hooks/useCourts';
 import { useVenueStore } from '../../stores/venueStore';
 import { useCustomers, useCreateOrGetCustomer } from '../../features/customers/hooks/useCustomers';
 import { useCreateBooking } from '../../features/bookings/hooks/useBookings';
-import { Customer, Court, PaymentMode } from '@vms/shared/types';
+import { Customer, Court, PaymentMethod } from '@vms/shared/types';
 import { COLORS } from '@vms/shared/utils';
 
 const STEPS = ['Date & Court', 'Time', 'Customer', 'Payment', 'Confirm'];
@@ -56,7 +56,10 @@ export default function NewBookingWizardScreen() {
       const hStr = parseInt(params.hour, 10).toString().padStart(2, '0');
       return `${hStr}:00:00`;
     }
-    return '07:00:00';
+    const now = new Date();
+    const currMin = now.getMinutes() >= 30 ? 30 : 0;
+    const currHour = now.getHours();
+    return `${currHour.toString().padStart(2, '0')}:${currMin.toString().padStart(2, '0')}:00`;
   });
   const [selectedDurationMins, setSelectedDurationMins] = useState<number>(60);
   const [isBlockSlot, setIsBlockSlot] = useState<boolean>(false);
@@ -73,7 +76,7 @@ export default function NewBookingWizardScreen() {
   const createCustomerMutation = useCreateOrGetCustomer();
 
   // Step 3: Payment & Source
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash');
+  const [paymentMode, setPaymentMode] = useState<PaymentMethod>('cash');
   const [bookingSource, setBookingSource] = useState<string>('offline');
   const [customAmountRs, setCustomAmountRs] = useState<string>(''); // if owner wants to override
   const [advanceRs, setAdvanceRs] = useState<string>('');
@@ -117,7 +120,15 @@ export default function NewBookingWizardScreen() {
 
   const canNext = () => {
     if (step === 0) return !!selectedDate && !!selectedCourtId;
-    if (step === 1) return !!selectedTime && !!selectedDurationMins;
+    if (step === 1) {
+      if (!selectedTime || !selectedDurationMins) return false;
+      const slotDateTime = new Date(`${selectedDate}T${selectedTime}`);
+      const now = new Date();
+      const currentBlock = new Date(now);
+      currentBlock.setMinutes(now.getMinutes() >= 30 ? 30 : 0, 0, 0);
+      if (slotDateTime < currentBlock) return false;
+      return true;
+    }
     if (step === 2) return !!selectedCustomer;
     return true;
   };
@@ -135,10 +146,15 @@ export default function NewBookingWizardScreen() {
       Alert.alert('Error', 'Please enter customer name and phone');
       return;
     }
+    const cleanPhone = newCustPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      Alert.alert('Error', 'Phone number must be exactly 10 digits.');
+      return;
+    }
     try {
       const created = await createCustomerMutation.mutateAsync({
         full_name: newCustName.trim(),
-        phone: newCustPhone.trim(),
+        phone: `91${cleanPhone}`,
       });
       setSelectedCustomer(created);
       setShowNewCustForm(false);
@@ -201,10 +217,10 @@ export default function NewBookingWizardScreen() {
     };
 
     try {
-      const created = await createBookingMutation.mutateAsync({
+      const created = (await createBookingMutation.mutateAsync({
         data: payload,
         isForceBooked: force,
-      });
+      })) as any;
       setConfirmedBooking(created);
 
       // Trigger WhatsApp if checked and customer has phone
@@ -361,13 +377,24 @@ export default function NewBookingWizardScreen() {
               <View style={styles.timeGrid}>
                 {timeSlots.map(t => {
                   const active = selectedTime === t;
+                  const slotDateTime = new Date(`${selectedDate}T${t}`);
+                  const now = new Date();
+                  const currentBlock = new Date(now);
+                  currentBlock.setMinutes(now.getMinutes() >= 30 ? 30 : 0, 0, 0);
+                  const isPast = slotDateTime < currentBlock;
                   return (
                     <TouchableOpacity
                       key={t}
-                      style={[styles.timeSlotBtn, active && styles.timeSlotBtnActive]}
-                      onPress={() => setSelectedTime(t)}
+                      style={[styles.timeSlotBtn, active && styles.timeSlotBtnActive, isPast && { opacity: 0.5, backgroundColor: '#F1F5F9' }]}
+                      onPress={() => {
+                        if (isPast) {
+                          Alert.alert('Invalid Time', 'Cannot book slots in the past.');
+                          return;
+                        }
+                        setSelectedTime(t);
+                      }}
                     >
-                      <Text style={[styles.timeSlotText, active && styles.timeSlotTextActive]}>
+                      <Text style={[styles.timeSlotText, active && styles.timeSlotTextActive, isPast && { color: '#94A3B8' }]}>
                         {t.slice(0, 5)}
                       </Text>
                     </TouchableOpacity>
@@ -445,14 +472,20 @@ export default function NewBookingWizardScreen() {
                   value={newCustName}
                   onChangeText={setNewCustName}
                 />
-                <TextInput
-                  style={[styles.input, { marginTop: 10 }]}
-                  placeholder="Phone Number (e.g. 9876543210)"
-                  placeholderTextColor="#94A3B8"
-                  value={newCustPhone}
-                  onChangeText={setNewCustPhone}
-                  keyboardType="phone-pad"
-                />
+                <View style={[styles.input, { marginTop: 10, flexDirection: 'row', alignItems: 'center', padding: 0, paddingHorizontal: 12 }]}>
+                  <Text style={{ color: '#64748B', fontWeight: '600', marginRight: 4 }}>+91</Text>
+                  <TextInput
+                    style={{ flex: 1, fontSize: 14, color: '#0F172A', paddingVertical: 12 }}
+                    placeholder="9876543210"
+                    placeholderTextColor="#94A3B8"
+                    value={newCustPhone}
+                    onChangeText={(text) => {
+                       const num = text.replace(/\D/g, '');
+                       if (num.length <= 10) setNewCustPhone(num);
+                    }}
+                    keyboardType="phone-pad"
+                  />
+                </View>
                 <View style={styles.newCustFormBtns}>
                   <TouchableOpacity style={styles.cancelFormBtn} onPress={() => setShowNewCustForm(false)}>
                     <Text style={styles.cancelFormText}>Cancel</Text>
@@ -525,7 +558,7 @@ export default function NewBookingWizardScreen() {
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitleText}>PAYMENT METHOD</Text>
               <View style={styles.paymentMethodsRow}>
-                {(['cash', 'upi', 'card', 'online'] as PaymentMode[]).map(m => {
+                {(['cash', 'upi', 'card', 'online'] as PaymentMethod[]).map(m => {
                   const active = paymentMode === m;
                   return (
                     <TouchableOpacity

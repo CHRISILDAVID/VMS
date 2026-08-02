@@ -17,7 +17,7 @@ CREATE TABLE public.owners (
 );
 CREATE TABLE public.venues (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  owner_id uuid NOT NULL,
+  owner_id uuid,
   name text NOT NULL,
   address text,
   city text,

@@ -65,6 +65,7 @@ export function useCreateBooking() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['schedule'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['venueKPIs'] });
     },
   });
 
@@ -82,6 +83,7 @@ export function useUpdateBookingStatus() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking-detail', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['venueKPIs'] });
     },
   });
 
@@ -120,6 +122,7 @@ export function useUpdatePaymentStatus() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking-detail', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['venueKPIs'] });
     },
   });
 
@@ -137,6 +140,7 @@ export function useCancelBooking() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking-detail', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['venueKPIs'] });
     },
   });
 
@@ -169,6 +173,7 @@ export function useMoveBooking() {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['booking-detail', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['schedule'] });
+      queryClient.invalidateQueries({ queryKey: ['venueKPIs'] });
     },
   });
 

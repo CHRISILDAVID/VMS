@@ -7,6 +7,21 @@ export interface BookingWithDetails extends Booking {
   venue?: Venue;
 }
 
+function applyDynamicStatus(b: any) {
+  if (!b || b.status === 'cancelled') return b;
+  const startDateTime = new Date(`${b.date}T${b.start_time}`);
+  const endDateTime = new Date(`${b.date}T${b.end_time}`);
+  const now = new Date();
+  if (now < startDateTime) {
+    b.status = 'upcoming';
+  } else if (now >= startDateTime && now < endDateTime) {
+    b.status = 'ongoing';
+  } else {
+    b.status = 'completed';
+  }
+  return b;
+}
+
 export const createBookingsService = (supabase: SupabaseClient) => ({
   async getBookings(
     venueId: string, 
@@ -37,7 +52,11 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
     }
 
     if (filters?.statusTab) {
-      query = query.eq('status', filters.statusTab);
+      if (filters.statusTab === 'cancelled') {
+        query = query.eq('status', 'cancelled');
+      } else {
+        query = query.neq('status', 'cancelled');
+      }
     }
 
     if (filters?.search && filters.search.trim() !== '') {
@@ -58,7 +77,13 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as BookingWithDetails[];
+    
+    let processedData = (data || []).map(applyDynamicStatus);
+    if (filters?.statusTab && filters.statusTab !== 'cancelled') {
+      processedData = processedData.filter((b: any) => b.status === filters.statusTab);
+    }
+    
+    return processedData as BookingWithDetails[];
   },
 
   async getBookingById(bookingId: string): Promise<BookingWithDetails | null> {
@@ -75,7 +100,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return data as BookingWithDetails | null;
+    return applyDynamicStatus(data) as BookingWithDetails | null;
   },
 
   async checkOverlap(
@@ -176,7 +201,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .single();
 
     if (error) throw error;
-    return created as BookingWithDetails;
+    return applyDynamicStatus(created) as BookingWithDetails;
   },
 
   async updateBookingStatus(id: string, status: BookingStatus): Promise<BookingWithDetails> {
@@ -192,7 +217,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .single();
 
     if (error) throw error;
-    return updated as BookingWithDetails;
+    return applyDynamicStatus(updated) as BookingWithDetails;
   },
 
   async updatePaymentStatus(
@@ -221,7 +246,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .single();
 
     if (error) throw error;
-    return updated as BookingWithDetails;
+    return applyDynamicStatus(updated) as BookingWithDetails;
   },
 
   async cancelBooking(id: string, reason?: string): Promise<BookingWithDetails> {
@@ -245,7 +270,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .single();
 
     if (error) throw error;
-    return updated as BookingWithDetails;
+    return applyDynamicStatus(updated) as BookingWithDetails;
   },
 
   async moveBooking(
@@ -296,7 +321,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .single();
 
     if (error) throw error;
-    return updated as BookingWithDetails;
+    return applyDynamicStatus(updated) as BookingWithDetails;
   },
 
   async blockSlot(params: {

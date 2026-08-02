@@ -26,9 +26,13 @@ export default function ScheduleScreen() {
   const unblockSlotMutation = useUnblockSlot();
   const { conflictCourtId, conflictTime } = useLocalSearchParams<{ conflictCourtId?: string; conflictTime?: string }>();
   
-  const [selectedDateStr, setSelectedDateStr] = useState(() => 
-    format(new Date(), 'yyyy-MM-dd')
-  );
+  const [selectedDateStr, setSelectedDateStr] = useState(() => {
+    const now = new Date();
+    if (now.getHours() >= 22) {
+      now.setDate(now.getDate() + 1);
+    }
+    return format(now, 'yyyy-MM-dd');
+  });
   
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
