@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Loader2, Download, X, Wallet, TrendingUp, AlertCircle, IndianRupee } from 'lucide-react';
 import StatusChip from '../../components/StatusChip';
 import { useAdminPayments } from './hooks/useAdminPayments';
+import { formatPhone } from '@vms/shared/utils';
 
 const TABS = ['All', 'Pending', 'Paid', 'Membership', 'Booking'];
 
@@ -176,7 +177,7 @@ export default function PaymentsTable() {
                       <td className="py-4 px-4 whitespace-nowrap">
                         <div className="font-bold text-slate-900 dark:text-white">{p.customer_name}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
-                          +91 {p.customer_phone}
+                          {p.customer_phone ? formatPhone(p.customer_phone) : 'N/A'}
                         </div>
                       </td>
 

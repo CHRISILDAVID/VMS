@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { createOwnersService } from '@vms/shared/services';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { formatPhone } from '@vms/shared/utils';
 
 export function OwnerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +50,7 @@ export function OwnerDetailPage() {
               </div>
               <div>
                 <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Phone</dt>
-                <dd className="mt-1 text-sm text-slate-900 dark:text-slate-200">{owner.phone}</dd>
+                <dd className="mt-1 text-sm text-slate-900 dark:text-slate-200">{formatPhone(owner.phone || "")}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">Email</dt>

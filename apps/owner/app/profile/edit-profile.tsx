@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { COLORS } from '@vms/shared/utils';
+import {  COLORS , formatPhone } from '@vms/shared/utils';
 
 const schema = z.object({
   full_name: z.string().min(2, 'Name is too short').max(50, 'Name is too long'),
@@ -107,11 +107,7 @@ export default function EditProfileScreen() {
               <TextInput
                 style={[styles.input, styles.inputDisabled]}
                 value={ownerProfile?.phone 
-                  ? (ownerProfile.phone.length === 12 && ownerProfile.phone.startsWith('91')
-                      ? `+91 ${ownerProfile.phone.slice(2, 7)} ${ownerProfile.phone.slice(7)}`
-                      : ownerProfile.phone.length === 13 && ownerProfile.phone.startsWith('+91') 
-                      ? `+91 ${ownerProfile.phone.slice(3, 8)} ${ownerProfile.phone.slice(8)}` 
-                      : ownerProfile.phone)
+                  ? formatPhone(ownerProfile.phone)
                   : ''}
                 editable={false}
               />

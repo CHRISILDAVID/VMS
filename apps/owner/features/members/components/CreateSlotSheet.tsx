@@ -1,3 +1,4 @@
+import { formatPhone } from '@vms/shared/utils';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -126,7 +127,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
 
   const openEditMember = (idx: number) => {
     setMName(initialMembers[idx].name);
-    setMPhone(initialMembers[idx].phone);
+    setMPhone(formatPhone(initialMembers[idx].phone || ""));
     setEditMemberIdx(idx);
     setShowAddMember(true);
   };
@@ -395,7 +396,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
                           </View>
                           <View style={styles.memberInfo}>
                             <Text style={styles.memberName}>{m.name}</Text>
-                            <Text style={styles.memberPhone}>{m.phone}</Text>
+                            <Text style={styles.memberPhone}>{formatPhone(m.phone || "")}</Text>
                           </View>
                           <TouchableOpacity style={styles.iconAction} onPress={() => openEditMember(i)}>
                             <Edit2 size={13} color="#64748B" />

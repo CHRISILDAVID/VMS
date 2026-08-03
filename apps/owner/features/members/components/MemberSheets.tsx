@@ -1,3 +1,4 @@
+import { formatPhone } from '@vms/shared/utils';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Alert, Switch } from 'react-native';
 import { X } from 'lucide-react-native';
@@ -102,7 +103,7 @@ export function EditMemberModal({ member, onClose }: EditMemberModalProps) {
   useEffect(() => {
     if (member) {
       setName(member.customer?.full_name || '');
-      setPhone(member.customer?.phone || '');
+      setPhone(formatPhone(member.customer?.phone || ''));
       setIsActive(member.is_active);
     }
   }, [member]);

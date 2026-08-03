@@ -17,6 +17,7 @@ import {
   useUpdateBookingStatus,
 } from '../../features/bookings/hooks/useBookings';
 import { useCourts } from '../../hooks/useCourts';
+import { formatPhone } from '@vms/shared/utils';
 
 export default function BookingDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -65,7 +66,7 @@ export default function BookingDetailsScreen() {
   }
 
   const customerName = booking.customer?.full_name || 'Walk-in Guest';
-  const phone = booking.customer?.phone || '';
+  const phone = formatPhone(booking.customer?.phone || '');
   const initial = customerName.charAt(0).toUpperCase();
 
   const formatTimeStr = (timeStr: string) => {
@@ -158,7 +159,7 @@ export default function BookingDetailsScreen() {
             </View>
             <View style={styles.customerInfo}>
               <Text style={styles.customerNameText}>{customerName}</Text>
-              <Text style={styles.customerPhoneText}>{phone ? `+91 ${phone}` : 'No phone'}</Text>
+              <Text style={styles.customerPhoneText}>{phone || 'No phone'}</Text>
             </View>
             {phone ? (
               <View style={styles.customerActions}>

@@ -6,7 +6,7 @@ import {
   ChevronRight, Building2, Zap, BarChart2, TrendingUp,
   CreditCard, HelpCircle, LogOut 
 } from 'lucide-react-native';
-import { COLORS, formatCurrency } from '@vms/shared/utils';
+import {  COLORS, formatCurrency , formatPhone } from '@vms/shared/utils';
 import { createReportsService } from '@vms/shared/services';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -108,11 +108,7 @@ export default function ProfileScreen() {
               <Text style={styles.profileName}>{ownerProfile?.full_name || 'Owner Name'}</Text>
               <Text style={styles.profileSubtext}>
                 {ownerProfile?.phone 
-                  ? (ownerProfile.phone.length === 12 && ownerProfile.phone.startsWith('91')
-                      ? `+91 ${ownerProfile.phone.slice(2, 7)} ${ownerProfile.phone.slice(7)}`
-                      : ownerProfile.phone.length === 13 && ownerProfile.phone.startsWith('+91') 
-                      ? `+91 ${ownerProfile.phone.slice(3, 8)} ${ownerProfile.phone.slice(8)}` 
-                      : ownerProfile.phone)
+                  ? formatPhone(ownerProfile.phone)
                   : 'Phone Number'}
               </Text>
               {ownerProfile?.email ? (

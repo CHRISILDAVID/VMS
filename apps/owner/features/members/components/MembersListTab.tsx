@@ -1,3 +1,4 @@
+import { formatPhone } from '@vms/shared/utils';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { ChevronRight, Search } from 'lucide-react-native';
@@ -21,7 +22,7 @@ export function MembersListTab({ slots, onViewSlotMembers }: MembersListTabProps
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     const name = m.customer?.full_name?.toLowerCase() || '';
-    const phone = m.customer?.phone?.toLowerCase() || '';
+    const phone = formatPhone(m.customer?.phone || '').toLowerCase();
     const slotName = m.slot?.name?.toLowerCase() || '';
     return name.includes(q) || phone.includes(q) || slotName.includes(q);
   });
@@ -55,7 +56,7 @@ export function MembersListTab({ slots, onViewSlotMembers }: MembersListTabProps
         ) : (
           filteredMembers.map(m => {
             const customerName = m.customer?.full_name || 'Unknown Player';
-            const phone = m.customer?.phone || '';
+            const phone = formatPhone(m.customer?.phone || '');
             const slotName = m.slot?.name || 'Assigned Slot';
             const initial = customerName.charAt(0).toUpperCase();
             const payStatus = m.latest_payment?.status || (m.is_active ? 'paid' : 'due');

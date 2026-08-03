@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import type { Owner } from '@vms/shared/types';
+import { formatPhone } from '@vms/shared/utils';
 
 interface OwnerWithCount extends Owner {
   venues?: [{ count: number }];
@@ -57,7 +58,7 @@ export function OwnerList({ owners, onDeleteAction }: OwnerListProps) {
                 </td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 dark:text-slate-400">
                   <div className="flex flex-col">
-                    <span>{owner.phone}</span>
+                    <span>{formatPhone(owner.phone || "")}</span>
                     {owner.email && <span className="text-xs text-slate-400 dark:text-slate-500">{owner.email}</span>}
                   </div>
                 </td>

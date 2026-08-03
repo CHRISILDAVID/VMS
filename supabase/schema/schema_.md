@@ -36,6 +36,8 @@ CREATE TABLE public.venues (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   deleted_at timestamp with time zone,
+  open_time time without time zone NOT NULL DEFAULT '06:00:00'::time without time zone,
+  close_time time without time zone NOT NULL DEFAULT '22:00:00'::time without time zone,
   CONSTRAINT venues_pkey PRIMARY KEY (id),
   CONSTRAINT venues_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES public.owners(id)
 );

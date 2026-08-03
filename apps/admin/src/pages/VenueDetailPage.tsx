@@ -10,6 +10,7 @@ import { CourtList } from '../components/venues/CourtList';
 import { VenuePhotos } from '../components/venues/VenuePhotos';
 import { OwnerSearchSelect } from '../components/owners/OwnerSearchSelect';
 import type { Venue } from '@vms/shared/types';
+import { formatPhone } from '@vms/shared/utils';
 
 interface VenueWithCount extends Venue {
   owners?: { full_name: string; business_name: string };
@@ -235,7 +236,7 @@ export function VenueDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-slate-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">{venue.contact_phone || 'N/A'}</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300">{venue.contact_phone ? formatPhone(venue.contact_phone) : 'N/A'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-slate-400" />

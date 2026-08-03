@@ -1,3 +1,4 @@
+import { formatPhone } from '@vms/shared/utils';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Phone, MessageCircle, MapPin, Clock, IndianRupee } from 'lucide-react-native';
@@ -20,7 +21,7 @@ const statusStripeColors: Record<string, string> = {
 
 export function BookingCard({ booking, onPress, onCollectPress }: BookingCardProps) {
   const customerName = booking.customer?.full_name || 'Walk-in Guest';
-  const phone = booking.customer?.phone || '';
+  const phone = formatPhone(booking.customer?.phone || '');
   const initial = customerName.charAt(0).toUpperCase();
 
   const stripeColor = statusStripeColors[booking.status] || '#CBD5E1';

@@ -546,7 +546,7 @@ reorderCourts(venueId, orderedIds)  // Batch UPDATE sort_order
 - [x] Applied dark mode theme to admin overview cards (Bookings, Customers, Memberships, Payments)
 
 ### Phase 7: Polish & Deploy
-- [ ] Responsive design (mobile fallback)to: 
+- [ ] Responsive design (mobile fallback) 
 - [ ] Error handling and toast notifications
 - [ ] Loading skeletons on all pages
 - [ ] Vercel deployment configuration

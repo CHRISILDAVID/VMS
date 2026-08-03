@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import StatusChip from '../../components/StatusChip';
 import { useAdminBookings, useAdminCourts, useCancelBooking, useMarkPaid } from './hooks/useAdminBookings';
+import { formatPhone } from '@vms/shared/utils';
 
 const TAB_FILTERS = ['All', 'Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
@@ -291,7 +292,7 @@ export default function BookingsTable({ venueId }: BookingsTableProps) {
                         </div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 flex items-center gap-1">
                           <Phone size={12} />
-                          <span>+91 {b.customer?.phone || 'N/A'}</span>
+                          <span>{b.customer?.phone ? formatPhone(b.customer.phone) : 'N/A'}</span>
                         </div>
                       </td>
 
@@ -391,7 +392,7 @@ export default function BookingsTable({ venueId }: BookingsTableProps) {
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span className="text-slate-500">Phone:</span>
-                  <span className="text-slate-900 dark:text-white">+91 {selectedBooking.customer?.phone || 'N/A'}</span>
+                  <span className="text-slate-900 dark:text-white">{selectedBooking.customer?.phone ? formatPhone(selectedBooking.customer.phone) : 'N/A'}</span>
                 </div>
               </div>
 

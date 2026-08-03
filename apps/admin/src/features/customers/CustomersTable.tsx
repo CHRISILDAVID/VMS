@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Phone, MessageCircle, TrendingUp, Users, Award, X, Loader2 } from 'lucide-react';
 import StatusChip from '../../components/StatusChip';
 import { useAdminCustomers } from './hooks/useAdminCustomers';
+import { formatPhone } from '@vms/shared/utils';
 
 const TABS = ['All', 'Frequent', 'Recent'];
 
@@ -159,7 +160,7 @@ export default function CustomersTable() {
                       <td className="py-4 px-4 whitespace-nowrap">
                         <div className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Phone size={14} className="text-slate-400" />
-                          <span>+91 {c.phone}</span>
+                          <span>{formatPhone(c.phone || "")}</span>
                         </div>
                       </td>
 
@@ -208,7 +209,7 @@ export default function CustomersTable() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{selectedCustomer.full_name || 'Unnamed Player'}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">+91 {selectedCustomer.phone}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{formatPhone(selectedCustomer.phone || "")}</p>
                 </div>
               </div>
               <button onClick={() => setSelectedCustomer(null)} className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-600 dark:text-slate-400 cursor-pointer">

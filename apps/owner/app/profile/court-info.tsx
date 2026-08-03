@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Phone, Mail, Wifi, ParkingSquare, ShowerHead, Coffee, Camera, Check } from 'lucide-react-native';
 import { useVenues } from '../../hooks/useVenues';
 import { useVenueStore } from '../../stores/venueStore';
-import { COLORS } from '@vms/shared/utils';
+import {  COLORS , formatPhone } from '@vms/shared/utils';
 
 const amenityIcons: Record<string, React.ComponentType<any>> = {
   'Free Wi-Fi': Wifi,
@@ -100,7 +100,7 @@ export default function CourtInformationScreen() {
           <Text style={styles.cardSectionTitle}>BASIC DETAILS</Text>
           <InfoRow label="Court Name" value={venue.name} />
           <InfoRow label="Address" value={fullAddress} Icon={MapPin} />
-          <InfoRow label="Phone" value={venue.contact_phone || undefined} Icon={Phone} />
+          <InfoRow label="Phone" value={venue.contact_phone ? formatPhone(venue.contact_phone) : undefined} Icon={Phone} />
           <InfoRow label="Email" value={venue.contact_email || undefined} Icon={Mail} />
           <InfoRow label="Court Type" value={venue.court_type ? venue.court_type.charAt(0).toUpperCase() + venue.court_type.slice(1) : undefined} />
         </View>

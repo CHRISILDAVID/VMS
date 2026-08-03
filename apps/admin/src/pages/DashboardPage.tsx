@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { Users, MapPin, Ticket, CreditCard, LayoutDashboard, Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { format } from 'date-fns';
+import { formatPhone } from '@vms/shared/utils';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -164,7 +165,7 @@ export default function DashboardPage() {
                         <span className="font-medium text-slate-900 dark:text-white">{booking.venues?.name || 'Unknown Venue'}</span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-slate-700 dark:text-slate-300">{booking.customers?.full_name || booking.customers?.phone}</span>
+                        <span className="text-slate-700 dark:text-slate-300">{booking.customers?.full_name || formatPhone(booking.customers?.phone || "")}</span>
                       </td>
                       <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
                         {format(new Date(booking.date), 'MMM d, yyyy')} • {booking.start_time.slice(0, 5)}

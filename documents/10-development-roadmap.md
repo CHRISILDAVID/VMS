@@ -234,22 +234,22 @@
 > Can start **in parallel with M3** (after M2 complete). Depends only on core tables from M0-M1.
 
 ### Deliverables
-- [ ] Admin auth: email/password (Supabase)
-- [ ] Admin RLS policies (super_admin role)
-- [ ] Venues: create, edit, deactivate (and make `owner_id` nullable in DB)
-- [ ] Courts: create, edit per venue
-- [ ] Owners: view accounts, assign to venues
-- [ ] Owner App Onboarding: Change text input to a dropdown for selecting pre-created unassigned venues
-- [ ] Court Information configuration: edit details, court type metadata, map coordinates
-- [ ] Photo upload (Admin Panel → Supabase Storage)
-- [ ] Simple dashboard: aggregate stats (total venues, owners, bookings)
-- [ ] Desktop-first layout: sidebar + content area
+- [x] Admin auth: email/password (Supabase)
+- [x] Admin RLS policies (super_admin role)
+- [x] Venues: create, edit, deactivate (and make `owner_id` nullable in DB)
+- [x] Courts: create, edit per venue
+- [x] Owners: view accounts, assign to venues
+- [x] Owner App Onboarding: Deprecated
+- [x] Court Information configuration: edit details, court type metadata, map coordinates in admin panel.
+- [x] Photo upload (Admin Panel → Supabase Storage)
+- [x] Simple dashboard: aggregate stats (total venues, owners, bookings)
+- [x] Desktop-first layout: sidebar + content area
 - [ ] Deploy to Vercel
 
 ### Completion Checklist
-- [ ] Admin can log in with email/password
-- [ ] Can create and configure venues + courts
-- [ ] Can view and manage owner accounts
+- [x] Admin can log in with email/password
+- [x] Can create and configure venues + courts
+- [x] Can view and manage owner accounts
 - [ ] Deployed to Vercel
 
 ---

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
 import { UserCheck, X, Phone, CheckCircle } from 'lucide-react-native';
 import { GuestPlayWithDetails } from '@vms/shared/services';
-import { formatCurrency } from '@vms/shared/utils';
+import {  formatCurrency , formatPhone } from '@vms/shared/utils';
 import { useGuestPlays, useAcceptGuestAsMember, useUpdateGuestPlayStatus } from '../hooks/useMemberships';
 
 export function GuestPlayTab() {
@@ -111,7 +111,7 @@ export function GuestPlayTab() {
                     <Text style={styles.subText}>
                       {g.slot?.name || 'Slot'} · {g.scheduled_date}
                     </Text>
-                    {g.phone ? <Text style={styles.phoneText}>{g.phone}</Text> : null}
+                    {g.phone ? <Text style={styles.phoneText}>{formatPhone(g.phone)}</Text> : null}
                   </View>
                   <Text style={styles.feeText}>{formatCurrency(fee)}</Text>
                 </View>

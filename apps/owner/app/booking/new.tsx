@@ -12,7 +12,7 @@ import { generateTimeSlots, parseTimeToHour } from '../../features/schedule/util
 import { useCustomers, useCreateOrGetCustomer } from '../../features/customers/hooks/useCustomers';
 import { useCreateBooking } from '../../features/bookings/hooks/useBookings';
 import { Customer, Court, PaymentMethod, DayOfWeek } from '@vms/shared/types';
-import { COLORS, computeDynamicPrice } from '@vms/shared/utils';
+import {  COLORS, computeDynamicPrice , formatPhone } from '@vms/shared/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { createScheduleService } from '@vms/shared/services';
@@ -480,7 +480,7 @@ export default function NewBookingWizardScreen() {
                 <Text style={styles.selectedCustLabel}>SELECTED CUSTOMER</Text>
                 <Text style={styles.selectedCustName}>{selectedCustomer.full_name}</Text>
                 <Text style={styles.selectedCustPhone}>
-                  {selectedCustomer.phone} · {selectedCustomer.total_visits || 0} visits
+                  {formatPhone(selectedCustomer.phone || "")} · {selectedCustomer.total_visits || 0} visits
                 </Text>
               </View>
             ) : null}
@@ -543,7 +543,7 @@ export default function NewBookingWizardScreen() {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.custItemName}>{c.full_name}</Text>
-                        <Text style={styles.custItemPhone}>{c.phone} · {c.total_visits || 0} visits</Text>
+                        <Text style={styles.custItemPhone}>{formatPhone(c.phone || "")} · {c.total_visits || 0} visits</Text>
                       </View>
                       {active && <Check size={20} color="#2563EB" />}
                     </TouchableOpacity>

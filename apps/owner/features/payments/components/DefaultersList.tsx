@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { useDefaulters, useVoidPayment } from '../hooks/usePayments';
-import { formatCurrency } from '@vms/shared/utils';
+import {  formatCurrency , formatPhone } from '@vms/shared/utils';
 import { Check, X, AlertCircle } from 'lucide-react-native';
 
 interface DefaultersListProps {
@@ -53,7 +53,7 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
       renderItem={({ item }) => {
         const anyItem = item as any;
         const memberName = anyItem.members?.customer?.full_name || 'Unknown Member';
-        const phone = anyItem.members?.customer?.phone || '';
+        const phone = formatPhone(anyItem.members?.customer?.phone || '');
         const slotName = anyItem.membership_slots?.name || 'Unknown Slot';
         const isDeleted = anyItem.membership_slots?.deleted_at != null;
         

@@ -1,3 +1,4 @@
+import { formatPhone } from '@vms/shared/utils';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { ChevronLeft, Plus, Edit2, ArrowRightLeft, UserX } from 'lucide-react-native';
@@ -98,7 +99,7 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
         ) : (
           members.map(m => {
             const customerName = m.customer?.full_name || 'Unknown Player';
-            const phone = m.customer?.phone || '';
+            const phone = formatPhone(m.customer?.phone || '');
             const initial = customerName.charAt(0).toUpperCase();
             const payStatus = m.latest_payment?.status || (m.is_active ? 'paid' : 'due');
 

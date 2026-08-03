@@ -1,6 +1,7 @@
 import React from 'react';
 import { LogOut, Shield, Menu, Moon, Sun } from 'lucide-react';
 import { useAdminAuth } from '../../features/auth/useAdminAuth';
+import { formatPhone } from '@vms/shared/utils';
 
 export function Header() {
   const { user, signOut } = useAdminAuth();
@@ -29,7 +30,7 @@ export function Header() {
 
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 text-xs text-slate-700 dark:text-slate-300 font-semibold">
           <Shield size={14} className="text-emerald-500 dark:text-emerald-400" />
-          <span>Admin ({user?.phone || 'Logged In'})</span>
+          <span>Admin ({user?.phone ? formatPhone(user.phone) : 'Logged In'})</span>
         </div>
 
         <button

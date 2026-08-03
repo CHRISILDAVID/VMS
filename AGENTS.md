@@ -53,13 +53,14 @@ VMS/
 
 ## Design Reference for Owners app(Important Rule)
 
-When designing frontend pages (especially in the Owner App or Admin Panel), **always refer to the `reference/` folder**. This folder contains the initial Figma exports from the founder. 
+When designing frontend pages (especially in the Owner App or Admin Panel), **always refer to the `owner_reference/` folder**. This folder contains the initial Figma exports from the founder. 
 However, **always make sure the new page is consistent with the rest of the existing app**. Do not blindly follow the Figma if it conflicts with the established UI patterns in the codebase (e.g., standard headers, FABs, paddings). 
-Do not invent random UI designs or layouts without first consulting the reference and the existing app structure. The goal is to match the original intent shown in `reference/figma-src` while maintaining global UI consistency.
+Do not invent random UI designs or layouts without first consulting the reference and the existing app structure. The goal is to match the original intent shown in `owner_reference/figma-src` while maintaining global UI consistency.
 
 ## Mobile App Testing Rule (Important Rule)
 
 When developing or fixing features in mobile applications (such as the Owner App in `apps/owner/`):
+- **References** : use `player_reference/` when designing player app UI and features. Use `owner_reference/` when designing owner app UI and features.
 - **Always verify changes on the Android Emulator.** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
 - **Never assume a bug fix or feature is complete without E2E verification.** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the issue is actually resolved.
 
