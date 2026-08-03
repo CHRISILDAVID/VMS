@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { createBookingsService, BookingWithDetails } from '@vms/shared/services';
-import { BookingStatus, BookingPaymentStatus, PaymentMode } from '@vms/shared/types';
+import { BookingStatus, BookingPaymentStatus, PaymentMethod } from '@vms/shared/types';
 import { useVenueStore } from '../../../stores/venueStore';
 import { useAuthContext } from '../../../contexts/AuthContext';
 
@@ -104,7 +104,7 @@ export function useUpdatePaymentStatus() {
     }: {
       id: string;
       payment_status: BookingPaymentStatus;
-      payment_mode?: PaymentMode | null;
+      payment_mode?: PaymentMethod | null;
       advance?: number;
       pending?: number;
       payment_notes?: string | null;

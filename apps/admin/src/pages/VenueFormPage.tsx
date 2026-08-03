@@ -60,8 +60,7 @@ export function VenueFormPage() {
     <div className="space-y-6">
       <PageHeader 
         title={isEditMode ? 'Edit Venue' : 'Create New Venue'} 
-        description={isEditMode ? 'Update venue information and photos' : 'Add a new venue to the platform'}
-        showBack={true}
+        description={isEditMode ? 'Update venue details and operating hours.' : 'Add a new venue to your organization.'} 
       />
 
       {submitError && (

@@ -9,7 +9,7 @@ import type {
   Court,
   ApplicationStatus,
   GuestPlayStatus
-} from '../types/database'
+} from '../types'
 import { createCustomersService } from './customers.service'
 
 export interface MemberWithDetails extends Member {

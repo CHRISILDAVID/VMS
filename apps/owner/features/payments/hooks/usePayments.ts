@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPaymentsService } from '@vms/shared/services';
-import { PaymentMode } from '@vms/shared/types';
+import { PaymentMethod } from '@vms/shared/types';
 import { supabase } from '../../../lib/supabase';
 
 const paymentsService = createPaymentsService(supabase);
@@ -27,7 +27,7 @@ export const useMarkPaymentAsPaid = () => {
   return useMutation({
     mutationFn: (params: {
       paymentId: string;
-      mode: PaymentMode;
+      mode: PaymentMethod;
       paidOn: string;
       notes?: string;
       receiptUrl?: string;

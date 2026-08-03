@@ -3,6 +3,13 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, Scr
 import { BookingWithDetails } from '@vms/shared/services';
 import { Court } from '@vms/shared/types';
 import { X, Calendar, Clock, MapPin, AlertTriangle, CheckCircle2 } from 'lucide-react-native';
+import { useCurrentVenue } from '../../../hooks/useVenues';
+import { generateTimeSlots, parseTimeToHour } from '../../schedule/utils/scheduleHelpers';
+import { computeDynamicPrice } from '@vms/shared/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../../../lib/supabase';
+import { createScheduleService } from '@vms/shared/services';
+import { DayOfWeek } from '@vms/shared/types';
 
 interface MoveBookingModalProps {
   visible: boolean;
@@ -17,16 +24,15 @@ interface MoveBookingModalProps {
       duration_minutes: number;
       court_id: string;
       venue_id: string;
+      base_amount?: number;
+      final_amount?: number;
+      pending?: number;
     },
     isForceBooked?: boolean
   ) => Promise<any>;
 }
 
-const timeSlots = [
-  '06:00:00', '07:00:00', '08:00:00', '09:00:00', '10:00:00', '11:00:00',
-  '12:00:00', '13:00:00', '14:00:00', '15:00:00', '16:00:00', '17:00:00',
-  '18:00:00', '19:00:00', '20:00:00', '21:00:00', '22:00:00',
-];
+// Removed hardcoded timeSlots
 
 export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: MoveBookingModalProps) {
   if (!booking) return null;
@@ -39,6 +45,18 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [overlapDetected, setOverlapDetected] = useState<boolean>(false);
+
+  const currentVenue = useCurrentVenue();
+  const openHour = currentVenue ? parseTimeToHour(currentVenue.open_time) : 6;
+  let closeHour = currentVenue ? parseTimeToHour(currentVenue.close_time) : 22;
+  
+  if (closeHour <= openHour) {
+    closeHour += 24;
+  }
+
+  const timeSlots = React.useMemo(() => {
+    return generateTimeSlots(openHour, closeHour);
+  }, [openHour, closeHour]);
 
   React.useEffect(() => {
     if (booking) {
@@ -65,6 +83,17 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
     return list;
   }, []);
 
+  const scheduleService = React.useMemo(() => createScheduleService(supabase), []);
+  const selectedDayOfWeek = React.useMemo(() => {
+    return new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase() as DayOfWeek;
+  }, [selectedDate]);
+
+  const { data: schedule } = useQuery({
+    queryKey: ['operating_schedule', booking?.venue_id, selectedDayOfWeek],
+    queryFn: () => scheduleService.getOperatingSchedule(booking!.venue_id, selectedDayOfWeek),
+    enabled: !!booking?.venue_id && !!selectedDayOfWeek,
+  });
+
   const computeEndTime = (startStr: string, durHours: number) => {
     const [hours, mins] = startStr.split(':').map(Number);
     const endH = hours + durHours;
@@ -79,6 +108,26 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
     const endTime = computeEndTime(selectedStartTime, durationHours);
     const durationMinutes = durationHours * 60;
 
+    let base_amount = booking.base_amount || 0;
+    let final_amount = booking.final_amount || 0;
+    let pending = booking.pending || 0;
+
+    if (schedule?.pricing_blocks && schedule.pricing_blocks.length > 0) {
+      const newBaseRs = computeDynamicPrice(selectedStartTime, durationMinutes, schedule.pricing_blocks, 40000);
+      const newBasePaise = Math.round(newBaseRs * 100);
+      
+      const originalBasePaise = booking.base_amount || 0;
+      const originalFinalPaise = booking.final_amount || 0;
+      const discountPaise = Math.max(0, originalBasePaise - originalFinalPaise);
+      
+      base_amount = newBasePaise;
+      final_amount = Math.max(0, newBasePaise - discountPaise);
+      
+      // We assume advance payments haven't changed, just pending balance
+      const advancePaise = (booking.final_amount || 0) - (booking.pending || 0);
+      pending = Math.max(0, final_amount - advancePaise);
+    }
+
     try {
       await onMove(
         {
@@ -88,6 +137,9 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
           duration_minutes: durationMinutes,
           court_id: selectedCourtId,
           venue_id: booking.venue_id,
+          base_amount,
+          final_amount,
+          pending,
         },
         force
       );

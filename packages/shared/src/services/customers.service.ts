@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Customer } from '../types/database'
+import type { Customer } from '../types'
 
 export const createCustomersService = (supabase: SupabaseClient) => ({
   async getCustomers(ownerId: string, search?: string): Promise<Customer[]> {

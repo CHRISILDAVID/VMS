@@ -68,7 +68,7 @@ export function OwnerFormPage() {
       )}
 
       <OwnerForm 
-        initialValues={initialData || undefined}
+        initialValues={initialData ? { ...initialData, email: initialData.email || undefined } : undefined}
         onSubmit={handleSubmit}
         isSubmitting={mutation.isPending}
         isEditMode={isEditMode}

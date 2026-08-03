@@ -5,8 +5,6 @@ import {
   processBookingsToBlocks, 
   HOUR_WIDTH, 
   COURT_LABEL_WIDTH, 
-  START_HOUR, 
-  END_HOUR,
   HEADER_HEIGHT,
   ROW_HEIGHT,
   slotConfig,
@@ -22,6 +20,8 @@ interface TimelineGridProps {
   onEmptyTap: (court: Court, hour: number) => void;
   conflictCourtId?: string;
   conflictTime?: string;
+  openHour: number;
+  closeHour: number;
 }
 
 export function TimelineGrid({
@@ -32,7 +32,9 @@ export function TimelineGrid({
   onSlotPress,
   onEmptyTap,
   conflictCourtId,
-  conflictTime
+  conflictTime,
+  openHour,
+  closeHour
 }: TimelineGridProps) {
   const blinkAnim = React.useRef(new Animated.Value(1)).current;
   const scrollRef = React.useRef<ScrollView>(null);
@@ -49,17 +51,17 @@ export function TimelineGrid({
       blinkAnim.setValue(1);
     }
   }, [conflictCourtId, conflictTime, blinkAnim]);
-  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
+  const hours = Array.from({ length: closeHour - openHour }, (_, i) => openHour + i);
 
   const blocks = useMemo(() => {
-    return courts.flatMap(court => processBookingsToBlocks(court, dateStr, bookings, memberships));
-  }, [courts, bookings, memberships, dateStr]);
+    return courts.flatMap(court => processBookingsToBlocks(court, dateStr, bookings, memberships, openHour, closeHour));
+  }, [courts, bookings, memberships, dateStr, openHour, closeHour]);
 
   const today = new Date();
   const isToday = dateStr === today.toISOString().split('T')[0];
   const currentHour = today.getHours() + today.getMinutes() / 60;
-  const currentHourOffset = (currentHour - START_HOUR) * HOUR_WIDTH;
-  const showCurrentTime = isToday && currentHour >= START_HOUR && currentHour < END_HOUR;
+  const currentHourOffset = (currentHour - openHour) * HOUR_WIDTH;
+  const showCurrentTime = isToday && currentHour >= openHour && currentHour < closeHour;
 
   React.useEffect(() => {
     if (showCurrentTime && scrollRef.current) {
@@ -95,7 +97,13 @@ export function TimelineGrid({
                 {hours.map(h => (
                   <View key={h} style={styles.timeHeaderCell}>
                     <Text style={styles.timeText}>
-                      {h < 12 ? `${h}AM` : h === 12 ? '12PM' : `${h - 12}PM`}
+                      {(() => {
+                        const displayHour = h % 24;
+                        if (displayHour === 0) return '12AM';
+                        if (displayHour < 12) return `${displayHour}AM`;
+                        if (displayHour === 12) return '12PM';
+                        return `${displayHour - 12}PM`;
+                      })()}
                     </Text>
                   </View>
                 ))}
@@ -138,7 +146,7 @@ export function TimelineGrid({
                       style={[
                         styles.bookingBlock,
                         {
-                          left: (block.startHour - START_HOUR) * HOUR_WIDTH + 2,
+                          left: (block.startHour - openHour) * HOUR_WIDTH + 2,
                           top: courtIndex * ROW_HEIGHT + 6,
                           width: block.duration * HOUR_WIDTH - 4,
                           backgroundColor: cfg.bg,

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { PaymentMode } from '../types/database';
+import { PaymentMethod } from '../types';
 
 export const createPaymentsService = (supabase: SupabaseClient) => ({
   /**
@@ -234,7 +234,7 @@ export const createPaymentsService = (supabase: SupabaseClient) => ({
    */
   async markAsPaid(params: {
     paymentId: string;
-    mode: PaymentMode;
+    mode: PaymentMethod;
     paidOn: string; // YYYY-MM-DD
     notes?: string;
     receiptUrl?: string;

@@ -7,21 +7,19 @@ import { format } from 'date-fns';
 
 import { useCourts } from '../../hooks/useCourts';
 import { useVenueStore } from '../../stores/venueStore';
+import { useCurrentVenue } from '../../hooks/useVenues';
+import { generateTimeSlots, parseTimeToHour } from '../../features/schedule/utils/scheduleHelpers';
 import { useCustomers, useCreateOrGetCustomer } from '../../features/customers/hooks/useCustomers';
 import { useCreateBooking } from '../../features/bookings/hooks/useBookings';
-import { Customer, Court, PaymentMethod } from '@vms/shared/types';
-import { COLORS } from '@vms/shared/utils';
+import { Customer, Court, PaymentMethod, DayOfWeek } from '@vms/shared/types';
+import { COLORS, computeDynamicPrice } from '@vms/shared/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../../lib/supabase';
+import { createScheduleService } from '@vms/shared/services';
 
 const STEPS = ['Date & Court', 'Time', 'Customer', 'Payment', 'Confirm'];
 
-const timeSlots = [
-  '06:00:00', '06:30:00', '07:00:00', '07:30:00', '08:00:00', '08:30:00',
-  '09:00:00', '09:30:00', '10:00:00', '10:30:00', '11:00:00', '11:30:00',
-  '12:00:00', '12:30:00', '13:00:00', '13:30:00', '14:00:00', '14:30:00',
-  '15:00:00', '15:30:00', '16:00:00', '16:30:00', '17:00:00', '17:30:00',
-  '18:00:00', '18:30:00', '19:00:00', '19:30:00', '20:00:00', '20:30:00',
-  '21:00:00', '21:30:00', '22:00:00',
-];
+// Removed hardcoded timeSlots
 
 const durationOptions = [
   { label: '30 min', mins: 30, hours: 0.5 },
@@ -37,7 +35,19 @@ export default function NewBookingWizardScreen() {
   const params = useLocalSearchParams<{ courtId?: string; date?: string; hour?: string }>();
   const { selectedVenueId } = useVenueStore();
 
+  const currentVenue = useCurrentVenue();
   const { data: courts } = useCourts(selectedVenueId);
+
+  const openHour = currentVenue ? parseTimeToHour(currentVenue.open_time) : 6;
+  let closeHour = currentVenue ? parseTimeToHour(currentVenue.close_time) : 22;
+
+  if (closeHour <= openHour) {
+    closeHour += 24;
+  }
+
+  const timeSlots = useMemo(() => {
+    return generateTimeSlots(openHour, closeHour);
+  }, [openHour, closeHour]);
 
   // Wizard state
   const [step, setStep] = useState(0);
@@ -96,12 +106,24 @@ export default function NewBookingWizardScreen() {
     }
   }, [courts, selectedCourtId]);
 
-  // Price Calculation: Default 400 rs/hour (40000 paise/hour)
-  const pricePerHourRs = 400;
+  const scheduleService = useMemo(() => createScheduleService(supabase), []);
+  const selectedDay = useMemo(() => {
+    return new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase() as DayOfWeek;
+  }, [selectedDate]);
+
+  const { data: schedule } = useQuery({
+    queryKey: ['operating_schedule', selectedVenueId, selectedDay],
+    queryFn: () => scheduleService.getOperatingSchedule(selectedVenueId!, selectedDay),
+    enabled: !!selectedVenueId && !!selectedDay,
+  });
+
   const computedTotalRs = useMemo(() => {
+    if (schedule?.pricing_blocks && schedule.pricing_blocks.length > 0) {
+      return computeDynamicPrice(selectedTime, selectedDurationMins, schedule.pricing_blocks, 40000);
+    }
     const hours = selectedDurationMins / 60;
-    return Math.round(hours * pricePerHourRs);
-  }, [selectedDurationMins]);
+    return Math.round(hours * 400);
+  }, [selectedDurationMins, selectedTime, schedule]);
 
   const finalTotalRs = useMemo(() => {
     if (customAmountRs && customAmountRs.trim() !== '') {
@@ -189,9 +211,8 @@ export default function NewBookingWizardScreen() {
       base_amount: 0,
       discount: 0,
       final_amount: 0,
-      advance: 0,
       pending: 0,
-      status: 'confirmed', // blocked slots don't need payment
+      status: 'upcoming', // blocked slots don't need payment
       payment_status: 'paid',
       payment_mode: null,
       source: 'offline',
@@ -408,7 +429,9 @@ export default function NewBookingWizardScreen() {
               <View style={styles.durationsList}>
                 {durationOptions.map(dur => {
                   const active = selectedDurationMins === dur.mins;
-                  const price = Math.round(dur.hours * pricePerHourRs);
+                  const price = schedule?.pricing_blocks && schedule.pricing_blocks.length > 0
+                    ? computeDynamicPrice(selectedTime, dur.mins, schedule.pricing_blocks, 40000)
+                    : Math.round(dur.hours * 400);
                   return (
                     <TouchableOpacity
                       key={dur.mins}

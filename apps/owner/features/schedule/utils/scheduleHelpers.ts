@@ -3,10 +3,14 @@ import { format, parse, isAfter, isBefore, isEqual, addMinutes, startOfDay, isTo
 
 export const HOUR_WIDTH = 80;
 export const COURT_LABEL_WIDTH = 72;
-export const START_HOUR = 6;
-export const END_HOUR = 23;
 export const HEADER_HEIGHT = 32;
 export const ROW_HEIGHT = 64;
+
+export function parseTimeToHour(timeStr: string): number {
+  if (!timeStr) return 0;
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours + (minutes || 0) / 60;
+}
 
 export const slotConfig: Record<string, { bg: string; border: string; text: string }> = {
   booked: { bg: '#EFF6FF', border: '#93C5FD', text: '#1D4ED8' },
@@ -32,7 +36,9 @@ export function processBookingsToBlocks(
   court: Court,
   dateStr: string,
   bookings: Booking[],
-  memberships: MembershipSlot[]
+  memberships: MembershipSlot[],
+  openHour: number,
+  closeHour: number
 ): (ProcessedSlot & { startHour: number; duration: number; label: string; endTime: string; courtId: string })[] {
   const blocks: any[] = [];
 
@@ -44,15 +50,20 @@ export function processBookingsToBlocks(
     const startObj = parse(startTime, 'HH:mm:ss', new Date());
     const endObj = parse(endTime, 'HH:mm:ss', new Date());
     
-    const startHour = startObj.getHours() + startObj.getMinutes() / 60;
-    const endHour = endObj.getHours() + endObj.getMinutes() / 60;
+    const startHourObj = startObj.getHours() + startObj.getMinutes() / 60;
+    let endHourObj = endObj.getHours() + endObj.getMinutes() / 60;
+    
+    // Treat midnight as 24:00 for end times so blocks don't disappear
+    if (endHourObj === 0 && startHourObj > 0) {
+      endHourObj = 24;
+    }
     
     // Skip if outside our display range
-    if (endHour <= START_HOUR || startHour >= END_HOUR) return;
+    if (endHourObj <= openHour || startHourObj >= closeHour) return;
     
     // Clamp to boundaries
-    const clampedStart = Math.max(startHour, START_HOUR);
-    const clampedEnd = Math.min(endHour, END_HOUR);
+    const clampedStart = Math.max(startHourObj, openHour);
+    const clampedEnd = Math.min(endHourObj, closeHour);
     const duration = clampedEnd - clampedStart;
 
     blocks.push({
@@ -98,17 +109,23 @@ export function processBookingsToBlocks(
   return blocks;
 }
 
-// Generate time slots from 6 AM to 10 PM in 30-min increments
-export function generateTimeSlots(startHour = 6, endHour = 22): string[] {
+// Generate time slots based on dynamic start and end hour
+export function generateTimeSlots(startHour: number, endHour: number): string[] {
   const slots: string[] = [];
   let current = startOfDay(new Date());
-  current.setHours(startHour, 0, 0, 0);
+  
+  // Use integer for setHours, handle fractional startHour (e.g., 6.5 for 6:30) if needed
+  const startH = Math.floor(startHour);
+  const startM = (startHour % 1) * 60;
+  current.setHours(startH, startM, 0, 0);
   
   const end = startOfDay(new Date());
-  end.setHours(endHour, 0, 0, 0);
+  const endH = Math.floor(endHour);
+  const endM = (endHour % 1) * 60;
+  end.setHours(endH, endM, 0, 0);
 
-  while (isBefore(current, end) || isEqual(current, end)) {
-    slots.push(format(current, 'HH:mm'));
+  while (isBefore(current, end)) {
+    slots.push(format(current, 'HH:mm:ss'));
     current = addMinutes(current, 30);
   }
   

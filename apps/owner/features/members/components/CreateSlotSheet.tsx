@@ -18,6 +18,7 @@ import { SkillLevel, DayOfWeek } from '@vms/shared/types';
 import { useCreateSlot, useUpdateSlot, useMembershipSlots } from '../hooks/useMemberships';
 import { useCourts } from '../../../hooks/useCourts';
 import { useVenueStore } from '../../../stores/venueStore';
+import { useCurrentVenue } from '../../../hooks/useVenues';
 
 interface CreateSlotSheetProps {
   visible: boolean;
@@ -47,6 +48,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
   const createMutation = useCreateSlot();
   const updateMutation = useUpdateSlot();
   const { selectedVenueId } = useVenueStore();
+  const currentVenue = useCurrentVenue();
   const { data: courts } = useCourts(selectedVenueId);
   const { data: existingSlots } = useMembershipSlots();
 
@@ -70,7 +72,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
   useEffect(() => {
     if (slotToEdit) {
       setName(slotToEdit.name || '');
-      setStartTime(slotToEdit.start_time?.slice(0, 5) || '06:00');
+      setStartTime(slotToEdit.start_time?.slice(0, 5) || currentVenue?.open_time?.slice(0, 5) || '06:00');
       setEndTime(slotToEdit.end_time?.slice(0, 5) || '08:00');
       setCapacity(String(slotToEdit.capacity || 10));
       setMonthlyFee(String((slotToEdit.monthly_fee || 0) / 100));
@@ -81,7 +83,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       setCourtId(slotToEdit.court_id || '');
     } else {
       setName('');
-      setStartTime('06:00');
+      setStartTime(currentVenue?.open_time?.slice(0, 5) || '06:00');
       setEndTime('08:00');
       setCapacity('10');
       setMonthlyFee('2500');
@@ -92,7 +94,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
       setCourtId('');
       setInitialMembers([]);
     }
-  }, [slotToEdit, visible]);
+  }, [slotToEdit, visible, currentVenue?.open_time]);
 
   const toggleDay = (day: DayOfWeek) => {
     setPlayingDays(prev =>

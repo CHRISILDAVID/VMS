@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Booking, BookingStatus, BookingPaymentStatus, PaymentMode, Customer, Court, Venue, DayOfWeek } from '../types/database'
+import type { Booking, BookingStatus, BookingPaymentStatus, PaymentMethod, Customer, Court, Venue, DayOfWeek } from '../types'
 
 export interface BookingWithDetails extends Booking {
   customer?: Customer;
@@ -223,7 +223,7 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
   async updatePaymentStatus(
     id: string, 
     payment_status: BookingPaymentStatus, 
-    payment_mode?: PaymentMode | null,
+    payment_mode?: PaymentMethod | null,
     advance?: number,
     pending?: number,
     payment_notes?: string | null
@@ -282,6 +282,9 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       duration_minutes: number;
       court_id: string;
       venue_id: string;
+      base_amount?: number;
+      final_amount?: number;
+      pending?: number;
     },
     isForceBooked = false
   ): Promise<BookingWithDetails> {
@@ -302,16 +305,22 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       }
     }
 
+    const updatePayload: any = {
+      date: updates.date,
+      start_time: updates.start_time,
+      end_time: updates.end_time,
+      duration_minutes: updates.duration_minutes,
+      court_id: updates.court_id,
+      is_force_booked: isForceBooked,
+    };
+
+    if (updates.base_amount !== undefined) updatePayload.base_amount = updates.base_amount;
+    if (updates.final_amount !== undefined) updatePayload.final_amount = updates.final_amount;
+    if (updates.pending !== undefined) updatePayload.pending = updates.pending;
+
     const { data: updated, error } = await supabase
       .from('bookings')
-      .update({
-        date: updates.date,
-        start_time: updates.start_time,
-        end_time: updates.end_time,
-        duration_minutes: updates.duration_minutes,
-        court_id: updates.court_id,
-        is_force_booked: isForceBooked,
-      })
+      .update(updatePayload)
       .eq('id', id)
       .select(`
         *,

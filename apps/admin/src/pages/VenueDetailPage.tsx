@@ -90,7 +90,6 @@ export function VenueDetailPage() {
               <span className="flex items-center gap-1"><MapPin size={14} /> {venue.city || 'No city'}</span>
             </span>
           }
-          showBack={true} 
         />
         <div className="flex items-center gap-3">
           <Link

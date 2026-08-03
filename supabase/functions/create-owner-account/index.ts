@@ -60,7 +60,7 @@ serve(async (req) => {
 
     // 3. Create the user in auth.users using the service_role client
     // Note: If phone already exists, supabase will throw an error, but we want to handle existing auth users gracefully
-    let authUserId = null;
+    let authUserId: string | null = null;
 
     // Check if user with phone already exists first
     const { data: existingAuthUsers, error: listError } = await supabase.auth.admin.listUsers()
@@ -99,17 +99,18 @@ serve(async (req) => {
       authUserId = newAuthUser.user.id;
     }
 
-    // 4. Insert into the owners table
+    // 4. Insert or restore into the owners table
     const { data: newOwner, error: ownerInsertError } = await supabase
       .from('owners')
-      .insert({
-        id: authUserId,
-        full_name,
-        business_name,
-        phone,
+      .upsert({
+        id: authUserId as string,
+        full_name: full_name,
+        business_name: business_name,
+        phone: phone,
         email: email || null,
-        role: 'owner'
-      })
+        role: 'owner',
+        deleted_at: null
+      }, { onConflict: 'id' })
       .select()
       .single()
 

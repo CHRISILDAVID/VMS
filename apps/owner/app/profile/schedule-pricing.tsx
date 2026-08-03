@@ -9,7 +9,7 @@ import { createScheduleService } from '@vms/shared/services';
 import { useVenueStore } from '../../stores/venueStore';
 import { DayOfWeek } from '@vms/shared/types';
 import { COLORS } from '@vms/shared/utils';
-import BottomSheet, { BottomSheetModal, BottomSheetModalProvider, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
 const scheduleService = createScheduleService(supabase);
 const DAYS: { key: DayOfWeek; label: string }[] = [
@@ -32,7 +32,7 @@ export default function SchedulePricingScreen() {
   const [selectedTargetDays, setSelectedTargetDays] = useState<DayOfWeek[]>([]);
   const [editingBlock, setEditingBlock] = useState<any>(null);
 
-  const blockSheetRef = useRef<BottomSheetModal>(null);
+  const blockSheetRef = useRef<BottomSheet>(null);
   const [formData, setFormData] = useState({ start: '', end: '', price: '' });
 
   // Queries
@@ -53,7 +53,8 @@ export default function SchedulePricingScreen() {
         ...updates
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operating_schedule', selectedVenueId, selectedDay] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operating_schedule', selectedVenueId, selectedDay] }),
+    onError: (error: any) => Alert.alert('Error updating schedule', error.message || 'Unknown error')
   });
 
   const saveBlockMut = useMutation({
@@ -70,7 +71,7 @@ export default function SchedulePricingScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operating_schedule', selectedVenueId, selectedDay] });
-      blockSheetRef.current?.dismiss();
+      blockSheetRef.current?.close();
       setEditingBlock(null);
     },
     onError: (error: any) => {
@@ -95,12 +96,15 @@ export default function SchedulePricingScreen() {
 
   const handleOpenBlockSheet = (block?: any) => {
     if (!schedule?.id) {
+      if (toggleScheduleMut.isPending) return;
       // Auto-initialize the schedule if it doesn't exist
       toggleScheduleMut.mutate({ is_closed: false, is_24h: false }, {
         onSuccess: () => {
           setEditingBlock(null);
           setFormData({ start: '06:00:00', end: '18:00:00', price: '500' });
-          blockSheetRef.current?.present();
+          setTimeout(() => {
+            blockSheetRef.current?.expand();
+          }, 100);
         }
       });
       return;
@@ -112,7 +116,7 @@ export default function SchedulePricingScreen() {
       setEditingBlock(null);
       setFormData({ start: '06:00:00', end: '18:00:00', price: '500' });
     }
-    blockSheetRef.current?.present();
+    blockSheetRef.current?.expand();
   };
 
   const renderBackdrop = useMemo(() => (props: any) => (
@@ -120,7 +124,7 @@ export default function SchedulePricingScreen() {
   ), []);
 
   return (
-    <BottomSheetModalProvider>
+    <>
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         {/* Header */}
         <View style={styles.header}>
@@ -188,9 +192,19 @@ export default function SchedulePricingScreen() {
               <View style={styles.blocksSection}>
                 <View style={styles.blocksHeaderRow}>
                   <Text style={styles.blocksTitle}>Pricing Blocks</Text>
-                  <TouchableOpacity style={styles.addBlockBtn} onPress={() => handleOpenBlockSheet()}>
-                    <Plus size={14} color="#2563EB" />
-                    <Text style={styles.addBlockText}>Add Block</Text>
+                  <TouchableOpacity 
+                    style={[styles.addBlockBtn, toggleScheduleMut.isPending && { opacity: 0.7 }]} 
+                    onPress={() => handleOpenBlockSheet()}
+                    disabled={toggleScheduleMut.isPending}
+                  >
+                    {toggleScheduleMut.isPending ? (
+                      <ActivityIndicator size="small" color="#2563EB" />
+                    ) : (
+                      <>
+                        <Plus size={14} color="#2563EB" />
+                        <Text style={styles.addBlockText}>Add Block</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
 
@@ -270,10 +284,12 @@ export default function SchedulePricingScreen() {
         )}
 
         {/* Pricing Block Modal */}
-        <BottomSheetModal
+        <BottomSheet
           ref={blockSheetRef}
           snapPoints={['50%']}
           backdropComponent={renderBackdrop}
+          index={-1}
+          enablePanDownToClose={true}
         >
           <View style={styles.sheetContent}>
             <Text style={styles.sheetTitle}>{editingBlock ? 'Edit Block' : 'Add Pricing Block'}</Text>
@@ -317,9 +333,9 @@ export default function SchedulePricingScreen() {
               {saveBlockMut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Save Block</Text>}
             </TouchableOpacity>
           </View>
-        </BottomSheetModal>
+        </BottomSheet>
       </SafeAreaView>
-    </BottomSheetModalProvider>
+    </>
   );
 }
 

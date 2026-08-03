@@ -2,14 +2,14 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useMarkPaymentAsPaid } from '../hooks/usePayments';
-import { PaymentMode } from '@vms/shared/types';
+import { PaymentMethod } from '@vms/shared/types';
 
 interface MarkAsPaidSheetProps {
   payment: any | null;
   onClose: () => void;
 }
 
-const PAYMENT_MODES: { label: string; value: PaymentMode }[] = [
+const PAYMENT_MODES: { label: string; value: PaymentMethod }[] = [
   { label: 'UPI', value: 'upi' },
   { label: 'Cash', value: 'cash' },
   { label: 'Card', value: 'card' },
@@ -20,7 +20,7 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
   const snapPoints = useMemo(() => ['50%', '75%'], []);
   const { mutateAsync: markAsPaid, isPending } = useMarkPaymentAsPaid();
 
-  const [mode, setMode] = useState<PaymentMode>('upi');
+  const [mode, setMode] = useState<PaymentMethod>('upi');
   const [notes, setNotes] = useState('');
   
   const bottomSheetRef = useRef<BottomSheet>(null);

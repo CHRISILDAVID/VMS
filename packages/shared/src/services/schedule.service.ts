@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { DayOfWeek, Booking, MembershipSlot, OperatingSchedule, PricingBlock } from '../types/database'
+import type { DayOfWeek, Booking, MembershipSlot, OperatingSchedule, PricingBlock } from '../types'
 
 export const createScheduleService = (supabase: SupabaseClient) => ({
   async getOperatingSchedule(venueId: string, dayOfWeek: DayOfWeek) {

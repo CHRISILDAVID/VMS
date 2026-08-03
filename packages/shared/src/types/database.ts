@@ -726,6 +726,8 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
+          open_time: string
+          close_time: string
           owner_id: string | null
           photos: string[] | null
           pincode: string | null
@@ -748,6 +750,8 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
+          open_time?: string
+          close_time?: string
           owner_id?: string | null
           photos?: string[] | null
           pincode?: string | null
@@ -770,6 +774,8 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
+          open_time?: string
+          close_time?: string
           owner_id?: string | null
           photos?: string[] | null
           pincode?: string | null

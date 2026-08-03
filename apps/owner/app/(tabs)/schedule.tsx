@@ -12,8 +12,9 @@ import { SlotBottomSheet } from '../../features/schedule/components/SlotBottomSh
 import { SpeedDialFAB } from '../../features/schedule/components/SpeedDialFAB';
 import { useSchedule } from '../../features/schedule/hooks/useSchedule';
 import { useCourts } from '../../hooks/useCourts';
+import { useVenues, useCurrentVenue } from '../../hooks/useVenues';
 import { useVenueStore } from '../../stores/venueStore';
-import { ProcessedSlot } from '../../features/schedule/utils/scheduleHelpers';
+import { ProcessedSlot, parseTimeToHour } from '../../features/schedule/utils/scheduleHelpers';
 import { useReleaseSlot } from '../../features/members/hooks/useMemberships';
 import { useUnblockSlot } from '../../features/bookings/hooks/useBookings';
 import { Court } from '@vms/shared/types';
@@ -26,13 +27,25 @@ export default function ScheduleScreen() {
   const unblockSlotMutation = useUnblockSlot();
   const { conflictCourtId, conflictTime } = useLocalSearchParams<{ conflictCourtId?: string; conflictTime?: string }>();
   
-  const [selectedDateStr, setSelectedDateStr] = useState(() => {
-    const now = new Date();
-    if (now.getHours() >= 22) {
-      now.setDate(now.getDate() + 1);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [dateInitialized, setDateInitialized] = useState(false);
+  const currentVenue = useCurrentVenue();
+  
+  useEffect(() => {
+    if (currentVenue && !dateInitialized) {
+      const now = new Date();
+      const openHour = parseTimeToHour(currentVenue.open_time);
+      let closeHour = parseTimeToHour(currentVenue.close_time);
+      if (closeHour <= openHour) {
+        closeHour += 24;
+      }
+      if (now.getHours() >= closeHour) {
+        now.setDate(now.getDate() + 1);
+        setSelectedDateStr(format(now, 'yyyy-MM-dd'));
+      }
+      setDateInitialized(true);
     }
-    return format(now, 'yyyy-MM-dd');
-  });
+  }, [currentVenue, dateInitialized]);
   
   const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
@@ -143,6 +156,14 @@ export default function ScheduleScreen() {
 
   const isLoading = isLoadingSchedule || isLoadingCourts;
 
+  const openHour = currentVenue ? parseTimeToHour(currentVenue.open_time) : 6;
+  let closeHour = currentVenue ? parseTimeToHour(currentVenue.close_time) : 22;
+
+  // Handle 24-hour venue case (00:00 to 00:00)
+  if (closeHour <= openHour) {
+    closeHour += 24;
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -181,6 +202,8 @@ export default function ScheduleScreen() {
             onEmptyTap={handleEmptyTap}
             conflictCourtId={conflictCourtId}
             conflictTime={conflictTime}
+            openHour={openHour}
+            closeHour={closeHour}
           />
         )}
       </View>

@@ -52,7 +52,7 @@ export function CourtFormModal({ isOpen, onClose, onSubmit, initialData, isSubmi
   const handleFormSubmit = (data: CourtFormData) => {
     onSubmit({
       ...data,
-      court_type: data.court_type === '' ? null : data.court_type
+      court_type: !data.court_type ? null : data.court_type
     } as CourtFormData);
   };
 

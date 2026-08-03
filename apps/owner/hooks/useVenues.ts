@@ -27,3 +27,11 @@ export function useVenues() {
 
   return query;
 }
+
+export function useCurrentVenue() {
+  const { data: venues } = useVenues();
+  const { selectedVenueId } = useVenueStore();
+
+  if (!venues || !selectedVenueId) return null;
+  return venues.find((v) => v.id === selectedVenueId) || null;
+}

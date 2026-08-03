@@ -10,7 +10,7 @@ import type { Venue } from '@vms/shared/types';
 
 interface VenueWithCount extends Venue {
   owners?: { full_name: string; business_name: string };
-  courts?: [{ count: number }];
+  courts?: { id: string; deleted_at: string | null; is_active: boolean }[];
 }
 
 export function VenuesPage() {

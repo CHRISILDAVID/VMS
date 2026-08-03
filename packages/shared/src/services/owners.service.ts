@@ -97,5 +97,25 @@ export const createOwnersService = (supabase: SupabaseClient) => ({
       .eq('id', userId)
       
     if (error) throw error
+  },
+  
+  async adminDeleteOwner(userId: string) {
+    const { data, error } = await supabase.functions.invoke('delete-owner-account', {
+      body: { id: userId }
+    })
+    
+    if (error) {
+      if ((error as any).context && typeof (error as any).context.json === 'function') {
+        try {
+          const errBody = await (error as any).context.json()
+          throw new Error(errBody.error || errBody.message || error.message)
+        } catch {
+          throw error
+        }
+      }
+      throw error
+    }
+    if (data.error) throw new Error(data.error)
+    return data
   }
 })

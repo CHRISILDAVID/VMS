@@ -5,6 +5,7 @@ import { createScheduleService } from '@vms/shared/services';
 import type { Court, PricingBlock } from '@vms/shared/types';
 import { Plus, Trash2, IndianRupee, Layers } from 'lucide-react';
 import { Input } from '../ui/Input';
+import { ScrollTimePicker } from '../ui/ScrollTimePicker';
 
 interface PricingBlockEditorProps {
   scheduleId?: string;
@@ -69,7 +70,8 @@ export function PricingBlockEditor({ scheduleId, venueId, courts, initialBlocks 
     if (!newStartTime || !newEndTime || !newPrice) return;
     
     // Validate time
-    if (newEndTime <= newStartTime) {
+    const endForValidation = newEndTime === "00:00" && newStartTime > "00:00" ? "24:00" : newEndTime;
+    if (endForValidation <= newStartTime) {
       alert("End time must be after start time");
       return;
     }
@@ -111,18 +113,16 @@ export function PricingBlockEditor({ scheduleId, venueId, courts, initialBlocks 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">Start Time</label>
-              <Input 
-                type="time" 
+              <ScrollTimePicker 
                 value={newStartTime}
-                onChange={(e) => setNewStartTime(e.target.value)}
+                onChange={(val) => setNewStartTime(val)}
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1">End Time</label>
-              <Input 
-                type="time" 
+              <ScrollTimePicker 
                 value={newEndTime}
-                onChange={(e) => setNewEndTime(e.target.value)}
+                onChange={(val) => setNewEndTime(val)}
               />
             </div>
             <div>

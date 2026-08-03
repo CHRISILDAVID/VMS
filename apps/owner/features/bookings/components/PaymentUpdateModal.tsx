@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { BookingWithDetails } from '@vms/shared/services';
-import { BookingPaymentStatus, PaymentMode } from '@vms/shared/types';
+import { BookingPaymentStatus, PaymentMethod } from '@vms/shared/types';
 import { X, IndianRupee, CheckCircle2, CreditCard, Banknote, Smartphone, HelpCircle } from 'lucide-react-native';
 
 interface PaymentUpdateModalProps {
@@ -10,14 +10,14 @@ interface PaymentUpdateModalProps {
   onClose: () => void;
   onSave: (payload: {
     payment_status: BookingPaymentStatus;
-    payment_mode?: PaymentMode | null;
+    payment_mode?: PaymentMethod | null;
     advance?: number;
     pending?: number;
     payment_notes?: string | null;
   }) => Promise<any>;
 }
 
-const paymentModes: { label: string; value: PaymentMode; icon: any }[] = [
+const PaymentMethods: { label: string; value: PaymentMethod; icon: any }[] = [
   { label: 'UPI', value: 'upi', icon: Smartphone },
   { label: 'Cash', value: 'cash', icon: Banknote },
   { label: 'Card', value: 'card', icon: CreditCard },
@@ -32,7 +32,7 @@ export function PaymentUpdateModal({ visible, booking, onClose, onSave }: Paymen
   const currentPendingRs = (booking.pending || 0) / 100;
 
   const [collectAmount, setCollectAmount] = useState<string>(currentPendingRs.toString());
-  const [selectedMode, setSelectedMode] = useState<PaymentMode>(booking.payment_mode || 'upi');
+  const [selectedMode, setSelectedMode] = useState<PaymentMethod>(booking.payment_mode || 'upi');
   const [notes, setNotes] = useState<string>(booking.payment_notes || '');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -139,7 +139,7 @@ export function PaymentUpdateModal({ visible, booking, onClose, onSave }: Paymen
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Payment Mode</Text>
               <View style={styles.modesGrid}>
-                {paymentModes.map((mode) => {
+                {PaymentMethods.map((mode) => {
                   const active = selectedMode === mode.value;
                   const Icon = mode.icon;
                   return (

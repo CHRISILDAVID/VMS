@@ -10,10 +10,10 @@ interface OwnerWithCount extends Owner {
 
 interface OwnerListProps {
   owners: OwnerWithCount[];
-  onDeactivate: (owner: OwnerWithCount) => void;
+  onDeleteAction: (owner: OwnerWithCount) => void;
 }
 
-export function OwnerList({ owners, onDeactivate }: OwnerListProps) {
+export function OwnerList({ owners, onDeleteAction }: OwnerListProps) {
   if (owners.length === 0) {
     return (
       <div className="text-center py-10 text-gray-500">
@@ -73,9 +73,9 @@ export function OwnerList({ owners, onDeactivate }: OwnerListProps) {
                       <Edit className="h-5 w-5" />
                     </Link>
                     <button 
-                      onClick={() => onDeactivate(owner)}
+                      onClick={() => onDeleteAction(owner)}
                       className="text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300"
-                      title="Deactivate Owner"
+                      title="Delete or Deactivate Owner"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>

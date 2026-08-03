@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { X, UploadCloud, Loader2 } from 'lucide-react';
 import type { Venue } from '@vms/shared/types';
 import { OwnerSearchSelect } from '../owners/OwnerSearchSelect';
+import { ScrollTimePicker } from '../ui/ScrollTimePicker';
 
 const venueSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -20,6 +21,8 @@ const venueSchema = z.object({
   contact_email: z.string().email('Invalid email').optional().or(z.literal('')).nullable(),
   gstin: z.string().optional().nullable(),
   gst_enabled: z.boolean().default(false),
+  open_time: z.string().default('06:00:00'),
+  close_time: z.string().default('22:00:00'),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
 });
@@ -50,6 +53,8 @@ export function VenueForm({ initialData, onSubmit, isSubmitting }: VenueFormProp
       contact_email: initialData?.contact_email || '',
       gstin: initialData?.gstin || '',
       gst_enabled: initialData?.gst_enabled || false,
+      open_time: initialData?.open_time || '06:00:00',
+      close_time: initialData?.close_time || '22:00:00',
       latitude: initialData?.latitude || null,
       longitude: initialData?.longitude || null,
     }
@@ -156,6 +161,43 @@ export function VenueForm({ initialData, onSubmit, isSubmitting }: VenueFormProp
             <div>
               <label htmlFor="pincode" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pincode</label>
               <Input id="pincode" {...register('pincode')} error={errors.pincode?.message} />
+            </div>
+          </div>
+
+          <hr className="border-slate-200 dark:border-slate-800" />
+
+          {/* Operating Hours */}
+          <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">Operating Hours</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="open_time" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Open Time *</label>
+              <Controller
+                name="open_time"
+                control={control}
+                render={({ field }) => (
+                  <ScrollTimePicker 
+                    value={field.value.substring(0, 5)} 
+                    onChange={(val) => field.onChange(`${val}:00`)} 
+                    disabled={isSubmitting} 
+                  />
+                )}
+              />
+              {errors.open_time && <p className="mt-1 text-sm text-red-500">{errors.open_time.message}</p>}
+            </div>
+            <div>
+              <label htmlFor="close_time" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Close Time *</label>
+              <Controller
+                name="close_time"
+                control={control}
+                render={({ field }) => (
+                  <ScrollTimePicker 
+                    value={field.value.substring(0, 5)} 
+                    onChange={(val) => field.onChange(`${val}:00`)} 
+                    disabled={isSubmitting} 
+                  />
+                )}
+              />
+              {errors.close_time && <p className="mt-1 text-sm text-red-500">{errors.close_time.message}</p>}
             </div>
           </div>
 
