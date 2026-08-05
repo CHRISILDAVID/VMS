@@ -304,23 +304,312 @@
 
 ---
 
+## Phase 2: ShuttleHub (Player App)
+
+> [!NOTE]
+> **Brand:** ShuttleHub | **Platform:** React Native + Expo (Mobile) | **Market:** India (₹, +91)
+> **Design:** Navy (#0B1F3A) + Lime (#A7FF3F) sporty theme from Figma reference
+> **Path:** `apps/player/` in existing monorepo | **Backend:** Shared Supabase instance
+
+---
+
+## Milestone 10 — Player App Foundation + Auth
+
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium) | **Dependencies:** M0-M7 (all completed)
+
+### Objectives
+- Set up Player App (Expo) in monorepo
+- Design system (navy + lime theme)
+- Phone + OTP authentication with optional social login later
+- Player profile creation (`players` table — separate from `owners`)
+- Location permission + GPS auto-detection
+- Auto-link with existing `customers` records by phone number
+
+### Deliverables
+
+**Database:**
+- [ ] Migration: `players` table + RLS policies
+- [ ] Migration: `player_wallets` table (0 balance on registration)
+- [ ] Migration: `notifications` table + RLS policies
+- [ ] Migration: `venues` alterations (`min_slot_duration`, `cancellation_hours`, `platform_fee`, `average_rating`, `total_reviews`)
+- [ ] New enums: `id_proof_type`, `verification_status`, `notification_type`, `challenge_status`, `hosted_match_status`, `match_format`, `order_status`, `product_listing_source`, `wallet_transaction_type`
+- [ ] Auto-link function: match `players.phone` → `customers.phone` → set `customers.user_id`
+
+**Player App (`apps/player/`):**
+- [ ] Expo project with Expo Router (file-based navigation)
+- [ ] NativeWind 4.x (Tailwind for React Native)
+- [ ] Path aliases (`@/`, `@vms/shared`)
+- [ ] Design tokens: Navy (#0B1F3A), Lime (#A7FF3F), White, Dark Grey
+- [ ] Core UI: Button, Card, Input, Badge, StatusChip, Skeleton, EmptyState, ErrorState
+- [ ] Layout: custom TabBar (Home, Play, Search, Tournament, Profile), PageHeader, SafeArea
+- [ ] Overlays: @gorhom/bottom-sheet, Dialog
+- [ ] Auth screens: Login (Phone + OTP), Figma split-layout
+- [ ] Auth guard in root layout
+- [ ] Location permission prompt (expo-location) + GPS auto-detection → auto-fill city/state
+- [ ] Player profile creation form (Full Name, DOB, Gender, City, Skill Level, Photo)
+- [ ] Photo upload (expo-image-picker → Supabase Storage `player-photos` bucket)
+- [ ] Bottom navigation skeleton (5 tabs)
+
+**Shared Package:**
+- [ ] Player auth service, player profile service, notification service
+- [ ] Updated types (regenerate from DB)
+
+**Owner App Changes:**
+- [ ] Settings: "Minimum Slot Duration" config (Profile → Court Schedule)
+- [ ] Settings: "Cancellation Policy (hours)" config
+
+### Completion Checklist
+- [ ] `pnpm dev:player` → Expo starts, viewable on device
+- [ ] Player registration + OTP + profile creation works
+- [ ] Location auto-detected, `customers` auto-linked
+- [ ] Owner App: min slot duration and cancellation hours configurable
+
+---
+
+## Milestone 11 — Home Dashboard + Court Discovery
+
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium) | **Dependencies:** M10
+
+### Deliverables
+
+**Player App:**
+- [ ] Home Dashboard: hero carousel, Quick Actions (Book Court, Join Game, Tournaments placeholder, See Your Rank placeholder)
+- [ ] Nearby Courts: horizontal scroll cards (geo-based from `venues`)
+- [ ] Fast Selling Items: horizontal scroll product cards
+- [ ] Top bar: App logo, Notification bell (badge count), Wallet dropdown (display-only balance)
+- [ ] Court Listing (Play → Book Court): feed by city/location, search, filters (Indoor/Outdoor)
+- [ ] Court cards: image, court type, badges, name, area, distance, rating, A/C tag, court count, starting price/hr
+- [ ] Court Details: image carousel, info, amenities, operating hours, reviews, "Become a Member" + "Book Court" CTAs
+
+**Shared Package:**
+- [ ] Venue discovery service (geo-filtered queries)
+- [ ] Products service (for Fast Selling Items)
+
+### Completion Checklist
+- [ ] Home dashboard renders all sections
+- [ ] Nearby courts load based on player location
+- [ ] Court details page shows all info + reviews
+- [ ] Wallet dropdown shows balance
+
+---
+
+## Milestone 12 — Court Booking
+
+**Complexity:** ⬛⬛⬛⬛⬜ (High) | **Dependencies:** M11
+
+### Deliverables
+
+**Database:**
+- [ ] RLS: players can INSERT bookings with `source = 'online'`, `booked_by = auth.uid()`
+- [ ] Auto-create `customers` record for venue's owner on first player booking
+- [ ] DB function: `get_available_slots(venue_id, court_id, date)` (respects `min_slot_duration`)
+
+**Player App:**
+- [ ] Slot Selection: court type filter, court count selector, 14-day date picker, time-of-day filter, multi-select slot grid, sticky summary bar
+- [ ] Booking Summary: court card, booking details, price breakdown (court fee + platform fee), "Confirm — Pay at Court" CTA
+- [ ] Booking Confirmation: success animation, booking ID, post-booking actions (Host Game, Challenge Friend)
+- [ ] Booking History (Profile → Play Activity): Upcoming/Completed/Cancelled tabs, cancel action
+- [ ] Cancellation: check `venue.cancellation_hours` vs booking start time
+
+**Owner App Impact:**
+- [ ] Player bookings appear in schedule real-time (source = "Online")
+- [ ] Owner can manage player bookings same as offline bookings
+
+### Completion Checklist
+- [ ] Full booking flow works (browse → select → confirm → pay at court)
+- [ ] Booking syncs to Owner App immediately
+- [ ] Cancellation respects venue policy
+- [ ] Platform fee applied correctly
+
+---
+
+## Milestone 13 — Social: Find Players + Challenge + Host/Join
+
+**Complexity:** ⬛⬛⬛⬛⬜ (High) | **Dependencies:** M12
+
+### Deliverables
+
+**Database:**
+- [ ] Migration: `challenges`, `hosted_matches`, `match_participants` tables + RLS
+- [ ] Challenge auto-expiry (24h) via DB cron or Edge Function
+
+**Player App:**
+- [ ] Find Players: search, skill-level chips, player cards (photo, verified badge, Player ID, stats)
+- [ ] Public Player Profile (bottom sheet): avatar, stats, achievements, recent matches, Challenge + Invite buttons
+- [ ] Challenge system: booking gate → challenge modal (format, message) → notification to challenged player → accept/decline. Player A pays full booking. Supports doubles (multi-challenge)
+- [ ] Host Match: booking gate → HOST tab (your booked court card, Host a Match modal: format, skill level, visibility) → Publish
+- [ ] Join Match: JOIN tab (available match cards: host, venue, time, format, slots) → Join
+
+**Shared Package:**
+- [ ] Challenge, hosted-matches, player-discovery services
+
+### Completion Checklist
+- [ ] Can search/filter players, view public profiles
+- [ ] Challenge flow works end-to-end with notifications
+- [ ] Can host and join matches
+
+---
+
+## Milestone 14 — Membership Discovery + Notifications Center
+
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium) | **Dependencies:** M13
+
+### Deliverables
+
+**Database:**
+- [ ] `membership_applications` alteration (add `player_id` FK)
+- [ ] `fcm_token` column on `players` table
+
+**Player App:**
+- [ ] Court Details → "Become a Member" → Membership Batches screen (published slots, benefits, Apply button)
+- [ ] Application confirmation dialog (Application ID, Done/View My Applications)
+- [ ] Notification Center (bell icon): cards for booking confirmation, challenge requests (accept/decline), guest play invitations, membership payment reminders
+- [ ] Push notifications via FCM (expo-notifications setup, token registration)
+- [ ] WhatsApp deep links for payment reminders
+
+**Owner App Impact:**
+- [ ] Player applications appear in Members → Applications tab
+- [ ] Owner "Send Reminder" creates notification for player
+
+### Completion Checklist
+- [ ] Membership browse + apply works
+- [ ] Bell icon shows unread count, all notification types display correctly
+- [ ] Push notifications delivered via FCM
+- [ ] Challenge accept/decline works from notification
+
+---
+
+## Milestone 15 — Shop / E-Commerce
+
+**Complexity:** ⬛⬛⬛⬛⬜ (High) | **Dependencies:** M14
+
+### Deliverables
+
+**Database:**
+- [ ] `product_categories`, `products`, `product_variants`, `product_reviews`, `cart_items`, `orders`, `order_items` tables + RLS
+- [ ] Supabase Storage: `product-images` bucket
+
+**Player App:**
+- [ ] Shop screen: category tabs, search, product grid
+- [ ] Product Details: images, price, variants, reviews, "Add to Cart", pickup badge for owner products
+- [ ] Cart: items, quantities, totals, "Proceed to Checkout"
+- [ ] Checkout: order summary, payment method (Wallet / Pay at Pickup), "Place Order"
+- [ ] Order History (Profile → Shop Orders): status tracking
+
+**Admin Panel:**
+- [ ] Products management: CRUD products + categories + variants
+- [ ] Order management: view all orders (read-only for MVP)
+
+### Completion Checklist
+- [ ] Admin can manage product catalog
+- [ ] Player can browse, add to cart, checkout
+- [ ] Wallet payment works if sufficient balance
+- [ ] Owner products show "Pickup from venue" badge
+
+---
+
+## Milestone 16 — Wallet + Coach Directory + Reviews
+
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium) | **Dependencies:** M15
+
+### Deliverables
+
+**Database:**
+- [ ] `coaches`, `venue_reviews`, `wallet_transactions` tables + RLS
+- [ ] `update_venue_rating()` trigger on review insert
+
+**Player App:**
+- [ ] Wallet: balance display, transaction history, usable for bookings/shop
+- [ ] Coach Directory (Play → Train): view-only cards with contact info
+- [ ] Venue Reviews: post-booking rating prompt, review form, reviews on Court Details
+
+**Admin Panel:**
+- [ ] Coach management: CRUD coaches
+- [ ] Player accounts listing + wallet management (add credits)
+- [ ] Platform analytics: player metrics, booking sources, revenue
+
+### Completion Checklist
+- [ ] Wallet balance works as payment method
+- [ ] Coach directory displays correctly
+- [ ] Venue reviews work end-to-end
+
+---
+
+## Milestone 17 — Player ID + Search + Polish
+
+**Complexity:** ⬛⬛⬛⬜⬜ (Medium) | **Dependencies:** M16
+
+### Deliverables
+
+**Database:**
+- [ ] `player_ids` table + RLS
+- [ ] `player-id-proofs` storage bucket
+- [ ] `generate_player_id()` function → 'SH-XXXXX'
+
+**Player App:**
+- [ ] Player ID registration: personal details → ID type → upload proof → enter last 4 digits → submit
+- [ ] Search screen: universal search (Courts, Players, Coaches)
+- [ ] Tournament tab: "Coming Soon" placeholder
+- [ ] Rankings: "Coming Soon" placeholder with Player ID gate
+- [ ] Profile: settings-style list (Player Identity, Play Activity, Performance Report placeholder, Shop Orders, Settings, Logout)
+- [ ] "Become a Tournament Organizer" → Google Form CTA
+
+**Admin Panel:**
+- [ ] Player ID verification review: pending list, view document, verify/reject
+
+**Polish:**
+- [ ] Error boundaries, toast notifications, loading skeletons, empty states
+- [ ] Deep linking from notifications → relevant screens
+- [ ] Performance audit, offline banner
+
+### Completion Checklist
+- [ ] Player ID verification works end-to-end
+- [ ] Search works across entities
+- [ ] All screens polished with proper states
+- [ ] Deep linking from notifications works
+
+---
+
 ## Timeline Summary
 
-| Milestone | Duration | Complexity | Dependencies |
-|-----------|----------|------------|-------------|
-| M0: Setup | 1 week | Low | — |
-| M1: Auth + Schedule | 2 weeks | Medium | M0 |
-| M2: Bookings | 2 weeks | Medium | M1 |
-| M3: Memberships | 2.5 weeks | High | M2 |
-| M4: Payments | 1.5 weeks | Medium | M3 |
-| M5: Profile | 1.5 weeks | Medium | M1 |
-| M6: Reports | 1 week | Low | M1-M5 |
-| M7: Admin Panel | 1.5 weeks | Low-Medium | M1 (parallel with M3+) |
-| M8: Debug Everything | 1.5 weeks | Medium | M1-M7 |
-| M9: Launch | 1 week | Low | All |
+### Phase 1: Owner App + Admin Panel (Completed)
+
+| Milestone | Complexity | Dependencies | Status |
+|-----------|------------|-------------|--------|
+| M0: Monorepo + Expo Setup | Low | — | ✅ Done |
+| M1: Auth + Schedule | Medium | M0 | ✅ Done |
+| M2: Bookings | Medium | M1 | ✅ Done |
+| M3: Memberships | High | M2 | ✅ Done |
+| M4: Payments | Medium | M3 | ✅ Done |
+| M5: Analytics & Settings | Medium | M1 | ✅ Done |
+| M6: Basic Metrics | Low | M1-M5 | ✅ Done |
+| M7: Admin Panel | Low-Medium | M1 | ✅ Done |
+| M8: Debug Everything | Medium | M1-M7 | Pending |
+| M9: Launch Preparation | Low | All | Pending |
+
+### Phase 2: ShuttleHub (Player App)
+
+| Milestone | Complexity | Dependencies |
+|-----------|------------|-------------|
+| M10: Player App Foundation + Auth | Medium | M0-M7 |
+| M11: Home Dashboard + Court Discovery | Medium | M10 |
+| M12: Court Booking | High | M11 |
+| M13: Social (Challenge + Host/Join) | High | M12 |
+| M14: Membership + Notifications | Medium | M13 |
+| M15: Shop / E-Commerce | High | M14 |
+| M16: Wallet + Coach + Reviews | Medium | M15 |
+| M17: Player ID + Search + Polish | Medium | M16 |
+
+### Deferred (Phase 3+)
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Tournaments | Deferred | May become separate app |
+| Rankings + Leaderboard | Deferred | Blocked by tournaments |
+| Online Payment Integration | Deferred | MVP uses "Pay at Court" |
 
 > [!IMPORTANT]
-> These estimates assume a **single developer** working full-time. M5 (Profile) can also start alongside M3 since it only depends on M1 data.
+> M8 and M9 from Phase 1 can be executed in parallel with Phase 2 milestones as needed.
 
 > [!WARNING]
-> **Do not skip M0.** The monorepo setup, shared package, and Supabase schema are the foundation. Shortcuts here create integration debt that compounds in every later milestone.
+> **Do not skip M10.** The Player App setup, design system, and auth foundation are critical. Shortcuts compound in later milestones.

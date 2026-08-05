@@ -202,3 +202,187 @@ Show banner: "You're offline — showing cached data"
 | Membership slots | 10 min | On mutation |
 | Payment KPIs | 5 min | On payment change |
 | Reports | 15 min | Manual refresh |
+
+---
+
+## Phase 2: ShuttleHub (Player App) — Backend Additions
+
+### 12. Updated Architecture Overview
+
+```
+┌───────────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐
+│  Owner App (Mobile)   │  │ Player App (Mobile)   │  │  Admin Panel (Web)    │
+│  React Native/Expo    │  │ React Native/Expo     │  │  React + Vite         │
+└──────────┬────────────┘  └──────────┬────────────┘  └──────────┬────────────┘
+           │                          │                          │
+           └──────────┬───────────────┼──────────────────────────┘
+                      │ Supabase JS Client                │
+                      ▼                                   ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           Supabase Platform                                │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────┐                       │
+│  │ Auth     │  │ Database │  │ Storage             │                       │
+│  │ (OTP +   │  │ (Pg+RLS) │  │ (Photos/Products/  │                       │
+│  │ Email)   │  │          │  │  ID Proofs)         │                       │
+│  └──────────┘  └──────────┘  └────────────────────┘                       │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────┐                       │
+│  │ Realtime │  │ Edge Fn  │  │ Pg Functions        │                       │
+│  │ (WS)     │  │ (Deno)   │  │ (Business Logic)   │                       │
+│  └──────────┘  └──────────┘  └────────────────────┘                       │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 13. Player App Authentication Flow
+
+```typescript
+// Player Login (same OTP flow as Owner App)
+await supabase.auth.signInWithOtp({ phone: '+919876543210' })
+// Verify
+await supabase.auth.verifyOtp({ phone: '+919876543210', token: '1234', type: 'sms' })
+```
+
+- JWT stored in `expo-secure-store` (encrypted) — same as Owner App
+- On first login: create `players` row, create `player_wallets` with 0 balance
+- Auto-link: if `players.phone` matches any `customers.phone`, set `customers.user_id = auth.uid()`
+- A user can have rows in BOTH `owners` and `players` tables simultaneously
+
+### 14. Player Authorization (RLS)
+
+**Player chain:** `auth.uid() → players.user_id → player-specific tables`
+
+```sql
+-- Helper function to identify player
+CREATE FUNCTION is_player() RETURNS BOOLEAN AS $$
+  SELECT EXISTS (SELECT 1 FROM players WHERE user_id = auth.uid());
+$$ LANGUAGE sql SECURITY DEFINER;
+```
+
+**Access levels:**
+| Entity | Player READ | Player WRITE | Notes |
+|--------|-------------|-------------|-------|
+| `venues` (active) | ✅ All | ❌ | Public discovery |
+| `courts` (active) | ✅ All | ❌ | Public discovery |
+| `pricing_blocks` | ✅ All | ❌ | For slot pricing calc |
+| `operating_schedules` | ✅ All | ❌ | For venue hours |
+| `membership_slots` (published) | ✅ All | ❌ | For membership browse |
+| `bookings` | ✅ Own only | ✅ Create/Cancel own | `source = 'online'` |
+| `challenges` | ✅ Sent/Received | ✅ Own | Booking-gated |
+| `hosted_matches` | ✅ Public open | ✅ Own hosted | Booking-gated |
+| `players` (public fields) | ✅ Active only | ✅ Own profile | Name, skill, city only |
+| `notifications` | ✅ Own only | ✅ Mark read | Auto-created by triggers |
+| `player_wallets` | ✅ Own only | ❌ | Admin-managed balance |
+| `products` (active) | ✅ All | ❌ | Admin/owner managed |
+| `cart_items` | ✅ Own only | ✅ Own only | — |
+| `orders` | ✅ Own only | ✅ Create own | — |
+| `venue_reviews` | ✅ All visible | ✅ Create own | One per booking |
+| `coaches` (active) | ✅ All | ❌ | Admin-managed |
+| `customers` | ❌ | ❌ | Owner-only data |
+
+### 15. Player Service Layer
+
+New shared service modules in `packages/shared/src/services/`:
+
+| Service | Responsibility |
+|---------|---------------|
+| `player-auth.service.ts` | Player login, registration, profile CRUD |
+| `player-bookings.service.ts` | Create bookings (source=online), cancel, history |
+| `venue-discovery.service.ts` | Geo-filtered venue queries, search, details |
+| `challenges.service.ts` | Create/accept/decline challenges, booking gate |
+| `hosted-matches.service.ts` | Host/join/leave matches, match discovery |
+| `player-discovery.service.ts` | Find players by skill, city, name search |
+| `notifications.service.ts` | CRUD notifications, mark read, action |
+| `products.service.ts` | Product catalog queries, search, filters |
+| `cart.service.ts` | Cart CRUD, quantity updates |
+| `orders.service.ts` | Create orders, order history, status tracking |
+| `venue-reviews.service.ts` | Create reviews, fetch reviews by venue |
+| `coaches.service.ts` | Fetch active coaches, filter by city/venue |
+| `wallets.service.ts` | Read wallet balance, transaction history |
+
+### 16. Player Booking Logic
+
+#### Available Slots Query (PostgreSQL Function)
+
+Extended from existing `check_court_availability` to support player-facing slot grid:
+
+```sql
+CREATE FUNCTION get_available_slots(
+  p_venue_id UUID,
+  p_date DATE,
+  p_court_id UUID DEFAULT NULL  -- NULL = all courts
+) RETURNS TABLE (
+  court_id UUID,
+  court_name TEXT,
+  start_time TIME,
+  end_time TIME,
+  price_per_hour INTEGER,
+  is_available BOOLEAN
+) AS $$
+BEGIN
+  -- Generate 30-min slots from operating schedule
+  -- Check against existing bookings + membership blocks (with releases)
+  -- Respect venue.min_slot_duration for contiguous grouping
+  -- Return slot grid with availability + pricing
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### Player Booking Flow
+
+1. Player selects slots → client calculates `base_amount` from `pricing_blocks`
+2. Client adds `platform_fee` from `venues.platform_fee`
+3. INSERT into `bookings` with `source = 'online'`, `booked_by = auth.uid()`
+4. Auto-create `customers` record for venue owner (if phone doesn't exist for that owner)
+5. Set `customers.user_id = auth.uid()` for linking
+6. Booking appears in Owner App via Supabase Realtime
+
+#### Cancellation Logic
+
+```typescript
+// Check cancellation policy
+const hoursUntilBooking = differenceInHours(booking.start, now())
+if (hoursUntilBooking >= venue.cancellation_hours) {
+  // Free cancellation → update booking.status = 'cancelled'
+} else {
+  // Block cancellation → show error
+}
+```
+
+### 17. Player Push Notifications (FCM)
+
+| Trigger | Target | Implementation |
+|---------|--------|---------------|
+| Booking confirmed | Player | Edge Function after booking INSERT |
+| Booking cancelled (by owner) | Player | Edge Function after status UPDATE |
+| Challenge received | Challenged player | Edge Function after challenge INSERT |
+| Challenge accepted/declined | Challenger | Edge Function after challenge UPDATE |
+| Guest play invitation | Player | Edge Function after guest_play INSERT |
+| Membership payment reminder | Player | Owner triggers via "Send Reminder" |
+| Match invitation | Player | Edge Function after match_participants INSERT |
+| Order status update | Player | Edge Function after order UPDATE |
+| Wallet credit | Player | Edge Function after wallet_transaction INSERT |
+
+### 18. Player Edge Functions
+
+| Function | Purpose | Trigger |
+|----------|---------|---------| 
+| `send-player-notification` | FCM push to player | Various DB triggers |
+| `expire-challenges` | Auto-expire pending challenges after 24h | Cron (hourly) |
+| `generate-player-id` | Auto-generate SH-XXXXX after admin verification | After player_ids.verification_status = 'verified' |
+| `update-venue-rating` | Recalculate average_rating + total_reviews | After venue_reviews INSERT |
+| `auto-link-customer` | Link customers.user_id when player registers | After players INSERT |
+
+### 19. Player Caching Strategy (React Query)
+
+| Data | staleTime | Invalidation |
+|------|-----------|-------------|
+| Venue list (city) | 10 min | On location change |
+| Venue details | 15 min | Manual refresh |
+| Available slots | 1 min | On booking mutation |
+| Own bookings | 2 min | On mutation |
+| Challenges | 2 min | On mutation |
+| Open matches | 2 min | On mutation |
+| Notifications | 30 sec | On read/action |
+| Products | 15 min | On cart change |
+| Cart | Real-time | On mutation |
+| Wallet | 5 min | On transaction |
+| Player profile | 30 min | On edit |

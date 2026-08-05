@@ -1,12 +1,13 @@
 # Badminton Manager (VMS)
 
-Multi-app venue management system for badminton court owners.
+Multi-app venue management system for badminton court owners and players.
 
 ## Architecture
 
 | App | Path | Platform | Technology |
 |-----|------|----------|-----------|
 | **Owner App** | `apps/owner/` | Mobile (Android/iOS) | React Native + Expo |
+| **Player App** | `apps/player/` | Mobile (Android/iOS) | React Native + Expo |
 | **Admin Panel** | `apps/admin/` | Web (Desktop) | React + Vite + Tailwind |
 | **Shared Code** | `packages/shared/` | — | TypeScript |
 | **Backend** | `supabase/` | Cloud | Supabase (PostgreSQL) |
@@ -20,6 +21,9 @@ pnpm install
 # Start owner app (Expo)
 pnpm dev:owner
 
+# Start player app (Expo)
+pnpm dev:player
+
 # Start admin panel (Vite)
 pnpm dev:admin
 
@@ -31,12 +35,14 @@ pnpm db:types
 
 ```
 VMS/
-├── apps/owner/         # React Native (Expo) mobile app
+├── apps/owner/         # React Native (Expo) — Owner mobile app
+├── apps/player/        # React Native (Expo) — Player mobile app (ShuttleHub)
 ├── apps/admin/         # React + Vite web app
 ├── packages/shared/    # Shared types, services, utils
 ├── supabase/           # Migrations, edge functions
 ├── documents/          # Project documentation
-└── reference/          # Archived Figma export (design reference)
+├── owner_reference/    # Owner app Figma reference
+└── player_reference/   # Player app Figma reference
 ```
 
 ## Key Files
@@ -48,7 +54,8 @@ VMS/
 
 ## Styling
 
-- **Owner App:** NativeWind (Tailwind CSS for React Native)
+- **Owner App:** NativeWind (Tailwind CSS for React Native) — Blue professional theme
+- **Player App:** NativeWind (Tailwind CSS for React Native) — Navy (#0B1F3A) + Lime (#A7FF3F) sporty theme
 - **Admin Panel:** Tailwind CSS v4
 
 ## Design Reference for Owners app(Important Rule)
@@ -57,9 +64,15 @@ When designing frontend pages (especially in the Owner App or Admin Panel), **al
 However, **always make sure the new page is consistent with the rest of the existing app**. Do not blindly follow the Figma if it conflicts with the established UI patterns in the codebase (e.g., standard headers, FABs, paddings). 
 Do not invent random UI designs or layouts without first consulting the reference and the existing app structure. The goal is to match the original intent shown in `owner_reference/figma-src` while maintaining global UI consistency.
 
+## Design Reference for Player app(Important Rule)
+
+When designing frontend pages (especially in the Player App or Admin Panel), **always refer to the `player_reference/` folder**. This folder contains the initial Figma exports from the founder. 
+However, **always make sure the new page is consistent with the rest of the existing app**. Do not blindly follow the Figma if it conflicts with the established UI patterns in the codebase (e.g., standard headers, FABs, paddings). 
+Do not invent random UI designs or layouts without first consulting the reference and the existing app structure. The goal is to match the original intent shown in `player_reference/figma-src` while maintaining global UI consistency.
+
 ## Mobile App Testing Rule (Important Rule)
 
-When developing or fixing features in mobile applications (such as the Owner App in `apps/owner/`):
+When developing or fixing features in mobile applications (such as the Owner App in `apps/owner/` and Player App in `apps/player/`):
 - **References** : use `player_reference/` when designing player app UI and features. Use `owner_reference/` when designing owner app UI and features.
 - **Always verify changes on the Android Emulator.** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
 - **Never assume a bug fix or feature is complete without E2E verification.** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the issue is actually resolved.
