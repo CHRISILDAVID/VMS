@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
-import { COLORS } from '@vms/shared/utils';
+import { View, Text, TextInput, TextInputProps } from 'react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface PhoneInputProps extends TextInputProps {
   error?: string;
@@ -8,76 +8,28 @@ interface PhoneInputProps extends TextInputProps {
 
 export const PhoneInput = forwardRef<TextInput, PhoneInputProps>(
   ({ error, style, ...props }, ref) => {
+    const { colors } = useThemeColors();
+
     return (
-      <View style={styles.container}>
-        <View style={[styles.inputContainer, error && styles.inputError]}>
-          <View style={styles.prefixContainer}>
-            <Text style={styles.prefixText}>+91</Text>
+      <View className="w-full mb-4">
+        <View className={`flex-row items-center bg-white/10 border rounded-xl h-14 overflow-hidden ${error ? 'border-destructive bg-destructive/10' : 'border-white/20'}`}>
+          <View className="px-4 justify-center items-center h-full">
+            <Text className="text-white text-base font-medium">+91</Text>
           </View>
-          <View style={styles.divider} />
+          <View className="w-px h-6 bg-white/20" />
           <TextInput
             ref={ref}
-            style={[styles.input, style]}
+            className="flex-1 text-white text-base px-4 h-full"
             keyboardType="phone-pad"
             maxLength={10}
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor="rgba(255,255,255,0.4)"
             {...props}
           />
         </View>
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? <Text className="text-red-400 text-xs mt-1 ml-1">{error}</Text> : null}
       </View>
     );
   }
 );
 
 PhoneInput.displayName = 'PhoneInput';
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    marginBottom: 16,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    height: 56,
-    overflow: 'hidden',
-  },
-  inputError: {
-    borderColor: COLORS.danger,
-    backgroundColor: 'rgba(220,38,38,0.1)',
-  },
-  prefixContainer: {
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%',
-  },
-  prefixText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  divider: {
-    width: 1,
-    height: 24,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  input: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 16,
-    paddingHorizontal: 16,
-    height: '100%',
-  },
-  errorText: {
-    color: COLORS.dangerLight,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-});

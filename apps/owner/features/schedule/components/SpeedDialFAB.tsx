@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Plus, X, CalendarPlus, Ban, Trophy, GraduationCap } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface SpeedDialFABProps {
   onPressItem?: (action: string) => void;
@@ -8,6 +9,7 @@ interface SpeedDialFABProps {
 
 export function SpeedDialFAB({ onPressItem }: SpeedDialFABProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { colors } = useThemeColors();
 
   const actions = [
     { id: 'booking', icon: CalendarPlus, label: 'New Booking', color: '#2563EB' },
@@ -23,19 +25,19 @@ export function SpeedDialFAB({ onPressItem }: SpeedDialFABProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View className="absolute bottom-6 right-6 z-50 items-end">
       {isOpen && (
-        <View style={styles.overlay}>
-          <View style={styles.actionsList}>
+        <View className="mb-4 items-end">
+          <View className="gap-4 items-end">
             {actions.map((action) => {
               const Icon = action.icon;
               return (
-                <View key={action.id} style={styles.actionRow}>
-                  <View style={styles.labelContainer}>
-                    <Text style={styles.labelText}>{action.label}</Text>
+                <View key={action.id} className="flex-row items-center gap-3">
+                  <View className="bg-card px-3 py-2 rounded-full shadow-sm">
+                    <Text className="text-sm font-semibold text-foreground">{action.label}</Text>
                   </View>
                   <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: action.color }]}
+                    style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: action.color, justifyContent: 'center', alignItems: 'center', elevation: 4 }}
                     onPress={() => handlePress(action.id)}
                   >
                     <Icon size={20} color="#fff" />
@@ -48,7 +50,7 @@ export function SpeedDialFAB({ onPressItem }: SpeedDialFABProps) {
       )}
 
       <TouchableOpacity
-        style={[styles.fab, isOpen && styles.fabOpen]}
+        className={`w-16 h-16 rounded-full justify-center items-center shadow-lg ${isOpen ? 'bg-blue-500' : 'bg-primary'}`}
         onPress={() => setIsOpen(!isOpen)}
         activeOpacity={0.8}
       >
@@ -61,70 +63,3 @@ export function SpeedDialFAB({ onPressItem }: SpeedDialFABProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    zIndex: 100,
-    alignItems: 'flex-end',
-  },
-  overlay: {
-    marginBottom: 16,
-    alignItems: 'flex-end',
-  },
-  actionsList: {
-    gap: 16,
-    alignItems: 'flex-end',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  labelContainer: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  labelText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  actionButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  fab: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabOpen: {
-    backgroundColor: '#3B82F6',
-  },
-});

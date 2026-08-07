@@ -1,69 +1,50 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, CreditCard, Check } from 'lucide-react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
+  const { colors } = useThemeColors();
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={20} color="#0F172A" />
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
+      <View className="flex-row items-center px-4 py-3.5 bg-card border-b border-border">
+        <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center mr-3">
+          <ChevronLeft size={20} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subscription</Text>
+        <Text className="text-lg font-extrabold text-foreground">Subscription</Text>
       </View>
-      <ScrollView style={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.planHeader}>
+      <ScrollView className="flex-1 p-4">
+        <View className="bg-card rounded-[20px] p-5 border border-border mb-5">
+          <View className="flex-row justify-between items-start">
             <View>
-              <Text style={styles.planName}>Pro Plan</Text>
-              <Text style={styles.planPrice}>₹999<Text style={styles.planPriceSub}> / month</Text></Text>
+              <Text className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-1">Pro Plan</Text>
+              <Text className="text-[32px] font-extrabold text-foreground">₹999<Text className="text-sm font-semibold text-muted-foreground"> / month</Text></Text>
             </View>
-            <View style={styles.iconBox}>
-              <CreditCard size={20} color="#2563EB" />
+            <View className="w-11 h-11 rounded-xl bg-primary/10 items-center justify-center">
+              <CreditCard size={20} color={colors.primary} />
             </View>
           </View>
-          <Text style={styles.renewsText}>Next billing date: 15 Aug 2026</Text>
+          <Text className="text-[13px] text-muted-foreground mt-3">Next billing date: 15 Aug 2026</Text>
           
-          <View style={styles.divider} />
+          <View className="h-px bg-border my-5" />
           
-          <Text style={styles.featuresTitle}>Included Features</Text>
+          <Text className="text-sm font-bold text-foreground mb-3">Included Features</Text>
           {['Unlimited courts & bookings', 'Membership management', 'Analytics & reporting', 'Priority support'].map((f, i) => (
-            <View key={i} style={styles.featureRow}>
-              <Check size={16} color="#2563EB" />
-              <Text style={styles.featureText}>{f}</Text>
+            <View key={i} className="flex-row items-center mb-2.5">
+              <Check size={16} color={colors.primary} />
+              <Text className="text-sm text-foreground ml-2.5">{f}</Text>
             </View>
           ))}
         </View>
 
-        <TouchableOpacity style={styles.manageBtn}>
-          <Text style={styles.manageBtnText}>Manage Billing Details</Text>
+        <TouchableOpacity className="bg-card p-4 rounded-xl items-center border border-border">
+          <Text className="text-sm font-semibold text-foreground">Manage Billing Details</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', flexDirection: 'row', alignItems: 'center' },
-  backButton: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  content: { flex: 1, padding: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', marginBottom: 20 },
-  planHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  planName: { fontSize: 14, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  planPrice: { fontSize: 32, fontWeight: '800', color: '#0F172A' },
-  planPriceSub: { fontSize: 14, fontWeight: '600', color: '#94A3B8' },
-  iconBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  renewsText: { fontSize: 13, color: '#64748B', marginTop: 12 },
-  divider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 20 },
-  featuresTitle: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 12 },
-  featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  featureText: { fontSize: 14, color: '#475569', marginLeft: 10 },
-  manageBtn: { backgroundColor: '#fff', padding: 16, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  manageBtnText: { fontSize: 14, fontWeight: '600', color: '#0F172A' }
-});

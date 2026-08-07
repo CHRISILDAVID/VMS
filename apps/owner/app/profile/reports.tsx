@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ArrowUpRight, ArrowDownRight, FileText } from 'lucide-react-native';
-import { COLORS, formatCurrency } from '@vms/shared/utils';
+import { formatCurrency } from '@vms/shared/utils';
 import { createReportsService } from '@vms/shared/services';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { useVenueStore } from '../../stores/venueStore';
 import { BarChart } from 'react-native-gifted-charts';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 type TimeFilter = 'week' | 'month' | 'year';
 
@@ -16,6 +17,7 @@ export default function ReportsScreen() {
   const router = useRouter();
   const { selectedVenueId } = useVenueStore();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
+  const { colors } = useThemeColors();
 
   const { data: chartData, isLoading } = useQuery({
     queryKey: ['reportsChartData', selectedVenueId, timeFilter],
@@ -38,17 +40,18 @@ export default function ReportsScreen() {
     const isPositive = diffPercent >= 0;
     const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
     const color = isPositive ? '#16A34A' : '#DC2626';
+    const colorClass = isPositive ? 'text-green-600 dark:text-green-500' : 'text-destructive dark:text-red-500';
 
     return (
-      <View style={styles.kpiCard}>
-        <Text style={styles.kpiTitle}>{title}</Text>
-        <Text style={styles.kpiValue}>
+      <View className="w-[48%] bg-card p-4 rounded-2xl border border-border">
+        <Text className="text-[13px] text-muted-foreground font-medium mb-2">{title}</Text>
+        <Text className="text-xl font-extrabold text-foreground mb-2">
           {isCurrency ? formatCurrency(value as number) : value}
         </Text>
         {prevValue !== undefined && (
-          <View style={styles.kpiDiffRow}>
-            <Icon size={14} color={color} />
-            <Text style={[styles.kpiDiffText, { color }]}>
+          <View className="flex-row items-center gap-1">
+            <Icon size={14} color={isPositive ? '#16A34A' : '#DC2626'} />
+            <Text className={`text-xs font-semibold ${colorClass}`}>
               {Math.abs(diffPercent).toFixed(1)}% vs last {timeFilter}
             </Text>
           </View>
@@ -60,37 +63,37 @@ export default function ReportsScreen() {
   const formattedChartData = chartData?.chart.map(item => ({
     value: item.value,
     label: item.label,
-    frontColor: COLORS.primary,
+    frontColor: colors.primary,
     topLabelComponent: () => (
-      <Text style={{color: '#64748B', fontSize: 10, marginBottom: 4}}>
+      <Text className="text-[10px] text-muted-foreground mb-1">
         {item.value > 1000 ? `${(item.value/1000).toFixed(1)}k` : item.value}
       </Text>
     )
   })) || [];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={20} color="#0F172A" />
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
+      <View className="flex-row items-center justify-between px-4 py-3.5 bg-card border-b border-border">
+        <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center">
+          <ChevronLeft size={20} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reports</Text>
-        <TouchableOpacity style={styles.exportButton}>
-          <FileText size={16} color="#0F172A" />
-          <Text style={styles.exportText}>Export</Text>
+        <Text className="text-lg font-extrabold text-foreground">Reports</Text>
+        <TouchableOpacity className="flex-row items-center bg-muted border border-border px-3 py-2 rounded-lg gap-1.5">
+          <FileText size={16} color={colors.foreground} />
+          <Text className="text-[13px] font-semibold text-foreground">Export</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Segmented Control */}
-        <View style={styles.segmentContainer}>
+        <View className="flex-row bg-muted rounded-xl p-1 mb-5">
           {(['week', 'month', 'year'] as TimeFilter[]).map((f) => (
             <TouchableOpacity
               key={f}
-              style={[styles.segmentBtn, timeFilter === f && styles.segmentBtnActive]}
+              className={`flex-1 py-2 items-center rounded-lg ${timeFilter === f ? 'bg-card shadow-sm shadow-black/10' : 'shadow-none'}`}
               onPress={() => setTimeFilter(f)}
             >
-              <Text style={[styles.segmentText, timeFilter === f && styles.segmentTextActive]}>
+              <Text className={`text-[13px] ${timeFilter === f ? 'font-semibold text-foreground' : 'font-semibold text-muted-foreground'}`}>
                 This {f.charAt(0).toUpperCase() + f.slice(1)}
               </Text>
             </TouchableOpacity>
@@ -98,11 +101,11 @@ export default function ReportsScreen() {
         </View>
 
         {isLoading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color={colors.primary} className="mt-10" />
         ) : (
           <>
             {/* KPIs */}
-            <View style={styles.kpiGrid}>
+            <View className="flex-row flex-wrap justify-between gap-3 mb-6">
               {renderKPI(
                 'This ' + timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1), 
                 chartData?.summary.current.revenue || 0, 
@@ -128,12 +131,12 @@ export default function ReportsScreen() {
             </View>
 
             {/* Revenue Trend Chart */}
-            <View style={styles.chartContainer}>
-              <View style={styles.chartHeader}>
-                <Text style={styles.chartTitle}>Revenue Trend</Text>
+            <View className="bg-card rounded-2xl p-5 border border-border mb-10">
+              <View className="mb-5">
+                <Text className="text-base font-extrabold text-foreground">Revenue Trend</Text>
               </View>
               {formattedChartData.length > 0 ? (
-                <View style={{marginLeft: -20}}>
+                <View className="-ml-5">
                   <BarChart
                     data={formattedChartData}
                     barWidth={32}
@@ -142,16 +145,16 @@ export default function ReportsScreen() {
                     roundedBottom
                     xAxisThickness={0}
                     yAxisThickness={0}
-                    yAxisTextStyle={{color: '#94A3B8', fontSize: 11}}
+                    yAxisTextStyle={{color: colors.mutedForeground, fontSize: 11}}
                     noOfSections={4}
                     maxValue={Math.max(...formattedChartData.map(d => d.value), 1000) * 1.2}
-                    rulesColor="#F1F5F9"
-                    xAxisLabelTextStyle={{color: '#64748B', fontSize: 11}}
+                    rulesColor={colors.border}
+                    xAxisLabelTextStyle={{color: colors.mutedForeground, fontSize: 11}}
                   />
                 </View>
               ) : (
-                <View style={styles.emptyChart}>
-                  <Text style={styles.emptyChartText}>No data available for this period</Text>
+                <View className="h-[200px] items-center justify-center">
+                  <Text className="text-sm text-muted-foreground">No data available for this period</Text>
                 </View>
               )}
             </View>
@@ -161,130 +164,3 @@ export default function ReportsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { 
-    backgroundColor: '#fff', 
-    paddingHorizontal: 16, 
-    paddingVertical: 14, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9', 
-    flexDirection: 'row', 
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  backButton: { 
-    width: 36, height: 36, borderRadius: 10, 
-    backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', 
-    alignItems: 'center', justifyContent: 'center' 
-  },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  exportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6
-  },
-  exportText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0F172A'
-  },
-  content: { flex: 1, padding: 16 },
-  segmentContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
-    borderRadius: 10,
-    padding: 4,
-    marginBottom: 20
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-    borderRadius: 8
-  },
-  segmentBtnActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2
-  },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B'
-  },
-  segmentTextActive: {
-    color: '#0F172A'
-  },
-  kpiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    gap: 12
-  },
-  kpiCard: {
-    width: '48%',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9'
-  },
-  kpiTitle: {
-    fontSize: 13,
-    color: '#64748B',
-    marginBottom: 8,
-    fontWeight: '500'
-  },
-  kpiValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 8
-  },
-  kpiDiffRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4
-  },
-  kpiDiffText: {
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  chartContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    marginBottom: 40
-  },
-  chartHeader: {
-    marginBottom: 20
-  },
-  chartTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A'
-  },
-  emptyChart: {
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  emptyChartText: {
-    color: '#94A3B8',
-    fontSize: 14
-  }
-});

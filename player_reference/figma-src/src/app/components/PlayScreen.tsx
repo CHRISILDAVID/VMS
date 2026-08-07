@@ -78,6 +78,16 @@ const courts = [
     available: true, ac: true, popular: true, sport: "Badminton",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=320&fit=crop&auto=format",
     amenities: ["Parking", "Showers", "Cafe"],
+    gallery: [
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&auto=format",
+    ],
+    sports: ["Badminton"],
+    rules: ["Proper sports shoes required", "No food or drinks on court", "Booking must be made 30 min in advance", "Respect other players"],
+    contact: { phone: "+60 3-8994 1200", email: "bookings@axiata-arena.com.my" },
+    description: "Axiata Arena Hall A is a world-class facility hosting BWF international events. Features professional-grade maple wood flooring, Olympic-standard lighting at 1,500 lux, and central air conditioning.",
+    hours: "6:00 AM – 11:00 PM daily",
   },
   {
     id: 2, name: "Cheras Sports Complex", area: "Cheras", location: "Cheras, KL",
@@ -85,6 +95,16 @@ const courts = [
     available: true, ac: true, popular: false, sport: "Badminton",
     image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&h=320&fit=crop&auto=format",
     amenities: ["Parking", "Showers"],
+    gallery: [
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop&auto=format",
+    ],
+    sports: ["Badminton"],
+    rules: ["Proper sports shoes required", "No food or drinks on court", "Booking must be made 30 min in advance", "Respect other players"],
+    contact: { phone: "+60 3-9100 2345", email: "info@cheras-sports.my" },
+    description: "Cheras Sports Complex is a community-run indoor facility with 8 full-size badminton courts. Maintained to BWF club standard with wooden flooring, good lighting, and friendly staff.",
+    hours: "7:00 AM – 10:00 PM daily",
   },
   {
     id: 3, name: "Titiwangsa Outdoor Courts", area: "Titiwangsa", location: "Titiwangsa, KL",
@@ -92,6 +112,16 @@ const courts = [
     available: false, ac: false, popular: false, sport: "Badminton",
     image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=320&fit=crop&auto=format",
     amenities: ["Parking"],
+    gallery: [
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&h=400&fit=crop&auto=format",
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&auto=format",
+    ],
+    sports: ["Badminton"],
+    rules: ["Proper sports shoes required", "No food or drinks on court", "Booking must be made 30 min in advance", "Respect other players"],
+    contact: { phone: "+60 3-4023 9876", email: "titiwangsa@dbkl.gov.my" },
+    description: "Titiwangsa Outdoor Courts offer an open-air badminton experience in a scenic park setting. Synthetic surface courts with night lighting. Great for casual play and community games.",
+    hours: "6:00 AM – 9:00 PM daily",
   },
 ];
 
@@ -779,6 +809,7 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
   const [subTab, setSubTab] = useState<SubTab>("book");
   const [bookStep, setBookStep] = useState<BookStep>(null);
   const [selectedCourt, setSelectedCourt] = useState<number | null>(null);
+  const [galleryIdx, setGalleryIdx] = useState(0);
   const [selectedDate, setSelectedDate] = useState("2026-07-30");
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [numCourts, setNumCourts] = useState(1);
@@ -952,6 +983,13 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
           {/* ── Listing ── */}
           {!bookStep && (
             <>
+              {/* Book a Court Hero */}
+              <div className="px-4 lg:px-6 py-5" style={{ background: "linear-gradient(135deg, var(--navy) 0%, #162D52 100%)" }}>
+                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--lime)" }}>Book a Court</p>
+                <h1 className="text-white mb-1" style={{ fontSize: 22, fontWeight: 800 }}>Find Your Perfect Court</h1>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{courts.length} badminton courts in Kuala Lumpur</p>
+              </div>
+
               {/* Search + filters */}
               <div className="px-4 lg:px-6 pt-4 pb-3 flex flex-col gap-3">
                 <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1.5px solid var(--border)" }}>
@@ -977,7 +1015,7 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
               <div className="px-4 lg:px-6 pb-4 flex flex-col gap-4">
                 {filteredCourts.map((court) => (
                   <button key={court.id}
-                    onClick={() => { setSelectedCourt(court.id); setSelectedSlots([]); setNumCourts(1); setDateIndex(0); setTimeOfDay("morning"); setBookStep("slot"); }}
+                    onClick={() => { setSelectedCourt(court.id); setSelectedSlots([]); setNumCourts(1); setDateIndex(0); setTimeOfDay("morning"); setGalleryIdx(0); setBookStep("detail"); }}
                     className="text-left rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
                     style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                     <div className="relative" style={{ height: 180 }}>
@@ -1034,82 +1072,204 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
 
           {/* ── Court Details ── */}
           {bookStep === "detail" && selectedCourtData && (() => {
-            const meta = courtMeta[selectedCourtData.id];
+            const gallery = (selectedCourtData as any).gallery || [];
+            const allImages = [selectedCourtData.image, ...gallery];
             return (
               <div className="flex flex-col">
+                {/* Sticky nav bar */}
                 <div className="flex items-center gap-3 px-4 lg:px-6 py-3 sticky top-0 z-10" style={{ backgroundColor: "var(--card)", borderBottom: "1px solid var(--border)" }}>
                   <button onClick={() => setBookStep(null)} className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "var(--muted)" }}>
                     <ArrowLeft size={16} style={{ color: "var(--foreground)" }} />
                   </button>
-                  <h2 className="font-bold truncate" style={{ color: "var(--foreground)", fontSize: 16 }}>Court Details</h2>
+                  <h2 className="font-bold truncate flex-1" style={{ color: "var(--foreground)", fontSize: 15 }}>{selectedCourtData.name}</h2>
+                  <button className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--muted)" }}>
+                    <Share2 size={15} style={{ color: "var(--foreground)" }} />
+                  </button>
                 </div>
-                <div className="relative" style={{ height: 220 }}>
-                  <img src={selectedCourtData.image} alt={selectedCourtData.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,31,58,0.7) 0%, transparent 50%)" }} />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ backgroundColor: selectedCourtData.available ? "#10B981" : "#EF4444", color: "#fff" }}>
-                      {selectedCourtData.available ? "Open Now" : "Fully Booked"}
-                    </span>
+
+                {/* Main image with carousel */}
+                <div className="relative" style={{ height: 240, overflow: "hidden" }}>
+                  <img
+                    src={allImages[galleryIdx]}
+                    alt={selectedCourtData.name}
+                    className="w-full h-full object-cover transition-all"
+                  />
+                  <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%)" }} />
+                  {allImages.length > 1 && (
+                    <>
+                      <button onClick={() => setGalleryIdx((i) => (i - 1 + allImages.length) % allImages.length)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: "rgba(0,0,0,0.45)" }}>
+                        <ChevronRight size={16} color="#fff" style={{ transform: "rotate(180deg)" }} />
+                      </button>
+                      <button onClick={() => setGalleryIdx((i) => (i + 1) % allImages.length)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: "rgba(0,0,0,0.45)" }}>
+                        <ChevronRight size={16} color="#fff" />
+                      </button>
+                    </>
+                  )}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {allImages.map((_, i) => (
+                      <button key={i} onClick={() => setGalleryIdx(i)}
+                        className="rounded-full transition-all"
+                        style={{ width: i === galleryIdx ? 20 : 6, height: 6, backgroundColor: i === galleryIdx ? "var(--lime)" : "rgba(255,255,255,0.5)" }} />
+                    ))}
                   </div>
                 </div>
-                <div className="px-4 lg:px-6 py-4 flex flex-col gap-4">
+
+                {/* Thumbnail strip */}
+                {allImages.length > 1 && (
+                  <div className="flex gap-2 px-4 lg:px-6 py-3 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+                    {allImages.map((img, i) => (
+                      <button key={i} onClick={() => setGalleryIdx(i)}
+                        className="flex-shrink-0 rounded-xl overflow-hidden transition-all"
+                        style={{ width: 60, height: 44, border: `2px solid ${i === galleryIdx ? "var(--lime)" : "transparent"}` }}>
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="px-4 lg:px-6 py-1 flex flex-col gap-4 pb-32">
+                  {/* Name, rating, distance */}
                   <div>
-                    <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)" }} className="mb-1">{selectedCourtData.name}</h1>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-1">
-                        <MapPin size={13} style={{ color: "var(--muted-foreground)" }} />
-                        <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{selectedCourtData.location} · {selectedCourtData.distance}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Star size={13} fill="#F59E0B" stroke="#F59E0B" />
-                        <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>{selectedCourtData.rating}</span>
-                        <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>({selectedCourtData.reviews} reviews)</span>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)" }}>{selectedCourtData.name}</h1>
+                      <div className="flex flex-col items-end flex-shrink-0">
+                        <div className="flex items-center gap-1">
+                          <Star size={14} fill="#F59E0B" stroke="#F59E0B" />
+                          <span className="font-bold" style={{ color: "var(--foreground)", fontSize: 15 }}>{selectedCourtData.rating}</span>
+                        </div>
+                        <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{selectedCourtData.reviews} reviews</span>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl" style={{ backgroundColor: "rgba(11,31,58,0.06)", border: "1px solid rgba(11,31,58,0.1)" }}>
-                      <span className="font-black" style={{ color: "var(--navy)", fontSize: 20 }}>RM {selectedCourtData.price}</span>
-                      <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>/ hour</span>
+                    <div className="flex items-center gap-1 mb-3">
+                      <MapPin size={13} style={{ color: "var(--muted-foreground)" }} />
+                      <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{selectedCourtData.location} · {selectedCourtData.distance}</span>
                     </div>
-                    <span className="text-xs px-3 py-1.5 rounded-lg font-medium" style={{ backgroundColor: "var(--muted)", color: "var(--muted-foreground)" }}>
-                      {selectedCourtData.ac ? "❄️ A/C" : "🌬️ Non A/C"}
-                    </span>
-                    <span className="text-xs px-3 py-1.5 rounded-lg font-medium" style={{ backgroundColor: "var(--muted)", color: "var(--muted-foreground)" }}>
-                      {selectedCourtData.courts} courts
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ backgroundColor: selectedCourtData.ac ? "rgba(59,130,246,0.1)" : "rgba(107,114,128,0.1)", color: selectedCourtData.ac ? "#3B82F6" : "#6B7280" }}>
+                        {selectedCourtData.ac ? "❄️ A/C" : "🌬️ Non A/C"}
+                      </span>
+                      <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ backgroundColor: "rgba(11,31,58,0.07)", color: "var(--navy)" }}>
+                        🏸 {selectedCourtData.courts} Courts
+                      </span>
+                      <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ backgroundColor: selectedCourtData.available ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)", color: selectedCourtData.available ? "#10B981" : "#EF4444" }}>
+                        {selectedCourtData.available ? "✓ Available Today" : "✗ Fully Booked"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
-                    <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--muted-foreground)" }}>About</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{meta.description}</p>
+
+                  {/* Price */}
+                  <div className="flex items-center gap-2 p-4 rounded-2xl" style={{ backgroundColor: "rgba(11,31,58,0.05)", border: "1px solid rgba(11,31,58,0.08)" }}>
+                    <div className="flex-1">
+                      <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>Starting price</p>
+                      <p style={{ fontWeight: 900, fontSize: 24, color: "var(--navy)", lineHeight: 1.2 }}>RM {selectedCourtData.price}<span className="text-sm font-medium" style={{ color: "var(--muted-foreground)" }}>/hr</span></p>
+                    </div>
+                    <Clock size={14} style={{ color: "var(--muted-foreground)" }} />
+                    <span className="text-sm" style={{ color: "var(--foreground)", fontWeight: 600 }}>{(selectedCourtData as any).hours || "6:00 AM – 11:00 PM"}</span>
                   </div>
+
+                  {/* About */}
                   <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
-                    <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--muted-foreground)" }}>Amenities</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCourtData.amenities.map((a) => (
-                        <span key={a} className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl font-medium" style={{ backgroundColor: "rgba(11,31,58,0.06)", color: "var(--navy)" }}>
-                          <Shield size={12} /> {a}
+                    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--muted-foreground)" }}>About</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{(selectedCourtData as any).description || "A premium badminton facility offering professionally maintained courts."}</p>
+                  </div>
+
+                  {/* Amenities */}
+                  <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--muted-foreground)" }}>Amenities</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        ...selectedCourtData.amenities,
+                        selectedCourtData.ac ? "Air Conditioning" : null,
+                      ].filter(Boolean) as string[]).map((a) => {
+                        const icons: Record<string, string> = { Parking: "🅿️", Showers: "🚿", Cafe: "☕", "Air Conditioning": "❄️", Wifi: "📶", Lockers: "🔐" };
+                        return (
+                          <div key={a} className="flex items-center gap-2 p-2.5 rounded-xl" style={{ backgroundColor: "var(--muted)" }}>
+                            <span style={{ fontSize: 16 }}>{icons[a] || "✓"}</span>
+                            <span className="text-xs font-medium" style={{ color: "var(--foreground)" }}>{a}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Available Sports */}
+                  <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--muted-foreground)" }}>Available Sports</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {((selectedCourtData as any).sports || ["Badminton"]).map((s: string) => (
+                        <span key={s} className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl" style={{ backgroundColor: "rgba(11,31,58,0.07)", color: "var(--navy)" }}>
+                          🏸 {s}
                         </span>
                       ))}
                     </div>
                   </div>
+
+                  {/* Operating Hours */}
                   <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
-                    <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--muted-foreground)" }}>Operating Hours</p>
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} style={{ color: "var(--navy)" }} />
-                      <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>{meta.hours}</span>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--muted-foreground)" }}>Operating Hours</p>
+                    <div className="flex flex-col gap-1.5">
+                      {[["Weekdays (Mon–Fri)", "6:00 AM – 11:00 PM"], ["Weekends & Public Holidays", "6:00 AM – 10:00 PM"]].map(([day, hrs]) => (
+                        <div key={day} className="flex items-center justify-between py-1.5" style={{ borderBottom: "1px solid var(--border)" }}>
+                          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{day}</span>
+                          <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>{hrs}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
+
+                  {/* Rules */}
+                  <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--muted-foreground)" }}>Rules & Instructions</p>
+                    <div className="flex flex-col gap-2">
+                      {((selectedCourtData as any).rules || ["Proper sports shoes required", "No food or drinks on court"]).map((rule: string, i: number) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: "rgba(11,31,58,0.08)" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--navy)" }}>{i + 1}</span>
+                          </div>
+                          <span className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>{rule}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Contact */}
+                  <div className="p-4 rounded-2xl" style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--muted-foreground)" }}>Contact Information</p>
+                    {(selectedCourtData as any).contact && (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(11,31,58,0.07)" }}>
+                            <Phone size={14} style={{ color: "var(--navy)" }} />
+                          </div>
+                          <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{(selectedCourtData as any).contact.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(11,31,58,0.07)" }}>
+                            <MessageCircle size={14} style={{ color: "var(--navy)" }} />
+                          </div>
+                          <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{(selectedCourtData as any).contact.email}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="sticky bottom-[72px] lg:bottom-0 left-0 right-0 px-4 lg:px-6 pb-4 pt-3" style={{ backgroundColor: "var(--background)", borderTop: "1px solid var(--border)" }}>
-                  <div className="flex gap-3">
-                    <button onClick={() => setBookStep("slot")} className="flex-1 py-4 rounded-2xl text-sm font-bold"
-                      style={{ backgroundColor: selectedCourtData.available ? "var(--navy)" : "var(--muted)", color: selectedCourtData.available ? "var(--lime)" : "var(--muted-foreground)" }}>
-                      {selectedCourtData.available ? "Book Slot →" : "No Slots Available"}
-                    </button>
-                    <button onClick={() => setBookStep("membership")} className="px-5 py-4 rounded-2xl text-sm font-semibold"
-                      style={{ backgroundColor: "var(--muted)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
+
+                {/* Sticky bottom CTAs */}
+                <div className="fixed bottom-[72px] lg:bottom-0 left-0 right-0 px-4 lg:px-6 pb-4 pt-3 z-20" style={{ backgroundColor: "var(--background)", borderTop: "1px solid var(--border)" }}>
+                  <div className="flex gap-3 max-w-2xl mx-auto">
+                    <button onClick={() => setBookStep("membership")}
+                      className="flex-1 py-4 rounded-2xl text-sm font-bold"
+                      style={{ backgroundColor: "transparent", color: "var(--navy)", border: "2px solid var(--navy)" }}>
                       Become a Member
+                    </button>
+                    <button onClick={() => selectedCourtData.available && setBookStep("slot")}
+                      className="flex-1 py-4 rounded-2xl text-sm font-bold"
+                      style={{ backgroundColor: selectedCourtData.available ? "var(--lime)" : "var(--muted)", color: selectedCourtData.available ? "var(--navy)" : "var(--muted-foreground)" }}>
+                      {selectedCourtData.available ? "Book Court →" : "Not Available"}
                     </button>
                   </div>
                 </div>
@@ -1133,14 +1293,27 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
 
           {/* ── Slot Selection ── */}
           {bookStep === "slot" && selectedCourtData && (() => {
-            const slotRows: string[][] = [];
-            for (let i = 0; i < currentSlots.length; i += 6) slotRows.push(currentSlots.slice(i, i + 6));
-            const todTabs = [
-              { id: "twilight" as const, label: "Twilight", icon: "🌅" },
-              { id: "morning"  as const, label: "Morning",  icon: "☀️" },
-              { id: "noon"     as const, label: "Noon",     icon: "🌤️" },
-              { id: "evening"  as const, label: "Evening",  icon: "🌆" },
-            ];
+            const ALL_HOURLY = ["06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00"];
+
+            function to12hHrEnd(slot: string): string {
+              const [h] = slot.split(":").map(Number);
+              const nh = h + 1;
+              const ampm = nh >= 12 ? "PM" : "AM";
+              const hr = nh % 12 || 12;
+              return `${hr}:00 ${ampm}`;
+            }
+
+            function toggleHourSlot(slot: string) {
+              const half = `${slot.slice(0,2)}:30`;
+              const isBooked = bookedForCourt.includes(slot) || bookedForCourt.includes(half);
+              if (isBooked) return;
+              if (selectedSlots.includes(slot)) {
+                setSelectedSlots((prev) => prev.filter((s) => s !== slot && s !== half));
+              } else {
+                setSelectedSlots((prev) => [...prev, slot, half].sort());
+              }
+            }
+
             const winStart = Math.max(0, Math.min(dateIndex - 2, DATES.length - 5));
             const visibleDates = DATES.slice(winStart, winStart + 5);
             const durationMins = selectedSlots.length * 30;
@@ -1153,7 +1326,7 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
                 {/* Nav bar */}
                 <div className="flex items-center gap-3 px-4 lg:px-6 py-3 sticky top-0 z-10"
                   style={{ backgroundColor: "var(--card)", borderBottom: "1px solid var(--border)" }}>
-                  <button onClick={() => setBookStep(null)} className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "var(--muted)" }}>
+                  <button onClick={() => setBookStep("detail")} className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "var(--muted)" }}>
                     <ArrowLeft size={16} style={{ color: "var(--foreground)" }} />
                   </button>
                   <div className="flex-1 min-w-0">
@@ -1257,110 +1430,43 @@ export function PlayScreen({ onNav }: { onNav?: (id: string) => void }) {
                   {/* Divider */}
                   <div style={{ height: 1, backgroundColor: "var(--border)" }} />
 
-                  {/* Time of Day tabs */}
-                  <div className="flex gap-1 p-1 rounded-2xl" style={{ backgroundColor: "var(--muted)" }}>
-                    {todTabs.map((tod) => {
-                      const isActive = timeOfDay === tod.id;
+                  {/* Hourly slot list */}
+                  <div className="flex flex-col gap-3">
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--muted-foreground)" }}>Available Times</p>
+                    {ALL_HOURLY.map((slot) => {
+                      const half = `${slot.slice(0,2)}:30`;
+                      const isBooked = bookedForCourt.includes(slot) || bookedForCourt.includes(half);
+                      const isSelected = selectedSlots.includes(slot);
+                      const slotFee = selectedCourtData.price * numCourts;
                       return (
-                        <button key={tod.id} onClick={() => { setTimeOfDay(tod.id); setSelectedSlots([]); }}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-all"
-                          style={{ backgroundColor: isActive ? "var(--navy)" : "transparent", color: isActive ? "#fff" : "var(--muted-foreground)" }}>
-                          <span>{tod.icon}</span>
-                          <span className="hidden sm:inline">{tod.label}</span>
+                        <button key={slot} onClick={() => toggleHourSlot(slot)} disabled={isBooked}
+                          className="flex items-center gap-4 p-4 rounded-2xl transition-all"
+                          style={{
+                            backgroundColor: isSelected ? "var(--navy)" : isBooked ? "var(--muted)" : "var(--card)",
+                            border: `1.5px solid ${isSelected ? "var(--navy)" : "var(--border)"}`,
+                            opacity: isBooked ? 0.5 : 1,
+                            cursor: isBooked ? "not-allowed" : "pointer",
+                          }}>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-semibold" style={{ color: isSelected ? "#fff" : isBooked ? "var(--muted-foreground)" : "var(--foreground)", textDecoration: isBooked ? "line-through" : "none" }}>
+                              {to12h(slot)} – {to12hHrEnd(slot)}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{ color: isSelected ? "rgba(255,255,255,0.6)" : "var(--muted-foreground)" }}>
+                              {isBooked ? "Already booked" : `RM ${slotFee} · 1 hour`}
+                            </p>
+                          </div>
+                          {!isBooked && (
+                            <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: isSelected ? "var(--lime)" : "var(--muted)", border: isSelected ? "none" : "1.5px solid var(--border)" }}>
+                              {isSelected && <span style={{ fontSize: 12, color: "var(--navy)", fontWeight: 800 }}>✓</span>}
+                            </div>
+                          )}
+                          {isBooked && (
+                            <span className="text-xs font-semibold px-2 py-1 rounded-lg flex-shrink-0" style={{ backgroundColor: "var(--muted)", color: "var(--muted-foreground)" }}>Booked</span>
+                          )}
                         </button>
                       );
                     })}
-                  </div>
-
-                  {/* Slot timeline grid */}
-                  <div className="flex items-stretch gap-2">
-                    {/* Left nav (prev time-of-day) */}
-                    <button
-                      onClick={() => {
-                        const ids = ["twilight","morning","noon","evening"] as const;
-                        const cur = ids.indexOf(timeOfDay);
-                        if (cur > 0) { setTimeOfDay(ids[cur - 1]); setSelectedSlots([]); }
-                      }}
-                      className="w-8 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
-                      style={{ backgroundColor: "var(--muted)", color: "var(--foreground)", opacity: timeOfDay === "twilight" ? 0.3 : 1 }}>
-                      <ChevronRight size={14} style={{ transform: "rotate(180deg)" }} />
-                    </button>
-
-                    {/* Rows */}
-                    <div className="flex-1 flex flex-col gap-5 min-w-0">
-                      {slotRows.map((row, rowIdx) => {
-                        const hourLabels = getRowHourLabels(row);
-                        return (
-                          <div key={rowIdx}>
-                            {/* Hour labels */}
-                            <div className="flex justify-between mb-2 px-0.5">
-                              {hourLabels.map((lbl, li) => (
-                                <span key={li} className="text-xs font-medium" style={{ color: "var(--muted-foreground)" }}>{lbl}</span>
-                              ))}
-                            </div>
-                            {/* Slot cells — 6 per row */}
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 6 }}>
-                              {row.map((slot) => {
-                                const isBooked = bookedForCourt.includes(slot);
-                                const isSelected = selectedSlots.includes(slot);
-                                return (
-                                  <button key={slot}
-                                    onClick={() => toggleSlot(slot)}
-                                    disabled={isBooked}
-                                    title={to12hLabel(slot)}
-                                    style={{
-                                      height: 44,
-                                      borderRadius: 12,
-                                      border: isBooked
-                                        ? "1.5px solid var(--border)"
-                                        : isSelected
-                                          ? "2px solid var(--navy)"
-                                          : "1.5px solid var(--border)",
-                                      backgroundColor: isBooked
-                                        ? "transparent"
-                                        : isSelected
-                                          ? "var(--navy)"
-                                          : "transparent",
-                                      backgroundImage: isBooked
-                                        ? "repeating-linear-gradient(135deg, rgba(100,100,100,0.15) 0px, rgba(100,100,100,0.15) 3px, transparent 3px, transparent 9px)"
-                                        : "none",
-                                      cursor: isBooked ? "not-allowed" : "pointer",
-                                      transition: "all 0.15s",
-                                    }}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {/* Legend */}
-                      <div className="flex items-center gap-4 pt-1">
-                        {[
-                          { style: { border: "1.5px solid var(--border)", backgroundColor: "transparent" }, label: "Available" },
-                          { style: { border: "2px solid var(--navy)", backgroundColor: "var(--navy)" }, label: "Selected" },
-                          { style: { border: "1.5px solid var(--border)", backgroundImage: "repeating-linear-gradient(135deg, rgba(100,100,100,0.18) 0px, rgba(100,100,100,0.18) 3px, transparent 3px, transparent 9px)" }, label: "Booked" },
-                        ].map(({ style, label }) => (
-                          <div key={label} className="flex items-center gap-1.5">
-                            <div style={{ width: 20, height: 14, borderRadius: 4, ...style }} />
-                            <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Right nav (next time-of-day) */}
-                    <button
-                      onClick={() => {
-                        const ids = ["twilight","morning","noon","evening"] as const;
-                        const cur = ids.indexOf(timeOfDay);
-                        if (cur < ids.length - 1) { setTimeOfDay(ids[cur + 1]); setSelectedSlots([]); }
-                      }}
-                      className="w-8 flex-shrink-0 flex items-center justify-center rounded-xl transition-all"
-                      style={{ backgroundColor: "var(--muted)", color: "var(--foreground)", opacity: timeOfDay === "evening" ? 0.3 : 1 }}>
-                      <ChevronRight size={14} />
-                    </button>
                   </div>
 
                   {/* Selected slots detail */}

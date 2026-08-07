@@ -1,22 +1,27 @@
 import { formatPhone } from '@vms/shared/utils';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { ChevronRight, Search } from 'lucide-react-native';
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 import { useMembers } from '../hooks/useMemberships';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface MembersListTabProps {
   slots: MembershipSlotWithDetails[];
   onViewSlotMembers: (slot: MembershipSlotWithDetails) => void;
 }
 
-const payColors: Record<string, string> = { paid: '#16A34A', due: '#D97706', overdue: '#DC2626' };
-const payBg: Record<string, string> = { paid: '#F0FDF4', due: '#FFFBEB', overdue: '#FEF2F2' };
+const payClasses: Record<string, { bgClass: string; textClass: string }> = { 
+  paid: { bgClass: 'bg-green-100 dark:bg-green-900/40', textClass: 'text-green-600' },
+  due: { bgClass: 'bg-amber-100 dark:bg-amber-900/40', textClass: 'text-amber-600' },
+  overdue: { bgClass: 'bg-red-100 dark:bg-red-900/40', textClass: 'text-destructive' }
+};
 const payLabel: Record<string, string> = { paid: 'Paid', due: 'Due Soon', overdue: 'Overdue' };
 
 export function MembersListTab({ slots, onViewSlotMembers }: MembersListTabProps) {
   const { data: allMembers = [], isLoading } = useMembers();
   const [searchQuery, setSearchQuery] = useState('');
+  const { colors } = useThemeColors();
 
   const filteredMembers = allMembers.filter(m => {
     if (!searchQuery.trim()) return true;
@@ -28,28 +33,29 @@ export function MembersListTab({ slots, onViewSlotMembers }: MembersListTabProps
   });
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-background">
       {/* Search Bar */}
-      <View style={styles.searchBar}>
-        <Search size={18} color="#94A3B8" />
+      <View className="flex-row items-center bg-card rounded-2xl border-[1.5px] border-border px-3.5 mx-4 mt-3.5 mb-1 gap-2.5">
+        <Search size={18} color={colors.mutedForeground} />
         <TextInput
-          style={styles.searchInput}
+          className="flex-1 py-3 text-sm font-semibold text-foreground"
           placeholder="Search by name, phone, or slot..."
+          placeholderTextColor={colors.mutedForeground}
           value={searchQuery}
           onChangeText={setSearchQuery}
           clearButtonMode="while-editing"
         />
       </View>
 
-      <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 88, gap: 10 }} showsVerticalScrollIndicator={false}>
         {isLoading ? (
-          <View style={styles.centerBox}>
-            <Text style={styles.loadingText}>Loading all venue members...</Text>
+          <View className="items-center justify-center py-16 px-8">
+            <Text className="text-sm text-muted-foreground">Loading all venue members...</Text>
           </View>
         ) : filteredMembers.length === 0 ? (
-          <View style={styles.centerBox}>
-            <Text style={styles.emptyTitle}>{searchQuery ? 'No matching members found' : 'No members found'}</Text>
-            <Text style={styles.emptySub}>
+          <View className="items-center justify-center py-16 px-8">
+            <Text className="text-[15px] font-bold text-foreground mb-1">{searchQuery ? 'No matching members found' : 'No members found'}</Text>
+            <Text className="text-[13px] text-muted-foreground text-center">
               {searchQuery ? 'Try adjusting your search terms.' : 'Members added to any training slot will appear here.'}
             </Text>
           </View>
@@ -62,38 +68,39 @@ export function MembersListTab({ slots, onViewSlotMembers }: MembersListTabProps
             const payStatus = m.latest_payment?.status || (m.is_active ? 'paid' : 'due');
 
             const parentSlot = slots.find(s => s.id === m.slot_id) || m.slot;
+            const payTheme = payClasses[payStatus] || payClasses.paid;
 
             return (
               <TouchableOpacity
                 key={m.id}
-                style={[styles.card, !m.is_active && styles.cardInactive]}
+                className={`bg-card rounded-2xl p-3.5 border border-border ${!m.is_active ? 'opacity-70 bg-muted' : ''}`}
                 onPress={() => {
                   if (parentSlot) {
                     onViewSlotMembers(parentSlot as MembershipSlotWithDetails);
                   }
                 }}
               >
-                <View style={styles.row}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{initial}</Text>
+                <View className="flex-row items-center gap-3">
+                  <View className="w-11 h-11 rounded-xl bg-primary/10 items-center justify-center">
+                    <Text className="text-lg font-extrabold text-primary">{initial}</Text>
                   </View>
-                  <View style={styles.info}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.name}>{customerName}</Text>
+                  <View className="flex-1">
+                    <View className="flex-row items-center flex-wrap gap-1.5 mb-0.5">
+                      <Text className="text-[15px] font-bold text-foreground">{customerName}</Text>
                       {!m.is_active && (
-                        <View style={styles.inactiveBadge}>
-                          <Text style={styles.inactiveText}>Inactive</Text>
+                        <View className="px-1.5 py-0.5 rounded-md bg-muted">
+                          <Text className="text-[10px] font-bold text-muted-foreground">Inactive</Text>
                         </View>
                       )}
-                      <View style={[styles.payBadge, { backgroundColor: payBg[payStatus] || '#F0FDF4' }]}>
-                        <Text style={[styles.payText, { color: payColors[payStatus] || '#16A34A' }]}>
+                      <View className={`px-2 py-0.5 rounded-full ${payTheme.bgClass}`}>
+                        <Text className={`text-[10px] font-bold ${payTheme.textClass}`}>
                           {payLabel[payStatus] || 'Paid'}
                         </Text>
                       </View>
                     </View>
-                    <Text style={styles.subText}>{slotName} · {phone}</Text>
+                    <Text className="text-xs text-muted-foreground">{slotName} · {phone}</Text>
                   </View>
-                  <ChevronRight size={18} color="#CBD5E1" />
+                  <ChevronRight size={18} color={colors.mutedForeground} />
                 </View>
               </TouchableOpacity>
             );
@@ -103,127 +110,3 @@ export function MembersListTab({ slots, onViewSlotMembers }: MembersListTabProps
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 14,
-    marginHorizontal: 16,
-    marginTop: 14,
-    marginBottom: 4,
-    gap: 10,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  listContainer: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 88,
-    gap: 10,
-  },
-  centerBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 30,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 4,
-  },
-  emptySub: {
-    fontSize: 13,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  cardInactive: {
-    opacity: 0.7,
-    backgroundColor: '#F8FAFC',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  info: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 2,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  inactiveBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-  },
-  inactiveText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  payBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-  },
-  payText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  subText: {
-    fontSize: 12,
-    color: '#64748B',
-  },
-});

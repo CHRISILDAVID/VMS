@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { BookingWithDetails } from '@vms/shared/services';
 import { BookingPaymentStatus, PaymentMethod } from '@vms/shared/types';
 import { X, IndianRupee, CheckCircle2, CreditCard, Banknote, Smartphone, HelpCircle } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface PaymentUpdateModalProps {
   visible: boolean;
@@ -27,6 +28,7 @@ const PaymentMethods: { label: string; value: PaymentMethod; icon: any }[] = [
 export function PaymentUpdateModal({ visible, booking, onClose, onSave }: PaymentUpdateModalProps) {
   if (!booking) return null;
 
+  const { colors } = useThemeColors();
   const totalRs = (booking.final_amount || 0) / 100;
   const currentAdvanceRs = (booking.advance || 0) / 100;
   const currentPendingRs = (booking.pending || 0) / 100;
@@ -86,70 +88,70 @@ export function PaymentUpdateModal({ visible, booking, onClose, onSave }: Paymen
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+        className="flex-1 bg-black/50 justify-center items-center p-5"
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Collect Payment</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={18} color="#64748B" />
+        <View className="w-full max-h-[90%] bg-card rounded-3xl overflow-hidden shadow-xl">
+          <View className="flex-row justify-between items-center px-5 py-4 border-b border-border">
+            <Text className="text-lg font-bold text-foreground">Collect Payment</Text>
+            <TouchableOpacity onPress={onClose} className="p-1.5 rounded-2xl bg-muted">
+              <X size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+          <ScrollView className="p-5" showsVerticalScrollIndicator={false}>
             {/* Summary Box */}
-            <View style={styles.summaryBox}>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Total Amount:</Text>
-                <Text style={styles.summaryValue}>₹{totalRs}</Text>
+            <View className="bg-muted rounded-2xl p-4 mb-5 border border-border">
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-[13px] text-muted-foreground font-medium">Total Amount:</Text>
+                <Text className="text-sm text-foreground font-bold">₹{totalRs}</Text>
               </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Already Paid:</Text>
-                <Text style={[styles.summaryValue, { color: '#16A34A' }]}>₹{currentAdvanceRs}</Text>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-[13px] text-muted-foreground font-medium">Already Paid:</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#16A34A' }}>₹{currentAdvanceRs}</Text>
               </View>
-              <View style={[styles.summaryRow, styles.summaryTotalRow]}>
-                <Text style={styles.summaryPendingLabel}>Pending Amount:</Text>
-                <Text style={styles.summaryPendingValue}>₹{currentPendingRs}</Text>
+              <View className="flex-row justify-between mt-2 pt-2 border-t border-border">
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#DC2626' }}>Pending Amount:</Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#DC2626' }}>₹{currentPendingRs}</Text>
               </View>
             </View>
 
             {/* Input Amount */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Amount Collecting Now (₹)</Text>
-              <View style={styles.inputContainer}>
-                <IndianRupee size={16} color="#64748B" style={styles.inputIcon} />
+            <View className="mb-5">
+              <Text className="text-sm font-bold text-foreground mb-2">Amount Collecting Now (₹)</Text>
+              <View className="flex-row items-center border-[1.5px] border-border rounded-xl px-3 bg-card">
+                <IndianRupee size={16} color={colors.mutedForeground} style={{ marginRight: 8 }} />
                 <TextInput
-                  style={styles.input}
+                  className="flex-1 py-3 text-base font-bold text-foreground"
                   value={collectAmount}
                   onChangeText={setCollectAmount}
                   keyboardType="numeric"
                   placeholder="0"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.mutedForeground}
                 />
                 <TouchableOpacity
-                  style={styles.quickFullBtn}
+                  className="bg-primary/10 px-3 py-1.5 rounded-lg"
                   onPress={() => setCollectAmount(currentPendingRs.toString())}
                 >
-                  <Text style={styles.quickFullText}>Full</Text>
+                  <Text className="text-xs font-bold text-primary">Full</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Payment Mode */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Payment Mode</Text>
-              <View style={styles.modesGrid}>
+            <View className="mb-5">
+              <Text className="text-sm font-bold text-foreground mb-2">Payment Mode</Text>
+              <View className="flex-row gap-2.5">
                 {PaymentMethods.map((mode) => {
                   const active = selectedMode === mode.value;
                   const Icon = mode.icon;
                   return (
                     <TouchableOpacity
                       key={mode.value}
-                      style={[styles.modeCard, active && styles.modeCardActive]}
+                      className={`flex-1 items-center justify-center py-3 rounded-xl border-[1.5px] gap-1.5 ${active ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                       onPress={() => setSelectedMode(mode.value)}
                     >
-                      <Icon size={18} color={active ? '#2563EB' : '#64748B'} />
-                      <Text style={[styles.modeText, active && styles.modeTextActive]}>
+                      <Icon size={18} color={active ? colors.primary : colors.mutedForeground} />
+                      <Text className={`text-xs font-semibold ${active ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         {mode.label}
                       </Text>
                     </TouchableOpacity>
@@ -159,32 +161,33 @@ export function PaymentUpdateModal({ visible, booking, onClose, onSave }: Paymen
             </View>
 
             {/* Notes */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Payment Notes (Optional)</Text>
+            <View className="mb-5">
+              <Text className="text-sm font-bold text-foreground mb-2">Payment Notes (Optional)</Text>
               <TextInput
-                style={styles.notesInput}
+                className="border border-border rounded-xl p-3 text-sm text-foreground h-20"
+                style={{ textAlignVertical: 'top' }}
                 value={notes}
                 onChangeText={setNotes}
                 placeholder="e.g. Transaction ID, UPI sender name"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.mutedForeground}
                 multiline
               />
             </View>
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={{ color: '#DC2626', fontSize: 13, fontWeight: '600', marginBottom: 10 }}>{error}</Text> : null}
           </ScrollView>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onClose} disabled={loading}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+          <View className="flex-row gap-3 p-5 border-t border-border">
+            <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-muted items-center justify-center" onPress={onClose} disabled={loading}>
+              <Text className="text-[15px] font-bold text-muted-foreground">Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
+            <TouchableOpacity className="flex-[2] flex-row items-center justify-center gap-2 py-3.5 rounded-xl bg-primary" onPress={handleSave} disabled={loading}>
               {loading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <>
                   <CheckCircle2 size={16} color="#fff" />
-                  <Text style={styles.saveBtnText}>Update Payment</Text>
+                  <Text className="text-[15px] font-bold text-white">Update Payment</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -194,205 +197,3 @@ export function PaymentUpdateModal({ visible, booking, onClose, onSave }: Paymen
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContainer: {
-    width: '100%',
-    maxHeight: '90%',
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    padding: 6,
-    borderRadius: 16,
-    backgroundColor: '#F8FAFC',
-  },
-  body: {
-    padding: 20,
-  },
-  summaryBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 13,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  summaryValue: {
-    fontSize: 14,
-    color: '#0F172A',
-    fontWeight: '700',
-  },
-  summaryTotalRow: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    marginBottom: 0,
-  },
-  summaryPendingLabel: {
-    fontSize: 14,
-    color: '#DC2626',
-    fontWeight: '700',
-  },
-  summaryPendingValue: {
-    fontSize: 16,
-    color: '#DC2626',
-    fontWeight: '800',
-  },
-  fieldGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
-    marginBottom: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-  },
-  inputIcon: {
-    marginRight: 8,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  quickFullBtn: {
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  quickFullText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#2563EB',
-  },
-  modesGrid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  modeCard: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    gap: 6,
-  },
-  modeCardActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
-  },
-  modeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  modeTextActive: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  notesInput: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 14,
-    padding: 12,
-    fontSize: 14,
-    color: '#0F172A',
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  errorText: {
-    color: '#DC2626',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  saveBtn: {
-    flex: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#2563EB',
-  },
-  saveBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-});

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useVenueStore } from '../../stores/venueStore';
@@ -17,27 +17,27 @@ export default function PaymentsScreen() {
   const { data: summary } = useVenuePaymentSummary(selectedVenueId || undefined);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Payments</Text>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+      <View className="bg-card px-4 pt-3 pb-3">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-2xl font-extrabold text-foreground">Payments</Text>
           <VenueSelector />
         </View>
-        <Text style={styles.subtitle}>Monthly membership payments</Text>
+        <Text className="text-sm text-muted-foreground mt-1">Monthly membership payments</Text>
       </View>
 
-      <View style={styles.tabContainer}>
+      <View className="flex-row px-4 py-2 gap-3 bg-card border-b border-border">
         <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'dashboard' && styles.tabBtnActive]} 
+          className={`py-1.5 px-4 rounded-full ${activeTab === 'dashboard' ? 'bg-primary/10' : 'bg-muted'}`} 
           onPress={() => setActiveTab('dashboard')}
         >
-          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>Dashboard</Text>
+          <Text className={`text-sm font-semibold ${activeTab === 'dashboard' ? 'text-primary' : 'text-muted-foreground'}`}>Dashboard</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'defaulters' && styles.tabBtnActive]} 
+          className={`py-1.5 px-4 rounded-full ${activeTab === 'defaulters' ? 'bg-primary/10' : 'bg-muted'}`} 
           onPress={() => setActiveTab('defaulters')}
         >
-          <Text style={[styles.tabText, activeTab === 'defaulters' && styles.tabTextActive]}>Defaulters</Text>
+          <Text className={`text-sm font-semibold ${activeTab === 'defaulters' ? 'text-primary' : 'text-muted-foreground'}`}>Defaulters</Text>
         </TouchableOpacity>
       </View>
 
@@ -46,12 +46,12 @@ export default function PaymentsScreen() {
           ListHeaderComponent={() => (
             <View>
               <PaymentsDashboard venueId={selectedVenueId || undefined} />
-              <Text style={styles.sectionTitle}>Membership Slots</Text>
+              <Text className="text-base font-extrabold text-foreground px-4 mt-2 mb-2">Membership Slots</Text>
             </View>
           )}
           data={slots}
           keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
+          contentContainerClassName="py-4"
           renderItem={({ item }) => (
             <SlotPaymentCard 
               slot={item} 
@@ -60,8 +60,8 @@ export default function PaymentsScreen() {
             />
           )}
           ListEmptyComponent={() => (
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>No membership slots found.</Text>
+            <View className="p-8 items-center">
+              <Text className="text-sm text-muted-foreground">No membership slots found.</Text>
             </View>
           )}
         />
@@ -71,77 +71,3 @@ export default function PaymentsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-    paddingHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  listContent: {
-    paddingVertical: 16,
-  },
-  empty: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: '#64748B',
-    fontSize: 14,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  tabBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: '#F8FAFC',
-  },
-  tabBtnActive: {
-    backgroundColor: '#E0E7FF',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  tabTextActive: {
-    color: '#4338CA',
-  },
-});
-

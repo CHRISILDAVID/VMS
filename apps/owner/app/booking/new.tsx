@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking, Switch, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, ArrowRight, Check, Search, MessageCircle, AlertTriangle, Plus, Calendar, Clock, MapPin, User as UserIcon, IndianRupee } from 'lucide-react-native';
@@ -12,14 +12,13 @@ import { generateTimeSlots, parseTimeToHour } from '../../features/schedule/util
 import { useCustomers, useCreateOrGetCustomer } from '../../features/customers/hooks/useCustomers';
 import { useCreateBooking } from '../../features/bookings/hooks/useBookings';
 import { Customer, Court, PaymentMethod, DayOfWeek } from '@vms/shared/types';
-import {  COLORS, computeDynamicPrice , formatPhone } from '@vms/shared/utils';
+import {  computeDynamicPrice , formatPhone } from '@vms/shared/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { createScheduleService } from '@vms/shared/services';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const STEPS = ['Date & Court', 'Time', 'Customer', 'Payment', 'Confirm'];
-
-// Removed hardcoded timeSlots
 
 const durationOptions = [
   { label: '30 min', mins: 30, hours: 0.5 },
@@ -34,6 +33,7 @@ export default function NewBookingWizardScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ courtId?: string; date?: string; hour?: string }>();
   const { selectedVenueId } = useVenueStore();
+  const { colors } = useThemeColors();
 
   const currentVenue = useCurrentVenue();
   const { data: courts } = useCourts(selectedVenueId);
@@ -281,71 +281,68 @@ export default function NewBookingWizardScreen() {
   const endTimeStr = computeEndTime(selectedTime, selectedDurationMins);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
+      <View className="bg-card px-4 pt-3 pb-4 border-b border-border">
+        <View className="flex-row items-center gap-3 mb-4">
           <TouchableOpacity
-            style={styles.backIconBtn}
+            className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center"
             onPress={() => {
               if (step > 0 && step < 4) setStep(step - 1);
               else router.back();
             }}
           >
-            <ArrowLeft size={18} color="#0F172A" />
+            <ArrowLeft size={18} color={colors.foreground} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Booking</Text>
+          <Text className="text-lg font-extrabold text-foreground">New Booking</Text>
         </View>
 
         {/* Progress Bar */}
-        <View style={styles.progressRow}>
+        <View className="flex-row items-center mb-2">
           {STEPS.map((s, i) => {
             const isCompleted = i < step;
             const isCurrent = i === step;
             return (
               <React.Fragment key={i}>
                 <View
-                  style={[
-                    styles.stepCircle,
-                    isCompleted ? styles.stepCompleted : isCurrent ? styles.stepCurrent : null,
-                  ]}
+                  className={`w-[26px] h-[26px] rounded-full items-center justify-center ${isCompleted ? 'bg-green-600 dark:bg-green-500' : isCurrent ? 'bg-primary' : 'bg-muted border border-border'}`}
                 >
                   {isCompleted ? (
                     <Check size={14} color="#fff" />
                   ) : (
-                    <Text style={[styles.stepNum, isCurrent && { color: '#fff' }]}>{i + 1}</Text>
+                    <Text className={`text-[11px] font-bold ${isCurrent ? 'text-primary-foreground' : 'text-muted-foreground'}`}>{i + 1}</Text>
                   )}
                 </View>
                 {i < STEPS.length - 1 && (
-                  <View style={[styles.stepLine, isCompleted && styles.stepLineCompleted]} />
+                  <View className={`flex-1 h-0.5 mx-1 ${isCompleted ? 'bg-green-600 dark:bg-green-500' : 'bg-muted'}`} />
                 )}
               </React.Fragment>
             );
           })}
         </View>
-        <Text style={styles.stepTitleText}>
+        <Text className="text-xs font-semibold text-muted-foreground">
           Step {step + 1} of {STEPS.length} · {STEPS[step]}
         </Text>
       </View>
 
-      <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Step 0: Date & Court */}
         {step === 0 && (
           <View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Select Date (YYYY-MM-DD)</Text>
-              <View style={styles.dateInputBox}>
-                <Calendar size={18} color="#64748B" />
+            <View className="mb-5">
+              <Text className="text-[13px] font-bold text-foreground mb-2.5">Select Date (YYYY-MM-DD)</Text>
+              <View className="flex-row items-center bg-card border-[1.5px] border-border rounded-xl px-3.5 h-12 gap-2.5">
+                <Calendar size={18} color={colors.mutedForeground} />
                 <TextInput
-                  style={styles.dateInput}
+                  className="flex-1 text-[15px] font-semibold text-foreground"
                   value={selectedDate}
                   onChangeText={setSelectedDate}
                   placeholder="2026-07-26"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.mutedForeground}
                 />
               </View>
               {/* Quick Date Pills */}
-              <View style={styles.quickDatesRow}>
+              <View className="flex-row gap-2 mt-2.5">
                 {[0, 1, 2, 3].map(days => {
                   const d = new Date();
                   d.setDate(d.getDate() + days);
@@ -355,32 +352,32 @@ export default function NewBookingWizardScreen() {
                   return (
                     <TouchableOpacity
                       key={dStr}
-                      style={[styles.quickDatePill, active && styles.quickDatePillActive]}
+                      className={`px-3 py-1.5 rounded-full border ${active ? 'bg-primary/10 border-primary' : 'bg-card border-border'}`}
                       onPress={() => setSelectedDate(dStr)}
                     >
-                      <Text style={[styles.quickDateText, active && styles.quickDateTextActive]}>{label}</Text>
+                      <Text className={`text-xs ${active ? 'font-bold text-primary' : 'font-semibold text-muted-foreground'}`}>{label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
             </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Select Court</Text>
+            <View className="mb-5">
+              <Text className="text-[13px] font-bold text-foreground mb-2.5">Select Court</Text>
               {!courts || courts.length === 0 ? (
-                <Text style={styles.noDataText}>No courts found for this venue.</Text>
+                <Text className="text-[13px] text-muted-foreground italic">No courts found for this venue.</Text>
               ) : (
-                <View style={styles.courtsGrid}>
+                <View className="flex-row flex-wrap gap-2.5">
                   {courts.map(c => {
                     const active = selectedCourtId === c.id;
                     return (
                       <TouchableOpacity
                         key={c.id}
-                        style={[styles.courtCard, active && styles.courtCardActive]}
+                        className={`w-[48%] p-4 rounded-xl border-2 ${active ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
                         onPress={() => setSelectedCourtId(c.id)}
                       >
-                        <Text style={[styles.courtNameText, active && styles.courtNameTextActive]}>{c.name}</Text>
-                        <Text style={styles.courtStatusText}>Available</Text>
+                        <Text className={`text-sm font-bold ${active ? 'text-primary' : 'text-foreground'}`}>{c.name}</Text>
+                        <Text className="text-[11px] text-green-600 dark:text-green-500 font-semibold mt-1">Available</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -393,9 +390,9 @@ export default function NewBookingWizardScreen() {
         {/* Step 1: Time & Duration */}
         {step === 1 && (
           <View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Start Time</Text>
-              <View style={styles.timeGrid}>
+            <View className="mb-5">
+              <Text className="text-[13px] font-bold text-foreground mb-2.5">Start Time</Text>
+              <View className="flex-row flex-wrap gap-2">
                 {timeSlots.map(t => {
                   const active = selectedTime === t;
                   const slotDateTime = new Date(`${selectedDate}T${t}`);
@@ -406,7 +403,7 @@ export default function NewBookingWizardScreen() {
                   return (
                     <TouchableOpacity
                       key={t}
-                      style={[styles.timeSlotBtn, active && styles.timeSlotBtnActive, isPast && { opacity: 0.5, backgroundColor: '#F1F5F9' }]}
+                      className={`px-3.5 py-2.5 rounded-xl border-[1.5px] ${active ? 'border-primary bg-primary' : isPast ? 'border-transparent bg-muted opacity-50' : 'border-border bg-card'}`}
                       onPress={() => {
                         if (isPast) {
                           Alert.alert('Invalid Time', 'Cannot book slots in the past.');
@@ -415,7 +412,7 @@ export default function NewBookingWizardScreen() {
                         setSelectedTime(t);
                       }}
                     >
-                      <Text style={[styles.timeSlotText, active && styles.timeSlotTextActive, isPast && { color: '#94A3B8' }]}>
+                      <Text className={`text-[13px] font-semibold ${active ? 'text-primary-foreground' : isPast ? 'text-muted-foreground' : 'text-foreground'}`}>
                         {t.slice(0, 5)}
                       </Text>
                     </TouchableOpacity>
@@ -424,9 +421,9 @@ export default function NewBookingWizardScreen() {
               </View>
             </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Duration</Text>
-              <View style={styles.durationsList}>
+            <View className="mb-5">
+              <Text className="text-[13px] font-bold text-foreground mb-2.5">Duration</Text>
+              <View className="gap-2.5">
                 {durationOptions.map(dur => {
                   const active = selectedDurationMins === dur.mins;
                   const price = schedule?.pricing_blocks && schedule.pricing_blocks.length > 0
@@ -435,27 +432,27 @@ export default function NewBookingWizardScreen() {
                   return (
                     <TouchableOpacity
                       key={dur.mins}
-                      style={[styles.durationCard, active && styles.durationCardActive]}
+                      className={`flex-row justify-between items-center p-3.5 rounded-xl border-[1.5px] ${active ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
                       onPress={() => setSelectedDurationMins(dur.mins)}
                     >
-                      <Text style={[styles.durationLabel, active && styles.durationLabelActive]}>{dur.label}</Text>
-                      <Text style={styles.durationPriceText}>₹{price}</Text>
+                      <Text className={`text-sm font-semibold ${active ? 'text-primary font-bold' : 'text-foreground'}`}>{dur.label}</Text>
+                      <Text className="text-sm font-bold text-muted-foreground">₹{price}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
             </View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Block Court</Text>
+            <View className="mb-5">
+              <Text className="text-[13px] font-bold text-foreground mb-2.5">Block Court</Text>
               <TouchableOpacity
-                style={[styles.durationCard, isBlockSlot && styles.durationCardActive, { marginTop: 8 }]}
+                className={`flex-row justify-between items-center p-3.5 rounded-xl border-[1.5px] mt-2 ${isBlockSlot ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
                 onPress={() => setIsBlockSlot(!isBlockSlot)}
               >
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.durationLabel, isBlockSlot && styles.durationLabelActive]}>Block this slot</Text>
-                  <Text style={{ fontSize: 13, color: '#64748B', marginTop: 2 }}>No customer required. Court will be marked as blocked.</Text>
+                <View className="flex-1">
+                  <Text className={`text-sm font-semibold ${isBlockSlot ? 'text-primary font-bold' : 'text-foreground'}`}>Block this slot</Text>
+                  <Text className="text-[13px] text-muted-foreground mt-0.5">No customer required. Court will be marked as blocked.</Text>
                 </View>
-                {isBlockSlot && <Check size={20} color="#2563EB" />}
+                {isBlockSlot && <Check size={20} color={colors.primary} />}
               </TouchableOpacity>
             </View>
           </View>
@@ -464,43 +461,43 @@ export default function NewBookingWizardScreen() {
         {/* Step 2: Customer */}
         {step === 2 && (
           <View>
-            <View style={styles.searchBarBox}>
-              <Search size={18} color="#94A3B8" />
+            <View className="flex-row items-center bg-card border-[1.5px] border-border rounded-xl px-3 h-11 gap-2 mb-4">
+              <Search size={18} color={colors.mutedForeground} />
               <TextInput
-                style={styles.searchInput}
+                className="flex-1 text-sm text-foreground"
                 placeholder="Search customer name or phone..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.mutedForeground}
                 value={customerSearch}
                 onChangeText={setCustomerSearch}
               />
             </View>
 
             {selectedCustomer ? (
-              <View style={styles.selectedCustCard}>
-                <Text style={styles.selectedCustLabel}>SELECTED CUSTOMER</Text>
-                <Text style={styles.selectedCustName}>{selectedCustomer.full_name}</Text>
-                <Text style={styles.selectedCustPhone}>
+              <View className="bg-primary/10 rounded-xl p-3.5 mb-4 border-[1.5px] border-primary/30">
+                <Text className="text-[11px] font-bold text-primary tracking-wide mb-1">SELECTED CUSTOMER</Text>
+                <Text className="text-base font-bold text-foreground">{selectedCustomer.full_name}</Text>
+                <Text className="text-[13px] text-muted-foreground mt-0.5">
                   {formatPhone(selectedCustomer.phone || "")} · {selectedCustomer.total_visits || 0} visits
                 </Text>
               </View>
             ) : null}
 
             {showNewCustForm ? (
-              <View style={styles.newCustFormBox}>
-                <Text style={styles.newCustFormTitle}>Add New Customer</Text>
+              <View className="bg-card rounded-2xl p-4 mb-4 border border-border">
+                <Text className="text-[15px] font-bold text-foreground mb-3">Add New Customer</Text>
                 <TextInput
-                  style={styles.input}
+                  className="border border-muted-foreground/30 rounded-xl p-3 text-sm text-foreground bg-background mb-2.5"
                   placeholder="Full Name (e.g. Rahul Varma)"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.mutedForeground}
                   value={newCustName}
                   onChangeText={setNewCustName}
                 />
-                <View style={[styles.input, { marginTop: 10, flexDirection: 'row', alignItems: 'center', padding: 0, paddingHorizontal: 12 }]}>
-                  <Text style={{ color: '#64748B', fontWeight: '600', marginRight: 4 }}>+91</Text>
+                <View className="border border-muted-foreground/30 rounded-xl bg-background flex-row items-center px-3">
+                  <Text className="text-muted-foreground font-semibold mr-1">+91</Text>
                   <TextInput
-                    style={{ flex: 1, fontSize: 14, color: '#0F172A', paddingVertical: 12 }}
+                    className="flex-1 text-sm text-foreground py-3"
                     placeholder="9876543210"
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor={colors.mutedForeground}
                     value={newCustPhone}
                     onChangeText={(text) => {
                        const num = text.replace(/\D/g, '');
@@ -509,43 +506,43 @@ export default function NewBookingWizardScreen() {
                     keyboardType="phone-pad"
                   />
                 </View>
-                <View style={styles.newCustFormBtns}>
-                  <TouchableOpacity style={styles.cancelFormBtn} onPress={() => setShowNewCustForm(false)}>
-                    <Text style={styles.cancelFormText}>Cancel</Text>
+                <View className="flex-row gap-2.5 mt-3.5">
+                  <TouchableOpacity className="flex-1 py-3 rounded-xl bg-muted items-center justify-center" onPress={() => setShowNewCustForm(false)}>
+                    <Text className="font-bold text-muted-foreground">Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.saveCustBtn} onPress={handleCreateCustomer}>
-                    <Text style={styles.saveCustText}>Save & Select</Text>
+                  <TouchableOpacity className="flex-[1.5] py-3 rounded-xl bg-primary items-center justify-center" onPress={handleCreateCustomer}>
+                    <Text className="font-bold text-primary-foreground">Save & Select</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ) : (
-              <TouchableOpacity style={styles.addCustBtn} onPress={() => setShowNewCustForm(true)}>
-                <Plus size={16} color="#2563EB" />
-                <Text style={styles.addCustText}>Add New Customer</Text>
+              <TouchableOpacity className="flex-row items-center justify-center gap-2 p-3.5 bg-transparent border-[1.5px] border-muted-foreground/40 border-dashed rounded-xl mb-4" onPress={() => setShowNewCustForm(true)}>
+                <Plus size={16} color={colors.primary} />
+                <Text className="text-sm font-bold text-primary">Add New Customer</Text>
               </TouchableOpacity>
             )}
 
-            <Text style={styles.sectionSubHeader}>RECENT CUSTOMERS</Text>
-            <View style={styles.custsList}>
+            <Text className="text-[11px] font-bold text-muted-foreground tracking-wide mb-2.5">RECENT CUSTOMERS</Text>
+            <View className="gap-2.5 mb-10">
               {(!customers || customers.length === 0) && !showNewCustForm ? (
-                <Text style={styles.noDataText}>No customers found. Click above to add one.</Text>
+                <Text className="text-[13px] text-muted-foreground italic">No customers found. Click above to add one.</Text>
               ) : (
                 (customers || []).map(c => {
                   const active = selectedCustomer?.id === c.id;
                   return (
                     <TouchableOpacity
                       key={c.id}
-                      style={[styles.custItemCard, active && styles.custItemCardActive]}
+                      className={`flex-row items-center gap-3 p-3.5 rounded-xl border-[1.5px] ${active ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
                       onPress={() => setSelectedCustomer(c)}
                     >
-                      <View style={styles.custAvatar}>
-                        <Text style={styles.custAvatarText}>{c.full_name.charAt(0)}</Text>
+                      <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+                        <Text className="text-base font-bold text-primary">{c.full_name.charAt(0)}</Text>
                       </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.custItemName}>{c.full_name}</Text>
-                        <Text style={styles.custItemPhone}>{formatPhone(c.phone || "")} · {c.total_visits || 0} visits</Text>
+                      <View className="flex-1">
+                        <Text className="text-sm font-bold text-foreground">{c.full_name}</Text>
+                        <Text className="text-xs text-muted-foreground mt-0.5">{formatPhone(c.phone || "")} · {c.total_visits || 0} visits</Text>
                       </View>
-                      {active && <Check size={20} color="#2563EB" />}
+                      {active && <Check size={20} color={colors.primary} />}
                     </TouchableOpacity>
                   );
                 })
@@ -557,19 +554,19 @@ export default function NewBookingWizardScreen() {
         {/* Step 3: Payment & Summary */}
         {step === 3 && (
           <View>
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitleText}>BOOKING SUMMARY</Text>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Court</Text><Text style={styles.sumVal}>{selectedCourtName}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Date</Text><Text style={styles.sumVal}>{selectedDate}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Time</Text><Text style={styles.sumVal}>{selectedTime.slice(0, 5)} – {endTimeStr.slice(0, 5)}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Duration</Text><Text style={styles.sumVal}>{selectedDurationMins / 60}h</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Customer</Text><Text style={styles.sumVal}>{selectedCustomer?.full_name}</Text></View>
-              <View style={styles.sumTotalRow}>
-                <Text style={styles.sumTotalLabel}>Total Amount</Text>
-                <View style={styles.totalInputContainer}>
-                  <Text style={styles.totalRsSymbol}>₹</Text>
+            <View className="bg-card rounded-[18px] p-4 mb-4 border border-border">
+              <Text className="text-xs font-bold text-muted-foreground tracking-wide mb-3">BOOKING SUMMARY</Text>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Court</Text><Text className="text-[13px] font-semibold text-foreground">{selectedCourtName}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Date</Text><Text className="text-[13px] font-semibold text-foreground">{selectedDate}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Time</Text><Text className="text-[13px] font-semibold text-foreground">{selectedTime.slice(0, 5)} – {endTimeStr.slice(0, 5)}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Duration</Text><Text className="text-[13px] font-semibold text-foreground">{selectedDurationMins / 60}h</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Customer</Text><Text className="text-[13px] font-semibold text-foreground">{selectedCustomer?.full_name}</Text></View>
+              <View className="flex-row justify-between items-center pt-3 mt-1">
+                <Text className="text-[15px] font-bold text-foreground">Total Amount</Text>
+                <View className="flex-row items-center">
+                  <Text className="text-lg font-extrabold text-primary mr-0.5">₹</Text>
                   <TextInput
-                    style={styles.totalRsInput}
+                    className="text-lg font-extrabold text-primary min-w-[60px] text-right p-0"
                     value={customAmountRs !== '' ? customAmountRs : computedTotalRs.toString()}
                     onChangeText={setCustomAmountRs}
                     keyboardType="numeric"
@@ -578,18 +575,18 @@ export default function NewBookingWizardScreen() {
               </View>
             </View>
 
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitleText}>PAYMENT METHOD</Text>
-              <View style={styles.paymentMethodsRow}>
+            <View className="bg-card rounded-[18px] p-4 mb-4 border border-border">
+              <Text className="text-xs font-bold text-muted-foreground tracking-wide mb-3">PAYMENT METHOD</Text>
+              <View className="flex-row gap-2 mb-4">
                 {(['cash', 'upi', 'card', 'online'] as PaymentMethod[]).map(m => {
                   const active = paymentMode === m;
                   return (
                     <TouchableOpacity
                       key={m}
-                      style={[styles.payMethodBtn, active && styles.payMethodBtnActive]}
+                      className={`flex-1 py-3 rounded-xl border-[1.5px] items-center ${active ? 'border-primary bg-primary/10' : 'border-border bg-muted'}`}
                       onPress={() => setPaymentMode(m)}
                     >
-                      <Text style={[styles.payMethodText, active && styles.payMethodTextActive]}>
+                      <Text className={`text-[13px] ${active ? 'text-primary font-bold' : 'text-muted-foreground font-semibold'}`}>
                         {m === 'upi' ? 'UPI' : m.charAt(0).toUpperCase() + m.slice(1)}
                       </Text>
                     </TouchableOpacity>
@@ -597,18 +594,18 @@ export default function NewBookingWizardScreen() {
                 })}
               </View>
 
-              <Text style={[styles.summaryTitleText, { marginTop: 16 }]}>BOOKING SOURCE</Text>
-              <View style={styles.sourcesRow}>
+              <Text className="text-xs font-bold text-muted-foreground tracking-wide mb-3 mt-2">BOOKING SOURCE</Text>
+              <View className="flex-row gap-1.5 mb-4">
                 {['offline', 'online', 'walk_in'].map(src => {
                   const active = bookingSource === src;
                   const label = src === 'walk_in' ? 'Walk-in' : src.charAt(0).toUpperCase() + src.slice(1);
                   return (
                     <TouchableOpacity
                       key={src}
-                      style={[styles.sourceBtn, active && styles.sourceBtnActive]}
+                      className={`flex-1 py-2 rounded-lg border-[1.5px] items-center ${active ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
                       onPress={() => setBookingSource(src)}
                     >
-                      <Text style={[styles.sourceText, active && styles.sourceTextActive]}>
+                      <Text className={`text-[11px] ${active ? 'text-primary font-bold' : 'text-muted-foreground font-semibold'}`}>
                         {label}
                       </Text>
                     </TouchableOpacity>
@@ -616,12 +613,12 @@ export default function NewBookingWizardScreen() {
                 })}
               </View>
 
-              <View style={{ marginTop: 16 }}>
-                <Text style={styles.label}>Advance Collected (₹)</Text>
-                <View style={styles.advanceInputBox}>
-                  <Text style={styles.advRsSymbol}>₹</Text>
+              <View className="mt-2">
+                <Text className="text-[13px] font-bold text-foreground mb-2.5">Advance Collected (₹)</Text>
+                <View className="flex-row items-center bg-muted border-[1.5px] border-border rounded-xl px-3.5 h-12">
+                  <Text className="text-base font-bold text-muted-foreground mr-1.5">₹</Text>
                   <TextInput
-                    style={styles.advanceInput}
+                    className="flex-1 text-base font-bold text-foreground"
                     value={advanceRs}
                     onChangeText={setAdvanceRs}
                     keyboardType="numeric"
@@ -629,24 +626,24 @@ export default function NewBookingWizardScreen() {
                 </View>
               </View>
 
-              <View style={styles.whatsappRow}>
-                <View style={styles.whatsappLeft}>
+              <View className="flex-row items-center justify-between mt-4 p-3.5 bg-muted rounded-xl">
+                <View className="flex-row items-center gap-2">
                   <MessageCircle size={18} color="#16A34A" />
-                  <Text style={styles.whatsappText}>Send WhatsApp confirmation</Text>
+                  <Text className="text-[13px] font-semibold text-foreground">Send WhatsApp confirmation</Text>
                 </View>
                 <Switch
                   value={sendWhatsapp}
                   onValueChange={setSendWhatsapp}
-                  trackColor={{ false: '#CBD5E1', true: '#BBF7D0' }}
+                  trackColor={{ false: colors.border, true: '#BBF7D0' }}
                   thumbColor={sendWhatsapp ? '#16A34A' : '#f4f3f4'}
                 />
               </View>
             </View>
 
             {overlapError && (
-              <View style={styles.overlapBanner}>
+              <View className="flex-row items-center gap-2.5 bg-amber-50 dark:bg-amber-900/30 border-[1.5px] border-amber-200 dark:border-amber-800 rounded-xl p-3.5 mb-4">
                 <AlertTriangle size={20} color="#D97706" />
-                <Text style={styles.overlapBannerText}>{overlapError}</Text>
+                <Text className="flex-1 text-[13px] font-semibold text-amber-800 dark:text-amber-500">{overlapError}</Text>
               </View>
             )}
           </View>
@@ -654,45 +651,45 @@ export default function NewBookingWizardScreen() {
 
         {/* Step 4: Confirm Success */}
         {step === 4 && (
-          <View style={styles.confirmBox}>
-            <View style={styles.confirmIconCircle}>
+          <View className="items-center py-5">
+            <View className="w-20 h-20 rounded-3xl bg-green-50 dark:bg-green-900/30 items-center justify-center mb-4">
               <Check size={44} color="#16A34A" />
             </View>
-            <Text style={styles.confirmTitleText}>Booking Confirmed!</Text>
-            <Text style={styles.confirmIdText}>
+            <Text className="text-2xl font-extrabold text-foreground mb-1.5">Booking Confirmed!</Text>
+            <Text className="text-sm text-muted-foreground mb-6">
               Booking ID: {confirmedBooking?.booking_number || 'BK-SUCCESS'}
             </Text>
 
-            <View style={styles.summaryCard}>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Customer</Text><Text style={styles.sumVal}>{selectedCustomer?.full_name}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Court</Text><Text style={styles.sumVal}>{selectedCourtName}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Date</Text><Text style={styles.sumVal}>{selectedDate}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Time</Text><Text style={styles.sumVal}>{selectedTime.slice(0, 5)} – {endTimeStr.slice(0, 5)}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Amount</Text><Text style={styles.sumVal}>₹{finalTotalRs}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Advance</Text><Text style={styles.sumVal}>₹{advanceRs || 0}</Text></View>
-              <View style={styles.sumRow}><Text style={styles.sumLabel}>Payment</Text><Text style={styles.sumVal}>{paymentMode.toUpperCase()}</Text></View>
+            <View className="bg-card rounded-[18px] p-4 mb-4 border border-border w-full">
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Customer</Text><Text className="text-[13px] font-semibold text-foreground">{selectedCustomer?.full_name}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Court</Text><Text className="text-[13px] font-semibold text-foreground">{selectedCourtName}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Date</Text><Text className="text-[13px] font-semibold text-foreground">{selectedDate}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Time</Text><Text className="text-[13px] font-semibold text-foreground">{selectedTime.slice(0, 5)} – {endTimeStr.slice(0, 5)}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Amount</Text><Text className="text-[13px] font-semibold text-foreground">₹{finalTotalRs}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Advance</Text><Text className="text-[13px] font-semibold text-foreground">₹{advanceRs || 0}</Text></View>
+              <View className="flex-row justify-between py-2 border-b border-border/50"><Text className="text-[13px] text-muted-foreground">Payment</Text><Text className="text-[13px] font-semibold text-foreground">{paymentMode.toUpperCase()}</Text></View>
             </View>
           </View>
         )}
       </ScrollView>
 
       {/* Footer Actions */}
-      <View style={styles.footer}>
+      <View className="bg-card p-4 border-t border-border">
         {step < 4 ? (
-          <View style={styles.footerBtnsRow}>
+          <View className="flex-row gap-2.5">
             {step > 0 && (
               <TouchableOpacity
-                style={styles.backStepBtn}
+                className="px-5 py-3.5 rounded-xl bg-muted border-[1.5px] border-border items-center justify-center"
                 onPress={() => setStep(step - 1)}
                 disabled={isSubmitting}
               >
-                <Text style={styles.backStepText}>Back</Text>
+                <Text className="text-[15px] font-bold text-foreground">Back</Text>
               </TouchableOpacity>
             )}
 
             {step === 3 && overlapError ? (
               <TouchableOpacity
-                style={styles.forceBookBtn}
+                className="flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-xl bg-amber-600"
                 onPress={() => handleConfirmBooking(true)}
                 disabled={isSubmitting}
               >
@@ -701,13 +698,13 @@ export default function NewBookingWizardScreen() {
                 ) : (
                   <>
                     <AlertTriangle size={18} color="#fff" />
-                    <Text style={styles.nextStepText}>Force Confirm</Text>
+                    <Text className="text-[15px] font-bold text-white">Force Confirm</Text>
                   </>
                 )}
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={[styles.nextStepBtn, !canNext() && styles.nextStepBtnDisabled]}
+                className={`flex-1 flex-row items-center justify-center gap-2 py-3.5 rounded-xl ${!canNext() || isSubmitting ? 'bg-muted' : 'bg-primary'}`}
                 onPress={() => {
                   if (step === 1 && isBlockSlot) {
                     handleConfirmBooking(false);
@@ -723,10 +720,10 @@ export default function NewBookingWizardScreen() {
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <>
-                    <Text style={[styles.nextStepText, !canNext() && { color: '#94A3B8' }]}>
+                    <Text className={`text-[15px] font-bold ${!canNext() ? 'text-muted-foreground' : 'text-primary-foreground'}`}>
                       {(step === 3 || (step === 1 && isBlockSlot)) ? (isBlockSlot ? 'Block Court' : 'Confirm Booking') : 'Continue'}
                     </Text>
-                    <ArrowRight size={18} color={canNext() ? '#fff' : '#94A3B8'} />
+                    <ArrowRight size={18} color={canNext() ? '#fff' : colors.mutedForeground} />
                   </>
                 )}
               </TouchableOpacity>
@@ -734,123 +731,13 @@ export default function NewBookingWizardScreen() {
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.finishBtn}
+            className="w-full py-3.5 rounded-xl bg-primary items-center justify-center"
             onPress={() => router.replace('/(tabs)/bookings' as any)}
           >
-            <Text style={styles.finishBtnText}>Back to Bookings</Text>
+            <Text className="text-[15px] font-bold text-primary-foreground">Back to Bookings</Text>
           </TouchableOpacity>
         )}
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  backIconBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  progressRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  stepCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
-  stepCompleted: { backgroundColor: '#16A34A' },
-  stepCurrent: { backgroundColor: '#2563EB' },
-  stepNum: { fontSize: 11, fontWeight: '700', color: '#64748B' },
-  stepLine: { flex: 1, height: 2, backgroundColor: '#E2E8F0', marginHorizontal: 4 },
-  stepLineCompleted: { backgroundColor: '#16A34A' },
-  stepTitleText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  body: { flex: 1, padding: 16 },
-  fieldGroup: { marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
-  dateInputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 14, paddingHorizontal: 14, height: 48, gap: 10 },
-  dateInput: { flex: 1, fontSize: 15, fontWeight: '600', color: '#0F172A' },
-  quickDatesRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  quickDatePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E2E8F0' },
-  quickDatePillActive: { backgroundColor: '#EFF6FF', borderColor: '#2563EB' },
-  quickDateText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  quickDateTextActive: { color: '#2563EB', fontWeight: '700' },
-  courtsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  courtCard: { width: '48%', padding: 16, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0', backgroundColor: '#fff' },
-  courtCardActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  courtNameText: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
-  courtNameTextActive: { color: '#2563EB' },
-  courtStatusText: { fontSize: 11, color: '#16A34A', fontWeight: '600', marginTop: 4 },
-  timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  timeSlotBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#fff' },
-  timeSlotBtnActive: { borderColor: '#2563EB', backgroundColor: '#2563EB' },
-  timeSlotText: { fontSize: 13, fontWeight: '600', color: '#0F172A' },
-  timeSlotTextActive: { color: '#fff' },
-  durationsList: { gap: 10 },
-  durationCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#fff' },
-  durationCardActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  durationLabel: { fontSize: 14, fontWeight: '600', color: '#0F172A' },
-  durationLabelActive: { color: '#2563EB', fontWeight: '700' },
-  durationPriceText: { fontSize: 14, fontWeight: '700', color: '#64748B' },
-  searchBarBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 12, height: 46, gap: 8, marginBottom: 16 },
-  searchInput: { flex: 1, fontSize: 14, color: '#0F172A' },
-  selectedCustCard: { backgroundColor: '#EFF6FF', borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1.5, borderColor: '#93C5FD' },
-  selectedCustLabel: { fontSize: 11, fontWeight: '700', color: '#2563EB', letterSpacing: 0.5, marginBottom: 4 },
-  selectedCustName: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  selectedCustPhone: { fontSize: 13, color: '#64748B', marginTop: 2 },
-  addCustBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', borderRadius: 14, marginBottom: 16 },
-  addCustText: { fontSize: 14, fontWeight: '700', color: '#2563EB' },
-  newCustFormBox: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0' },
-  newCustFormTitle: { fontSize: 15, fontWeight: '700', color: '#0F172A', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 12, padding: 12, fontSize: 14, color: '#0F172A', backgroundColor: '#F8FAFC' },
-  newCustFormBtns: { flexDirection: 'row', gap: 10, marginTop: 14 },
-  cancelFormBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' },
-  cancelFormText: { fontWeight: '700', color: '#64748B' },
-  saveCustBtn: { flex: 1.5, paddingVertical: 12, borderRadius: 10, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' },
-  saveCustText: { fontWeight: '700', color: '#fff' },
-  sectionSubHeader: { fontSize: 11, fontWeight: '700', color: '#64748B', letterSpacing: 0.5, marginBottom: 10 },
-  custsList: { gap: 10 },
-  custItemCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#fff' },
-  custItemCardActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  custAvatar: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  custAvatarText: { fontSize: 16, fontWeight: '700', color: '#2563EB' },
-  custItemName: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
-  custItemPhone: { fontSize: 12, color: '#64748B', marginTop: 2 },
-  summaryCard: { backgroundColor: '#fff', borderRadius: 18, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#F1F5F9' },
-  summaryTitleText: { fontSize: 12, fontWeight: '700', color: '#64748B', letterSpacing: 0.5, marginBottom: 12 },
-  sumRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  sumLabel: { fontSize: 13, color: '#64748B' },
-  sumVal: { fontSize: 13, fontWeight: '600', color: '#0F172A' },
-  sumTotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, marginTop: 4 },
-  sumTotalLabel: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
-  totalInputContainer: { flexDirection: 'row', alignItems: 'center' },
-  totalRsSymbol: { fontSize: 18, fontWeight: '800', color: '#2563EB', marginRight: 2 },
-  totalRsInput: { fontSize: 18, fontWeight: '800', color: '#2563EB', minWidth: 60, textAlign: 'right', padding: 0 },
-  paymentMethodsRow: { flexDirection: 'row', gap: 8 },
-  payMethodBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC', alignItems: 'center' },
-  payMethodBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  payMethodText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
-  payMethodTextActive: { color: '#2563EB', fontWeight: '700' },
-  sourcesRow: { flexDirection: 'row', gap: 6 },
-  sourceBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, borderWidth: 1.5, borderColor: '#E2E8F0', alignItems: 'center' },
-  sourceBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  sourceText: { fontSize: 11, fontWeight: '600', color: '#64748B' },
-  sourceTextActive: { color: '#2563EB', fontWeight: '700' },
-  advanceInputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, height: 46 },
-  advRsSymbol: { fontSize: 16, fontWeight: '700', color: '#64748B', marginRight: 6 },
-  advanceInput: { flex: 1, fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  whatsappRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, padding: 14, backgroundColor: '#F8FAFC', borderRadius: 12 },
-  whatsappLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  whatsappText: { fontSize: 13, fontWeight: '600', color: '#0F172A' },
-  overlapBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFFBEB', borderWidth: 1.5, borderColor: '#FDE68A', borderRadius: 14, padding: 14, marginBottom: 16 },
-  overlapBannerText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#92400E' },
-  confirmBox: { alignItems: 'center', paddingVertical: 20 },
-  confirmIconCircle: { width: 80, height: 80, borderRadius: 24, backgroundColor: '#F0FDF4', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  confirmTitleText: { fontSize: 24, fontWeight: '800', color: '#0F172A', marginBottom: 6 },
-  confirmIdText: { fontSize: 14, color: '#64748B', marginBottom: 24 },
-  footer: { backgroundColor: '#fff', padding: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-  footerBtnsRow: { flexDirection: 'row', gap: 10 },
-  backStepBtn: { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
-  backStepText: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
-  nextStepBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14, backgroundColor: '#2563EB', shadowColor: '#2563EB', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4 },
-  nextStepBtnDisabled: { backgroundColor: '#E2E8F0', shadowOpacity: 0, elevation: 0 },
-  nextStepText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  forceBookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 14, backgroundColor: '#D97706' },
-  finishBtn: { width: '100%', paddingVertical: 14, borderRadius: 14, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' },
-  finishBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  noDataText: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-});

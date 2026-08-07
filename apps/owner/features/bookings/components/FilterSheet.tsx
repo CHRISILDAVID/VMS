@@ -1,8 +1,9 @@
 import React, { forwardRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Court } from '@vms/shared/types';
 import { X, Calendar, MapPin } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface FilterSheetProps {
   courts: Court[];
@@ -15,6 +16,7 @@ interface FilterSheetProps {
 export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
   ({ courts, selectedCourtId, selectedDate, onApplyFilters, onResetFilters }, ref) => {
     const snapPoints = useMemo(() => ['45%', '60%'], []);
+    const { colors } = useThemeColors();
     const [tempCourtId, setTempCourtId] = React.useState<string | undefined>(selectedCourtId);
     const [tempDate, setTempDate] = React.useState<string | undefined>(selectedDate);
 
@@ -48,30 +50,30 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
         backdropComponent={(props) => (
           <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
         )}
-        backgroundStyle={styles.bottomSheetBackground}
-        handleIndicatorStyle={styles.handleIndicator}
+        backgroundStyle={{ backgroundColor: colors.card, borderRadius: 24 }}
+        handleIndicatorStyle={{ backgroundColor: colors.border, width: 40, height: 4 }}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.titleText}>Filter Bookings</Text>
-            <TouchableOpacity onPress={() => (ref as any)?.current?.close()} style={styles.closeBtn}>
-              <X size={18} color="#64748B" />
+        <View className="flex-1 px-5 pb-6">
+          <View className="flex-row justify-between items-center py-3 border-b border-border">
+            <Text className="text-lg font-bold text-foreground">Filter Bookings</Text>
+            <TouchableOpacity onPress={() => (ref as any)?.current?.close()} className="p-1.5 rounded-2xl bg-muted">
+              <X size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
+          <ScrollView className="flex-1 py-4" showsVerticalScrollIndicator={false}>
             {/* Court Filter */}
-            <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                <MapPin size={16} color="#475569" />
-                <Text style={styles.sectionTitle}>Court</Text>
+            <View className="mb-5">
+              <View className="flex-row items-center gap-2 mb-2.5">
+                <MapPin size={16} color={colors.foreground} />
+                <Text className="text-sm font-bold text-foreground">Court</Text>
               </View>
-              <View style={styles.pillsContainer}>
+              <View className="flex-row flex-wrap gap-2">
                 <TouchableOpacity
-                  style={[styles.pill, !tempCourtId && styles.pillActive]}
+                  className={`px-4 py-2 rounded-full border ${!tempCourtId ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                   onPress={() => setTempCourtId(undefined)}
                 >
-                  <Text style={[styles.pillText, !tempCourtId && styles.pillTextActive]}>
+                  <Text className={`text-[13px] font-semibold ${!tempCourtId ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                     All Courts
                   </Text>
                 </TouchableOpacity>
@@ -80,10 +82,10 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
                   return (
                     <TouchableOpacity
                       key={court.id}
-                      style={[styles.pill, active && styles.pillActive]}
+                      className={`px-4 py-2 rounded-full border ${active ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                       onPress={() => setTempCourtId(court.id)}
                     >
-                      <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                      <Text className={`text-[13px] font-semibold ${active ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         {court.name}
                       </Text>
                     </TouchableOpacity>
@@ -93,21 +95,21 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
             </View>
 
             {/* Date Filter */}
-            <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                <Calendar size={16} color="#475569" />
-                <Text style={styles.sectionTitle}>Date</Text>
+            <View className="mb-5">
+              <View className="flex-row items-center gap-2 mb-2.5">
+                <Calendar size={16} color={colors.foreground} />
+                <Text className="text-sm font-bold text-foreground">Date</Text>
               </View>
-              <View style={styles.pillsContainer}>
+              <View className="flex-row flex-wrap gap-2">
                 {dateOptions.map((opt) => {
                   const active = tempDate === opt.value;
                   return (
                     <TouchableOpacity
                       key={opt.label}
-                      style={[styles.pill, active && styles.pillActive]}
+                      className={`px-4 py-2 rounded-full border ${active ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                       onPress={() => setTempDate(opt.value)}
                     >
-                      <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                      <Text className={`text-[13px] font-semibold ${active ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         {opt.label}
                       </Text>
                     </TouchableOpacity>
@@ -118,9 +120,9 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
           </ScrollView>
 
           {/* Footer Actions */}
-          <View style={styles.footer}>
+          <View className="flex-row gap-3 pt-4 border-t border-border">
             <TouchableOpacity
-              style={styles.resetBtn}
+              className="flex-1 py-3.5 rounded-xl bg-muted border border-border items-center justify-center"
               onPress={() => {
                 setTempCourtId(undefined);
                 setTempDate(undefined);
@@ -128,17 +130,17 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
                 (ref as any)?.current?.close();
               }}
             >
-              <Text style={styles.resetText}>Reset</Text>
+              <Text className="text-[15px] font-bold text-muted-foreground">Reset</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.applyBtn}
+              className="flex-[2] py-3.5 rounded-xl bg-primary items-center justify-center shadow-md"
               onPress={() => {
                 onApplyFilters({ courtId: tempCourtId, date: tempDate });
                 (ref as any)?.current?.close();
               }}
             >
-              <Text style={styles.applyText}>Apply Filters</Text>
+              <Text className="text-[15px] font-bold text-white">Apply Filters</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -148,127 +150,3 @@ export const FilterSheet = forwardRef<BottomSheet, FilterSheetProps>(
 );
 
 FilterSheet.displayName = 'FilterSheet';
-
-const styles = StyleSheet.create({
-  bottomSheetBackground: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  handleIndicator: {
-    backgroundColor: '#CBD5E1',
-    width: 40,
-    height: 4,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  titleText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    padding: 6,
-    borderRadius: 16,
-    backgroundColor: '#F8FAFC',
-  },
-  scrollBody: {
-    flex: 1,
-    paddingVertical: 16,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  pillsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  pillActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
-  },
-  pillText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  pillTextActive: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  resetBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  resetText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  applyBtn: {
-    flex: 2,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  applyText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-});

@@ -1,17 +1,18 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Plus, Trash2, Copy, Clock, CalendarDays } from 'lucide-react-native';
+import { ChevronLeft, Plus, Trash2, Copy, Clock } from 'lucide-react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
-import { createScheduleService } from '@vms/shared/services';
+import { createScheduleService, createVenuesService } from '@vms/shared/services';
 import { useVenueStore } from '../../stores/venueStore';
 import { DayOfWeek } from '@vms/shared/types';
-import { COLORS } from '@vms/shared/utils';
-import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetBackdrop, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const scheduleService = createScheduleService(supabase);
+const venuesService = createVenuesService(supabase);
 const DAYS: { key: DayOfWeek; label: string }[] = [
   { key: 'mon', label: 'Mon' },
   { key: 'tue', label: 'Tue' },
@@ -26,6 +27,7 @@ export default function SchedulePricingScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { selectedVenueId } = useVenueStore();
+  const { colors } = useThemeColors();
   
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('mon');
   const [isCopyMode, setIsCopyMode] = useState(false);
@@ -36,11 +38,19 @@ export default function SchedulePricingScreen() {
   const [formData, setFormData] = useState({ start: '', end: '', price: '' });
 
   // Queries
-  const { data: schedule, isLoading } = useQuery({
+  const { data: schedule, isLoading: scheduleLoading } = useQuery({
     queryKey: ['operating_schedule', selectedVenueId, selectedDay],
     queryFn: () => scheduleService.getOperatingSchedule(selectedVenueId!, selectedDay),
     enabled: !!selectedVenueId,
   });
+
+  const { data: venueData, isLoading: venueLoading } = useQuery({
+    queryKey: ['venue', selectedVenueId],
+    queryFn: () => venuesService.getVenue(selectedVenueId!),
+    enabled: !!selectedVenueId,
+  });
+
+  const isLoading = scheduleLoading || venueLoading;
 
   // Mutations
   const toggleScheduleMut = useMutation({
@@ -84,6 +94,17 @@ export default function SchedulePricingScreen() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operating_schedule', selectedVenueId, selectedDay] })
   });
 
+  const updateVenueSettingsMut = useMutation({
+    mutationFn: (updates: { min_slot_duration?: number; cancellation_hours?: number }) => {
+      return venuesService.updateVenue(selectedVenueId!, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['venue', selectedVenueId] });
+      Alert.alert('Success', 'Booking settings updated');
+    },
+    onError: (error: any) => Alert.alert('Error updating settings', error.message || 'Unknown error')
+  });
+
   const copyDayMut = useMutation({
     mutationFn: () => scheduleService.copyScheduleAndPricingToDays(selectedVenueId!, selectedDay, selectedTargetDays),
     onSuccess: () => {
@@ -125,30 +146,30 @@ export default function SchedulePricingScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ChevronLeft size={20} color="#0F172A" />
+        <View className="flex-row items-center px-4 py-3.5 bg-card border-b border-border">
+          <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center mr-3">
+            <ChevronLeft size={20} color={colors.foreground} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Schedule & Pricing</Text>
+          <Text className="text-lg font-extrabold text-foreground">Schedule & Pricing</Text>
         </View>
 
         {/* Day Selector */}
-        <View style={styles.daysWrapper}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daysContainer}>
+        <View className="bg-card border-b border-border">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}>
             {DAYS.map(day => {
               const isActive = selectedDay === day.key;
               return (
                 <TouchableOpacity
                   key={day.key}
-                  style={[styles.dayBadge, isActive && styles.dayBadgeActive]}
+                  className={`py-2 px-4 rounded-full ${isActive ? 'bg-primary' : 'bg-muted'}`}
                   onPress={() => {
                     setSelectedDay(day.key);
                     setIsCopyMode(false);
                   }}
                 >
-                  <Text style={[styles.dayText, isActive && styles.dayTextActive]}>{day.label}</Text>
+                  <Text className={`text-[13px] font-semibold ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`}>{day.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -156,82 +177,131 @@ export default function SchedulePricingScreen() {
         </View>
 
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#2563EB" />
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
-          <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
-            <View style={styles.card}>
-              <View style={styles.switchRow}>
+          <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 100 }}>
+            <View className="bg-card rounded-2xl p-4 mb-5 border border-border">
+              <View className="flex-row justify-between items-center py-2 border-b border-border">
                 <View>
-                  <Text style={styles.switchTitle}>Closed on {DAYS.find(d => d.key === selectedDay)?.label}</Text>
-                  <Text style={styles.switchSub}>No bookings accepted</Text>
+                  <Text className="text-[15px] font-semibold text-foreground">Closed on {DAYS.find(d => d.key === selectedDay)?.label}</Text>
+                  <Text className="text-xs text-muted-foreground mt-0.5">No bookings accepted</Text>
                 </View>
                 <Switch 
                   value={schedule?.is_closed ?? false} 
                   onValueChange={(val) => toggleScheduleMut.mutate({ is_closed: val })} 
                   disabled={toggleScheduleMut.isPending}
-                  trackColor={{ false: '#E2E8F0', true: '#2563EB' }}
+                  trackColor={{ false: colors.border, true: colors.primary }}
                 />
               </View>
-              <View style={[styles.switchRow, { borderBottomWidth: 0, paddingTop: 16 }]}>
+              <View className="flex-row justify-between items-center py-2 pt-4">
                 <View>
-                  <Text style={styles.switchTitle}>Open 24 Hours</Text>
-                  <Text style={styles.switchSub}>Open all day, default pricing applies</Text>
+                  <Text className="text-[15px] font-semibold text-foreground">Open 24 Hours</Text>
+                  <Text className="text-xs text-muted-foreground mt-0.5">Open all day, default pricing applies</Text>
                 </View>
                 <Switch 
                   value={schedule?.is_24h ?? false} 
                   onValueChange={(val) => toggleScheduleMut.mutate({ is_24h: val })}
                   disabled={toggleScheduleMut.isPending}
-                  trackColor={{ false: '#E2E8F0', true: '#2563EB' }}
+                  trackColor={{ false: colors.border, true: colors.primary }}
                 />
               </View>
             </View>
 
+            {/* Online Booking Settings */}
+            <View className="bg-card rounded-2xl p-4 mb-5 border border-border">
+              <View className="mb-3">
+                <Text className="text-[15px] font-bold text-foreground">Online Booking Settings</Text>
+              </View>
+              
+              <View className="mb-4">
+                <Text className="text-xs font-semibold text-muted-foreground mb-1.5">Minimum Slot Duration (Minutes)</Text>
+                <View className="flex-row flex-wrap gap-2 mt-2">
+                  {[30, 60, 90, 120].map(duration => {
+                    const isActive = venueData?.min_slot_duration === duration;
+                    return (
+                      <TouchableOpacity
+                        key={duration}
+                        className={`px-3 py-2 rounded-lg border ${isActive ? 'bg-primary/10 border-primary/30' : 'bg-muted border-border'}`}
+                        onPress={() => updateVenueSettingsMut.mutate({ min_slot_duration: duration })}
+                        disabled={updateVenueSettingsMut.isPending}
+                      >
+                        <Text className={`text-xs font-semibold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {duration} min
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View>
+                <Text className="text-xs font-semibold text-muted-foreground mb-1.5">Free Cancellation Window (Hours)</Text>
+                <View className="flex-row flex-wrap gap-2 mt-2">
+                  {[0, 2, 6, 12, 24].map(hours => {
+                    const isActive = venueData?.cancellation_hours === hours;
+                    return (
+                      <TouchableOpacity
+                        key={hours}
+                        className={`px-3 py-2 rounded-lg border ${isActive ? 'bg-primary/10 border-primary/30' : 'bg-muted border-border'}`}
+                        onPress={() => updateVenueSettingsMut.mutate({ cancellation_hours: hours })}
+                        disabled={updateVenueSettingsMut.isPending}
+                      >
+                        <Text className={`text-xs font-semibold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {hours === 0 ? 'No Cancel' : `${hours} hrs`}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+
             {!(schedule?.is_closed || schedule?.is_24h) && (
-              <View style={styles.blocksSection}>
-                <View style={styles.blocksHeaderRow}>
-                  <Text style={styles.blocksTitle}>Pricing Blocks</Text>
+              <View className="mb-6">
+                <View className="flex-row justify-between items-center mb-3">
+                  <Text className="text-[15px] font-bold text-foreground">Pricing Blocks</Text>
                   <TouchableOpacity 
-                    style={[styles.addBlockBtn, toggleScheduleMut.isPending && { opacity: 0.7 }]} 
+                    className={`flex-row items-center gap-1 bg-primary/10 py-1.5 px-2.5 rounded-lg ${toggleScheduleMut.isPending ? 'opacity-70' : ''}`} 
                     onPress={() => handleOpenBlockSheet()}
                     disabled={toggleScheduleMut.isPending}
                   >
                     {toggleScheduleMut.isPending ? (
-                      <ActivityIndicator size="small" color="#2563EB" />
+                      <ActivityIndicator size="small" color={colors.primary} />
                     ) : (
                       <>
-                        <Plus size={14} color="#2563EB" />
-                        <Text style={styles.addBlockText}>Add Block</Text>
+                        <Plus size={14} color={colors.primary} />
+                        <Text className="text-xs font-semibold text-primary">Add Block</Text>
                       </>
                     )}
                   </TouchableOpacity>
                 </View>
 
                 {schedule?.pricing_blocks?.length === 0 ? (
-                  <View style={styles.emptyBlocks}>
-                    <Clock size={24} color="#94A3B8" />
-                    <Text style={styles.emptyBlocksText}>No pricing blocks defined.</Text>
+                  <View className="items-center justify-center p-6 bg-card rounded-2xl border border-dashed border-border">
+                    <Clock size={24} color={colors.mutedForeground} />
+                    <Text className="text-[13px] text-muted-foreground mt-2">No pricing blocks defined.</Text>
                   </View>
                 ) : (
                   schedule?.pricing_blocks?.map(block => (
                     <TouchableOpacity 
                       key={block.id} 
-                      style={styles.blockCard}
+                      className="flex-row justify-between items-center bg-card p-4 rounded-xl mb-2 border border-border"
                       onPress={() => handleOpenBlockSheet(block)}
                     >
-                      <View style={styles.blockInfo}>
-                        <Text style={styles.blockTime}>{block.start_time.slice(0,5)} - {block.end_time.slice(0,5)}</Text>
-                        <Text style={styles.blockPrice}>₹{block.price_per_hour / 100}/hr</Text>
+                      <View>
+                        <Text className="text-[15px] font-bold text-foreground">{block.start_time.slice(0,5)} - {block.end_time.slice(0,5)}</Text>
+                        <Text className="text-[13px] text-muted-foreground mt-1">₹{block.price_per_hour / 100}/hr</Text>
                       </View>
                       <TouchableOpacity 
-                        style={styles.delBtn}
+                        className="p-2"
                         onPress={() => Alert.alert("Delete", "Remove block?", [
                           { text: "Cancel" }, 
                           { text: "Delete", style: 'destructive', onPress: () => deleteBlockMut.mutate(block.id) }
                         ])}
                       >
-                        <Trash2 size={16} color="#DC2626" />
+                        <Trash2 size={16} color={colors.destructive} />
                       </TouchableOpacity>
                     </TouchableOpacity>
                   ))
@@ -241,40 +311,40 @@ export default function SchedulePricingScreen() {
 
             {/* Copy Day Section */}
             {!isCopyMode ? (
-              <TouchableOpacity style={styles.copyBtn} onPress={() => setIsCopyMode(true)}>
-                <Copy size={16} color="#64748B" />
-                <Text style={styles.copyBtnText}>Copy this day's schedule</Text>
+              <TouchableOpacity className="flex-row items-center justify-center gap-2 p-4 bg-muted rounded-xl" onPress={() => setIsCopyMode(true)}>
+                <Copy size={16} color={colors.mutedForeground} />
+                <Text className="text-sm font-semibold text-muted-foreground">Copy this day's schedule</Text>
               </TouchableOpacity>
             ) : (
-              <View style={styles.copyModeContainer}>
-                <Text style={styles.copyModeTitle}>Copy {DAYS.find(d => d.key === selectedDay)?.label} schedule to:</Text>
-                <View style={styles.copyDaysGrid}>
+              <View className="bg-card p-4 rounded-2xl border border-border">
+                <Text className="text-sm font-semibold text-foreground mb-3">Copy {DAYS.find(d => d.key === selectedDay)?.label} schedule to:</Text>
+                <View className="flex-row flex-wrap gap-2 mb-4">
                   {DAYS.filter(d => d.key !== selectedDay).map(d => {
                     const isSelected = selectedTargetDays.includes(d.key);
                     return (
                       <TouchableOpacity 
                         key={d.key}
-                        style={[styles.copyDaySelect, isSelected && styles.copyDaySelectActive]}
+                        className={`py-2 px-3 rounded-lg border ${isSelected ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                         onPress={() => {
                           if (isSelected) setSelectedTargetDays(prev => prev.filter(k => k !== d.key));
                           else setSelectedTargetDays(prev => [...prev, d.key]);
                         }}
                       >
-                        <Text style={[styles.copyDaySelectText, isSelected && styles.copyDaySelectTextActive]}>{d.label}</Text>
+                        <Text className={`text-xs font-semibold ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>{d.label}</Text>
                       </TouchableOpacity>
                     )
                   })}
                 </View>
-                <View style={styles.copyActions}>
-                  <TouchableOpacity style={styles.copyCancelBtn} onPress={() => setIsCopyMode(false)}>
-                    <Text style={styles.copyCancelText}>Cancel</Text>
+                <View className="flex-row gap-3">
+                  <TouchableOpacity className="flex-1 p-3 items-center bg-muted rounded-lg" onPress={() => setIsCopyMode(false)}>
+                    <Text className="text-sm font-semibold text-muted-foreground">Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    style={[styles.copyConfirmBtn, selectedTargetDays.length === 0 && { opacity: 0.5 }]} 
+                    className={`flex-[2] p-3 items-center bg-primary rounded-lg ${selectedTargetDays.length === 0 ? 'opacity-50' : ''}`} 
                     disabled={selectedTargetDays.length === 0 || copyDayMut.isPending}
                     onPress={() => copyDayMut.mutate()}
                   >
-                    {copyDayMut.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.copyConfirmText}>Apply changes</Text>}
+                    {copyDayMut.isPending ? <ActivityIndicator size="small" color={colors.primaryForeground} /> : <Text className="text-sm font-semibold text-primary-foreground">Apply changes</Text>}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -290,47 +360,52 @@ export default function SchedulePricingScreen() {
           backdropComponent={renderBackdrop}
           index={-1}
           enablePanDownToClose={true}
+          backgroundStyle={{ backgroundColor: colors.card }}
+          handleIndicatorStyle={{ backgroundColor: colors.border }}
         >
-          <View style={styles.sheetContent}>
-            <Text style={styles.sheetTitle}>{editingBlock ? 'Edit Block' : 'Add Pricing Block'}</Text>
+          <View className="p-5">
+            <Text className="text-lg font-bold text-foreground mb-5">{editingBlock ? 'Edit Block' : 'Add Pricing Block'}</Text>
             
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Start Time (HH:MM:SS)</Text>
-              <TextInput 
-                style={styles.input} 
+            <View className="mb-4">
+              <Text className="text-xs font-semibold text-muted-foreground mb-1.5">Start Time (HH:MM:SS)</Text>
+              <BottomSheetTextInput 
+                style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, padding: 12, borderRadius: 8, fontSize: 14, color: colors.foreground }} 
                 value={formData.start} 
                 onChangeText={t => setFormData({...formData, start: t})}
                 placeholder="06:00:00"
+                placeholderTextColor={colors.mutedForeground}
               />
             </View>
             
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>End Time (HH:MM:SS)</Text>
-              <TextInput 
-                style={styles.input} 
+            <View className="mb-4">
+              <Text className="text-xs font-semibold text-muted-foreground mb-1.5">End Time (HH:MM:SS)</Text>
+              <BottomSheetTextInput 
+                style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, padding: 12, borderRadius: 8, fontSize: 14, color: colors.foreground }} 
                 value={formData.end} 
                 onChangeText={t => setFormData({...formData, end: t})}
                 placeholder="10:00:00"
+                placeholderTextColor={colors.mutedForeground}
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Price per Hour (₹)</Text>
-              <TextInput 
-                style={styles.input} 
+            <View className="mb-4">
+              <Text className="text-xs font-semibold text-muted-foreground mb-1.5">Price per Hour (₹)</Text>
+              <BottomSheetTextInput 
+                style={{ backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, padding: 12, borderRadius: 8, fontSize: 14, color: colors.foreground }} 
                 value={formData.price} 
                 onChangeText={t => setFormData({...formData, price: t})}
                 placeholder="500"
+                placeholderTextColor={colors.mutedForeground}
                 keyboardType="numeric"
               />
             </View>
 
             <TouchableOpacity 
-              style={styles.saveBtn} 
+              className="bg-primary p-3.5 rounded-lg items-center mt-2.5" 
               onPress={() => saveBlockMut.mutate()}
               disabled={saveBlockMut.isPending}
             >
-              {saveBlockMut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveBtnText}>Save Block</Text>}
+              {saveBlockMut.isPending ? <ActivityIndicator color={colors.primaryForeground} /> : <Text className="text-sm font-semibold text-primary-foreground">Save Block</Text>}
             </TouchableOpacity>
           </View>
         </BottomSheet>
@@ -338,73 +413,3 @@ export default function SchedulePricingScreen() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  daysWrapper: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  daysContainer: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  dayBadge: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#F1F5F9' },
-  dayBadgeActive: { backgroundColor: '#2563EB' },
-  dayText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
-  dayTextActive: { color: '#fff' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { flex: 1, padding: 16 },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#F1F5F9' },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  switchTitle: { fontSize: 15, fontWeight: '600', color: '#0F172A' },
-  switchSub: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-  blocksSection: { marginBottom: 24 },
-  blocksHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  blocksTitle: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
-  addBlockBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EFF6FF', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8 },
-  addBlockText: { fontSize: 12, fontWeight: '600', color: '#2563EB' },
-  emptyBlocks: { alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9', borderStyle: 'dashed' },
-  emptyBlocksText: { fontSize: 13, color: '#94A3B8', marginTop: 8 },
-  blockCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#F1F5F9' },
-  blockInfo: {},
-  blockTime: { fontSize: 15, fontWeight: '700', color: '#0F172A' },
-  blockPrice: { fontSize: 13, color: '#64748B', marginTop: 4 },
-  delBtn: { padding: 8 },
-  copyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, backgroundColor: '#F1F5F9', borderRadius: 12 },
-  copyBtnText: { fontSize: 14, fontWeight: '600', color: '#64748B' },
-  copyModeContainer: { backgroundColor: '#fff', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' },
-  copyModeTitle: { fontSize: 14, fontWeight: '600', color: '#0F172A', marginBottom: 12 },
-  copyDaysGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  copyDaySelect: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  copyDaySelectActive: { backgroundColor: '#EFF6FF', borderColor: '#2563EB' },
-  copyDaySelectText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-  copyDaySelectTextActive: { color: '#2563EB' },
-  copyActions: { flexDirection: 'row', gap: 12 },
-  copyCancelBtn: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 8 },
-  copyCancelText: { fontSize: 14, fontWeight: '600', color: '#64748B' },
-  copyConfirmBtn: { flex: 2, padding: 12, alignItems: 'center', backgroundColor: '#2563EB', borderRadius: 8 },
-  copyConfirmText: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  sheetContent: { padding: 20 },
-  sheetTitle: { fontSize: 18, fontWeight: '700', color: '#0F172A', marginBottom: 20 },
-  formGroup: { marginBottom: 16 },
-  formLabel: { fontSize: 12, fontWeight: '600', color: '#64748B', marginBottom: 6 },
-  input: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', padding: 12, borderRadius: 8, fontSize: 14, color: '#0F172A' },
-  saveBtn: { backgroundColor: '#2563EB', padding: 14, borderRadius: 10, alignItems: 'center', marginTop: 10 },
-  saveBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' }
-});

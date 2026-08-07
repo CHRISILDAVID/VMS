@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Users, UserCheck, UserX, Clock } from 'lucide-react-native';
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 
@@ -14,24 +14,24 @@ export function SummaryCards({ slots, pendingAppsCount }: SummaryCardsProps) {
   const vacancies = slots.reduce((a, s) => a + Math.max(0, s.capacity - (s.active_count || 0)), 0);
 
   const stats = [
-    { label: 'Total Members', value: totalMembers, icon: Users, color: '#2563EB', bg: '#EFF6FF' },
-    { label: 'Active Slots', value: activeSlots, icon: UserCheck, color: '#16A34A', bg: '#F0FDF4' },
-    { label: 'Vacancies', value: vacancies, icon: UserX, color: '#D97706', bg: '#FFFBEB' },
-    { label: 'Pending Apps', value: pendingAppsCount, icon: Clock, color: '#7C3AED', bg: '#F5F3FF' },
+    { label: 'Total Members', value: totalMembers, icon: Users, color: '#2563EB', bgClass: 'bg-blue-100 dark:bg-blue-900/40' },
+    { label: 'Active Slots', value: activeSlots, icon: UserCheck, color: '#16A34A', bgClass: 'bg-green-100 dark:bg-green-900/40' },
+    { label: 'Vacancies', value: vacancies, icon: UserX, color: '#D97706', bgClass: 'bg-amber-100 dark:bg-amber-900/40' },
+    { label: 'Pending Apps', value: pendingAppsCount, icon: Clock, color: '#7C3AED', bgClass: 'bg-violet-100 dark:bg-violet-900/40' },
   ];
 
   return (
-    <View style={styles.grid}>
+    <View className="flex-row flex-wrap gap-2.5 px-4 pt-3.5 pb-1">
       {stats.map(s => {
         const Icon = s.icon;
         return (
-          <View key={s.label} style={styles.card}>
-            <View style={[styles.iconBox, { backgroundColor: s.bg }]}>
+          <View key={s.label} className="w-[48%] bg-card rounded-2xl p-3.5 border border-border flex-row items-center gap-2.5">
+            <View className={`w-[38px] h-[38px] rounded-xl items-center justify-center ${s.bgClass}`}>
               <Icon size={18} color={s.color} />
             </View>
-            <View style={styles.textBox}>
-              <Text style={styles.value}>{s.value}</Text>
-              <Text style={styles.label}>{s.label}</Text>
+            <View className="flex-1">
+              <Text className="text-xl font-extrabold text-foreground">{s.value}</Text>
+              <Text className="text-[11px] text-muted-foreground font-medium mt-0.5">{s.label}</Text>
             </View>
           </View>
         );
@@ -39,46 +39,3 @@ export function SummaryCards({ slots, pendingAppsCount }: SummaryCardsProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 4,
-  },
-  card: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  iconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textBox: {
-    flex: 1,
-  },
-  value: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  label: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '500',
-    marginTop: 2,
-  },
-});

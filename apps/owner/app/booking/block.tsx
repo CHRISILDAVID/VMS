@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Check, Ban } from 'lucide-react-native';
@@ -9,7 +9,7 @@ import { useCourts } from '../../hooks/useCourts';
 import { useVenueStore } from '../../stores/venueStore';
 import { useBlockSlot } from '../../features/bookings/hooks/useBookings';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { COLORS } from '@vms/shared/utils';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const durationOptions = [
   { label: '30 min', mins: 30 },
@@ -27,6 +27,7 @@ export default function BlockSlotScreen() {
   const params = useLocalSearchParams<{ courtId?: string; date?: string; hour?: string }>();
   const { selectedVenueId } = useVenueStore();
   const { ownerProfile } = useAuthContext();
+  const { colors } = useThemeColors();
   
   const { data: courts } = useCourts(selectedVenueId);
   const blockSlotMutation = useBlockSlot();
@@ -90,61 +91,59 @@ export default function BlockSlotScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.backIconBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color="#0F172A" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Block Slot</Text>
-        </View>
+      <View className="flex-row items-center gap-3 bg-card px-4 pt-3 pb-4 border-b border-border">
+        <TouchableOpacity className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center" onPress={() => router.back()}>
+          <ArrowLeft size={20} color={colors.foreground} />
+        </TouchableOpacity>
+        <Text className="text-lg font-extrabold text-foreground">Block Slot</Text>
       </View>
 
       <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+        <ScrollView className="flex-1 p-4" keyboardShouldPersistTaps="handled">
           
-          <View style={styles.infoBox}>
-            <Ban size={24} color="#DC2626" style={{ marginBottom: 8 }} />
-            <Text style={styles.infoTitle}>Block Court Availability</Text>
-            <Text style={styles.infoDesc}>
+          <View className="bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-800 rounded-xl p-4 mb-5 items-center">
+            <Ban size={24} color="#DC2626" className="mb-2" />
+            <Text className="text-base font-bold text-red-800 dark:text-red-500 mb-1.5">Block Court Availability</Text>
+            <Text className="text-[13px] text-red-800 dark:text-red-400 text-center leading-5">
               Blocking this court prevents anyone from booking it. Useful for maintenance, cleaning, or other manual overrides.
             </Text>
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Details</Text>
-            <View style={styles.detailsBox}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Court</Text>
-                <Text style={styles.detailValue}>{court?.name || 'Unknown'}</Text>
+          <View className="mb-5">
+            <Text className="text-[13px] font-bold text-foreground mb-2.5">Details</Text>
+            <View className="bg-card rounded-xl border border-border p-4 gap-3">
+              <View className="flex-row justify-between">
+                <Text className="text-sm font-medium text-muted-foreground">Court</Text>
+                <Text className="text-sm font-semibold text-foreground">{court?.name || 'Unknown'}</Text>
               </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Date</Text>
-                <Text style={styles.detailValue}>{dateStr}</Text>
+              <View className="flex-row justify-between">
+                <Text className="text-sm font-medium text-muted-foreground">Date</Text>
+                <Text className="text-sm font-semibold text-foreground">{dateStr}</Text>
               </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Start Time</Text>
-                <Text style={styles.detailValue}>{startTimeStr.substring(0, 5)}</Text>
+              <View className="flex-row justify-between">
+                <Text className="text-sm font-medium text-muted-foreground">Start Time</Text>
+                <Text className="text-sm font-semibold text-foreground">{startTimeStr.substring(0, 5)}</Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Duration</Text>
-            <View style={styles.durationsList}>
+          <View className="mb-5">
+            <Text className="text-[13px] font-bold text-foreground mb-2.5">Duration</Text>
+            <View className="gap-2.5">
               {durationOptions.map((opt) => {
                 const isActive = selectedDuration === opt.mins;
                 return (
                   <TouchableOpacity
                     key={opt.mins}
-                    style={[styles.durationCard, isActive && styles.durationCardActive]}
+                    className={`flex-row justify-between items-center p-3.5 rounded-xl border-[1.5px] ${isActive ? 'border-destructive bg-destructive/10' : 'border-border bg-card'}`}
                     onPress={() => setSelectedDuration(opt.mins)}
                   >
-                    <Text style={[styles.durationLabel, isActive && styles.durationLabelActive]}>
+                    <Text className={`text-sm ${isActive ? 'font-bold text-destructive dark:text-red-500' : 'font-semibold text-foreground'}`}>
                       {opt.label}
                     </Text>
                     {isActive && <Check size={20} color="#DC2626" />}
@@ -154,34 +153,35 @@ export default function BlockSlotScreen() {
             </View>
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Reason / Notes (Optional)</Text>
+          <View className="mb-5">
+            <Text className="text-[13px] font-bold text-foreground mb-2.5">Reason / Notes (Optional)</Text>
             <TextInput
-              style={styles.notesInput}
+              className="bg-card border-[1.5px] border-border rounded-xl p-3.5 min-h-[100px] text-[15px] text-foreground"
+              style={{ textAlignVertical: 'top' }}
               placeholder="e.g. Court cleaning, lights repair..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.mutedForeground}
               value={notes}
               onChangeText={setNotes}
               multiline
             />
           </View>
           
-          <View style={{ height: 40 }} />
+          <View className="h-10" />
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={styles.footer}>
+      <View className="p-4 bg-card border-t border-border">
         <TouchableOpacity 
-          style={styles.primaryBtn} 
+          className="bg-destructive flex-row items-center justify-center h-14 rounded-2xl gap-2.5 shadow-sm"
           onPress={handleBlock}
           disabled={blockSlotMutation.isPending}
         >
           {blockSlotMutation.isPending ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#FFFFFF" />
           ) : (
             <>
-              <Ban size={20} color="#fff" />
-              <Text style={styles.primaryBtnText}>Confirm Block</Text>
+              <Ban size={20} color="#FFFFFF" />
+              <Text className="text-base font-bold text-destructive-foreground">Confirm Block</Text>
             </>
           )}
         </TouchableOpacity>
@@ -189,111 +189,3 @@ export default function BlockSlotScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { 
-    backgroundColor: '#fff', 
-    paddingHorizontal: 16, 
-    paddingTop: 12, 
-    paddingBottom: 16, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9' 
-  },
-  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  backIconBtn: { 
-    width: 36, height: 36, 
-    borderRadius: 10, 
-    backgroundColor: '#F8FAFC', 
-    borderWidth: 1, borderColor: '#E2E8F0', 
-    alignItems: 'center', justifyContent: 'center' 
-  },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  body: { flex: 1, padding: 16 },
-  
-  infoBox: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#991B1B',
-    marginBottom: 6,
-  },
-  infoDesc: {
-    fontSize: 13,
-    color: '#991B1B',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-
-  fieldGroup: { marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
-  
-  detailsBox: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    padding: 16,
-    gap: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#0F172A',
-    fontWeight: '600',
-  },
-
-  durationsList: { gap: 10 },
-  durationCard: { 
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', 
-    padding: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#fff' 
-  },
-  durationCardActive: { borderColor: '#DC2626', backgroundColor: '#FEF2F2' },
-  durationLabel: { fontSize: 14, fontWeight: '600', color: '#0F172A' },
-  durationLabelActive: { color: '#DC2626', fontWeight: '700' },
-  
-  notesInput: {
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 14,
-    padding: 14,
-    minHeight: 100,
-    fontSize: 15,
-    color: '#0F172A',
-    textAlignVertical: 'top'
-  },
-  
-  footer: { 
-    padding: 16, 
-    backgroundColor: '#fff', 
-    borderTopWidth: 1, 
-    borderTopColor: '#F1F5F9' 
-  },
-  primaryBtn: { 
-    backgroundColor: '#DC2626', 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    height: 56, 
-    borderRadius: 16, 
-    gap: 10 
-  },
-  primaryBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-});

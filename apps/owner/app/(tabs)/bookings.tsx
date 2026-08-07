@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -67,18 +67,18 @@ export default function BookingsScreen() {
   const renderEmpty = () => {
     if (isLoading) {
       return (
-        <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#2563EB" />
+        <View className="flex-1 items-center justify-center px-10">
+          <ActivityIndicator size="large" color="#3B82F6" />
         </View>
       );
     }
     return (
-      <View style={styles.centerBox}>
-        <View style={styles.emptyIconBox}>
-          <Calendar size={32} color="#CBD5E1" />
+      <View className="flex-1 items-center justify-center px-10">
+        <View className="w-16 h-16 rounded-2xl bg-muted items-center justify-center mb-3">
+          <Calendar size={32} color="#94A3B8" />
         </View>
-        <Text style={styles.emptyTitle}>No {activeTab} bookings</Text>
-        <Text style={styles.emptySubtitle}>
+        <Text className="text-base font-bold text-muted-foreground mb-1">No {activeTab} bookings</Text>
+        <Text className="text-sm text-muted-foreground text-center">
           {searchQuery || hasFilters
             ? 'Try adjusting your search or filters'
             : 'Bookings will appear here'}
@@ -88,20 +88,20 @@ export default function BookingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Bookings</Text>
+      <View className="bg-card px-4 pt-3 pb-3 border-b border-border">
+        <View className="flex-row justify-between items-center mb-3">
+          <Text className="text-2xl font-extrabold text-foreground">Bookings</Text>
           <VenueSelector />
         </View>
 
         {/* Search Bar & Filter Button */}
-        <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
+        <View className="flex-row gap-2 mb-3">
+          <View className="flex-1 flex-row items-center bg-muted border border-border rounded-xl px-3 h-[42px] gap-2">
             <Search size={16} color="#94A3B8" />
             <TextInput
-              style={styles.searchInput}
+              className="flex-1 text-sm text-foreground"
               placeholder="Player name, phone or ID..."
               placeholderTextColor="#94A3B8"
               value={searchQuery}
@@ -115,25 +115,25 @@ export default function BookingsScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.filterBtn, hasFilters && styles.filterBtnActive]}
+            className={`w-[42px] h-[42px] rounded-xl border items-center justify-center relative ${hasFilters ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
             onPress={() => filterSheetRef.current?.expand()}
           >
-            <SlidersHorizontal size={16} color={hasFilters ? '#2563EB' : '#64748B'} />
-            {hasFilters && <View style={styles.filterDot} />}
+            <SlidersHorizontal size={16} color={hasFilters ? '#3B82F6' : '#64748B'} />
+            {hasFilters && <View className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-primary" />}
           </TouchableOpacity>
         </View>
 
         {/* Tabs */}
-        <View style={styles.tabsContainer}>
+        <View className="flex-row bg-muted rounded-xl p-1 gap-1">
           {TABS.map((tab) => {
             const active = activeTab === tab.value;
             return (
               <TouchableOpacity
                 key={tab.value}
-                style={[styles.tabBtn, active && styles.tabBtnActive]}
+                className={`flex-1 py-2 rounded-lg items-center justify-center ${active ? 'bg-card shadow-sm' : 'shadow-none'}`}
                 onPress={() => setActiveTab(tab.value)}
               >
-                <Text style={[styles.tabText, active && styles.tabTextActive]}>
+                <Text className={`text-xs ${active ? 'text-primary font-bold' : 'text-muted-foreground font-semibold'}`}>
                   {tab.label}
                 </Text>
               </TouchableOpacity>
@@ -153,10 +153,8 @@ export default function BookingsScreen() {
             onCollectPress={() => handleCollectPress(item)}
           />
         )}
-        contentContainerStyle={[
-          styles.listContent,
-          (!bookings || bookings.length === 0) && { flex: 1 },
-        ]}
+        contentContainerClassName="p-4"
+        contentContainerStyle={(!bookings || bookings.length === 0) && { flex: 1 }}
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
       />
@@ -186,159 +184,11 @@ export default function BookingsScreen() {
       />
 
       <TouchableOpacity
-        style={styles.fab}
+        className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-primary justify-center items-center shadow-lg"
         onPress={() => router.push('/booking/new' as any)}
       >
-        <Plus size={24} color="#fff" />
+        <Plus size={24} color="#ffffff" />
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  searchRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 42,
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#0F172A',
-  },
-  filterBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  filterBtnActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
-  },
-  filterDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#2563EB',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 3,
-    gap: 2,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabBtnActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  tabTextActive: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  listContent: {
-    padding: 16,
-  },
-  centerBox: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyIconBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#64748B',
-    marginBottom: 4,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-});

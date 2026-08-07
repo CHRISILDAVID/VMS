@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { Eye, ToggleLeft, ToggleRight, Edit2, Trash2, Plus } from 'lucide-react-native';
 import { MembershipSlotWithDetails } from '@vms/shared/services';
 import { useDeleteSlot, useToggleOpenSlot } from '../hooks/useMemberships';
 import { useVoidPaymentsForSlot } from '../../payments/hooks/usePayments';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 import { formatCurrency } from '@vms/shared/utils';
 
@@ -14,15 +15,15 @@ interface SlotsTabProps {
   onCreateSlot: () => void;
 }
 
-const skillColors: Record<string, { bg: string; text: string }> = {
-  beginner: { bg: '#F0FDF4', text: '#16A34A' },
-  intermediate: { bg: '#EFF6FF', text: '#2563EB' },
-  advanced: { bg: '#F5F3FF', text: '#7C3AED' },
-  recreational: { bg: '#FFFBEB', text: '#D97706' },
-  Beginner: { bg: '#F0FDF4', text: '#16A34A' },
-  Intermediate: { bg: '#EFF6FF', text: '#2563EB' },
-  Advanced: { bg: '#F5F3FF', text: '#7C3AED' },
-  Recreational: { bg: '#FFFBEB', text: '#D97706' },
+const skillClasses: Record<string, { bgClass: string; textClass: string; textColor: string }> = {
+  beginner: { bgClass: 'bg-green-100 dark:bg-green-900/40', textClass: 'text-green-600', textColor: '#16A34A' },
+  intermediate: { bgClass: 'bg-blue-100 dark:bg-blue-900/40', textClass: 'text-blue-600', textColor: '#2563EB' },
+  advanced: { bgClass: 'bg-violet-100 dark:bg-violet-900/40', textClass: 'text-violet-600', textColor: '#7C3AED' },
+  recreational: { bgClass: 'bg-amber-100 dark:bg-amber-900/40', textClass: 'text-amber-600', textColor: '#D97706' },
+  Beginner: { bgClass: 'bg-green-100 dark:bg-green-900/40', textClass: 'text-green-600', textColor: '#16A34A' },
+  Intermediate: { bgClass: 'bg-blue-100 dark:bg-blue-900/40', textClass: 'text-blue-600', textColor: '#2563EB' },
+  Advanced: { bgClass: 'bg-violet-100 dark:bg-violet-900/40', textClass: 'text-violet-600', textColor: '#7C3AED' },
+  Recreational: { bgClass: 'bg-amber-100 dark:bg-amber-900/40', textClass: 'text-amber-600', textColor: '#D97706' },
 };
 
 const dayNames: Record<string, string> = {
@@ -57,6 +58,7 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
   const deleteMutation = useDeleteSlot();
   const toggleMutation = useToggleOpenSlot();
   const voidMutation = useVoidPaymentsForSlot();
+  const { colors } = useThemeColors();
 
   const handleDelete = (slot: MembershipSlotWithDetails) => {
     Alert.alert(
@@ -88,50 +90,50 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
 
   if (slots.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>No Membership Slots</Text>
-        <Text style={styles.emptySub}>Create your first membership batch or training slot to start enrolling members.</Text>
-        <TouchableOpacity style={styles.createBtn} onPress={onCreateSlot}>
+      <View className="p-8 items-center justify-center">
+        <Text className="text-lg font-bold text-foreground mb-2">No Membership Slots</Text>
+        <Text className="text-sm text-muted-foreground text-center mb-5 leading-5">Create your first membership batch or training slot to start enrolling members.</Text>
+        <TouchableOpacity className="flex-row items-center gap-1.5 bg-primary px-5 py-3 rounded-xl" onPress={onCreateSlot}>
           <Plus size={16} color="#fff" />
-          <Text style={styles.createBtnText}>Create Slot</Text>
+          <Text className="text-sm font-bold text-white">Create Slot</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
       {slots.map(s => {
-        const sc = skillColors[s.skill_level] ?? { bg: '#F8FAFC', text: '#64748B' };
+        const sc = skillClasses[s.skill_level] ?? { bgClass: 'bg-muted', textClass: 'text-muted-foreground', textColor: '#64748B' };
         const activeCount = s.active_count || 0;
         const vacant = s.capacity - activeCount;
         const isOpen = s.is_recruiting;
         const progressWidth = Math.min((activeCount / Math.max(s.capacity, 1)) * 100, 100);
 
         return (
-          <TouchableOpacity key={s.id} style={styles.card} onPress={() => onViewMembers(s)} activeOpacity={0.7}>
+          <TouchableOpacity key={s.id} className="bg-card rounded-2xl p-4 border border-border mb-3" onPress={() => onViewMembers(s)} activeOpacity={0.7}>
             {/* Top Row */}
-            <View style={styles.headerRow}>
-              <View style={styles.titleArea}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.name}>{s.name}</Text>
-                  <View style={[styles.statusBadge, { backgroundColor: isOpen ? '#F0FDF4' : '#F1F5F9' }]}>
-                    <Text style={[styles.statusText, { color: isOpen ? '#16A34A' : '#94A3B8' }]}>
+            <View className="flex-row justify-between items-start mb-3">
+              <View className="flex-1 pr-2">
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-base font-extrabold text-foreground">{s.name}</Text>
+                  <View className={`px-2 py-0.5 rounded-full ${isOpen ? 'bg-green-100 dark:bg-green-900/40' : 'bg-muted'}`}>
+                    <Text className={`text-[10px] font-bold ${isOpen ? 'text-green-600' : 'text-muted-foreground'}`}>
                       {isOpen ? 'OPEN' : 'CLOSED'}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.subText}>
+                <Text className="text-xs text-muted-foreground mt-1">
                   {formatDays(s.playing_days)} · {formatTime(s.start_time)} – {formatTime(s.end_time)}
                 </Text>
               </View>
-              <View style={styles.priceArea}>
-                <Text style={styles.fee}>
+              <View className="items-end">
+                <Text className="text-base font-extrabold text-primary">
                   {formatCurrency(s.monthly_fee)}
-                  <Text style={styles.mo}>/mo</Text>
+                  <Text className="text-[11px] font-semibold text-muted-foreground">/mo</Text>
                 </Text>
-                <View style={[styles.skillBadge, { backgroundColor: sc.bg }]}>
-                  <Text style={[styles.skillText, { color: sc.text }]}>
+                <View className={`px-2 py-0.5 rounded-full mt-1 ${sc.bgClass}`}>
+                  <Text className={`text-[10px] font-bold ${sc.textClass}`}>
                     {s.skill_level ? s.skill_level.charAt(0).toUpperCase() + s.skill_level.slice(1) : 'General'}
                   </Text>
                 </View>
@@ -139,45 +141,44 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
             </View>
 
             {/* Capacity bar */}
-            <View style={styles.capacitySection}>
-              <View style={styles.capacityLabels}>
-                <Text style={styles.memberCount}>{activeCount}/{s.capacity} members</Text>
-                <Text style={[styles.vacanciesText, { color: vacant > 0 ? '#16A34A' : '#DC2626' }]}>
+            <View className="mb-3.5">
+              <View className="flex-row justify-between mb-1.5">
+                <Text className="text-xs font-semibold text-muted-foreground">{activeCount}/{s.capacity} members</Text>
+                <Text className={`text-xs font-bold ${vacant > 0 ? 'text-green-600' : 'text-destructive'}`}>
                   {vacant > 0 ? `${vacant} vacanc${vacant === 1 ? 'y' : 'ies'}` : 'Full'}
                 </Text>
               </View>
-              <View style={styles.progressBg}>
+              <View className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${progressWidth}%`,
-                      backgroundColor: activeCount >= s.capacity ? '#DC2626' : '#2563EB',
-                    },
-                  ]}
+                  style={{
+                    height: '100%',
+                    borderRadius: 3,
+                    width: `${progressWidth}%`,
+                    backgroundColor: activeCount >= s.capacity ? colors.destructive : colors.primary,
+                  }}
                 />
               </View>
             </View>
 
             {/* Actions */}
-            <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.membersBtn} onPress={() => onViewMembers(s)}>
-                <Eye size={14} color="#2563EB" />
-                <Text style={styles.membersBtnText}>Members ({activeCount})</Text>
+            <View className="flex-row gap-2 items-center">
+              <TouchableOpacity className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 bg-primary/10 border border-primary/20 rounded-xl" onPress={() => onViewMembers(s)}>
+                <Eye size={14} color={colors.primary} />
+                <Text className="text-[13px] font-bold text-primary">Members ({activeCount})</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionIconBtn, { backgroundColor: isOpen ? '#FEF2F2' : '#F0FDF4', borderColor: isOpen ? '#FECACA' : '#BBF7D0' }]}
+                className={`w-[38px] h-[38px] rounded-xl border items-center justify-center ${isOpen ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'}`}
                 onPress={() => handleToggle(s)}
               >
                 {isOpen ? <ToggleRight size={18} color="#DC2626" /> : <ToggleLeft size={18} color="#16A34A" />}
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionIconBtn} onPress={() => onEditSlot(s)}>
-                <Edit2 size={15} color="#64748B" />
+              <TouchableOpacity className="w-[38px] h-[38px] rounded-xl bg-muted border border-border items-center justify-center" onPress={() => onEditSlot(s)}>
+                <Edit2 size={15} color={colors.mutedForeground} />
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.actionIconBtn, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]} onPress={() => handleDelete(s)}>
+              <TouchableOpacity className="w-[38px] h-[38px] rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 items-center justify-center" onPress={() => handleDelete(s)}>
                 <Trash2 size={15} color="#DC2626" />
               </TouchableOpacity>
             </View>
@@ -187,166 +188,3 @@ export function SlotsTab({ slots, onViewMembers, onEditSlot, onCreateSlot }: Slo
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    gap: 12,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    marginBottom: 12,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  titleArea: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  subText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  priceArea: {
-    alignItems: 'flex-end',
-  },
-  fee: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  mo: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  skillBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-    marginTop: 4,
-  },
-  skillText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  capacitySection: {
-    marginBottom: 14,
-  },
-  capacityLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  memberCount: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  vacanciesText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  progressBg: {
-    height: 6,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  membersBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderRadius: 10,
-  },
-  membersBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#2563EB',
-  },
-  actionIconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyContainer: {
-    padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 8,
-  },
-  emptySub: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  createBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  createBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-});

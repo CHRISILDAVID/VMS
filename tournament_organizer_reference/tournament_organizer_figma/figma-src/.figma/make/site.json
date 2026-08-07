@@ -1,0 +1,10 @@
+{
+  "description": "Manage badminton tournaments with a sleek dashboard for team entry, pool generation, league and knockout stages, live scoring, and detailed stats.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

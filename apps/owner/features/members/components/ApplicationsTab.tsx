@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert } from 'react-native';
 import { Check, Dumbbell, Star, Calendar, UserCheck, UserPlus, X } from 'lucide-react-native';
 import { MembershipApplicationWithDetails } from '@vms/shared/services';
 import { useApplications, useAcceptApplication, useRejectApplication, useInviteToGuestPlay } from '../hooks/useMemberships';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 export function ApplicationsTab() {
   const { data: applications = [], isLoading } = useApplications();
   const acceptMutation = useAcceptApplication();
   const rejectMutation = useRejectApplication();
   const inviteMutation = useInviteToGuestPlay();
+  const { colors } = useThemeColors();
 
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [inviteApp, setInviteApp] = useState<MembershipApplicationWithDetails | null>(null);
@@ -58,100 +60,100 @@ export function ApplicationsTab() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.loadingText}>Loading applications...</Text>
+      <View className="flex-1 items-center justify-center p-10 bg-background">
+        <Text className="text-sm text-muted-foreground">Loading applications...</Text>
       </View>
     );
   }
 
   if (visibleApps.length === 0) {
     return (
-      <View style={styles.centerContainer}>
-        <View style={styles.iconCircle}>
-          <Check size={28} color="#CBD5E1" />
+      <View className="flex-1 items-center justify-center p-10 bg-background">
+        <View className="w-[60px] h-[60px] rounded-[18px] bg-muted items-center justify-center mb-3">
+          <Check size={28} color={colors.mutedForeground} />
         </View>
-        <Text style={styles.emptyTitle}>All caught up!</Text>
-        <Text style={styles.emptySub}>No pending applications</Text>
+        <Text className="text-base font-bold text-muted-foreground">All caught up!</Text>
+        <Text className="text-[13px] text-muted-foreground mt-1">No pending applications</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 16, paddingBottom: 88, gap: 12 }} showsVerticalScrollIndicator={false}>
       {visibleApps.map(a => {
         const photoInitial = a.applicant_name ? a.applicant_name.charAt(0).toUpperCase() : '?';
         const isReview = a.status === 'invited_guest';
 
         return (
-          <View key={a.id} style={styles.card}>
-            <View style={styles.topRow}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{photoInitial}</Text>
+          <View key={a.id} className="bg-card rounded-2xl p-4 border border-border">
+            <View className="flex-row items-center gap-3 mb-3.5">
+              <View className="w-[46px] h-[46px] rounded-2xl bg-primary/10 items-center justify-center">
+                <Text className="text-lg font-extrabold text-primary">{photoInitial}</Text>
               </View>
-              <View style={styles.info}>
-                <Text style={styles.name}>{a.applicant_name || 'Applicant'}</Text>
-                <Text style={styles.subText}>
-                  Applied for: <Text style={styles.slotHighlight}>{a.slot?.name || 'Badminton Slot'}</Text>
+              <View className="flex-1">
+                <Text className="text-base font-bold text-foreground">{a.applicant_name || 'Applicant'}</Text>
+                <Text className="text-xs text-muted-foreground mt-0.5">
+                  Applied for: <Text className="font-bold text-primary">{a.slot?.name || 'Badminton Slot'}</Text>
                 </Text>
               </View>
-              <View style={[styles.statusBadge, isReview && styles.statusBadgeReview]}>
-                <Text style={[styles.statusText, isReview && styles.statusTextReview]}>
+              <View className={`px-2.5 py-1 rounded-full ${isReview ? 'bg-amber-50 dark:bg-amber-900/30' : 'bg-green-50 dark:bg-green-900/30'}`}>
+                <Text className={`text-[11px] font-bold ${isReview ? 'text-amber-600' : 'text-green-600'}`}>
                   {isReview ? 'Invited' : 'New'}
                 </Text>
               </View>
             </View>
 
             {/* Tags row */}
-            <View style={styles.tagsRow}>
+            <View className="flex-row flex-wrap gap-2 mb-3.5">
               {a.skill_level && (
-                <View style={styles.tag}>
-                  <Dumbbell size={12} color="#94A3B8" />
-                  <Text style={styles.tagText}>{a.skill_level}</Text>
+                <View className="flex-row items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
+                  <Dumbbell size={12} color={colors.mutedForeground} />
+                  <Text className="text-xs font-semibold text-muted-foreground capitalize">{a.skill_level}</Text>
                 </View>
               )}
               {a.experience && (
-                <View style={styles.tag}>
-                  <Star size={12} color="#94A3B8" />
-                  <Text style={styles.tagText}>{a.experience}</Text>
+                <View className="flex-row items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
+                  <Star size={12} color={colors.mutedForeground} />
+                  <Text className="text-xs font-semibold text-muted-foreground capitalize">{a.experience}</Text>
                 </View>
               )}
               {a.preferred_days && a.preferred_days.length > 0 && (
-                <View style={styles.tag}>
-                  <Calendar size={12} color="#94A3B8" />
-                  <Text style={styles.tagText}>{a.preferred_days.join(', ')}</Text>
+                <View className="flex-row items-center gap-1.5 bg-muted rounded-lg px-2.5 py-1.5">
+                  <Calendar size={12} color={colors.mutedForeground} />
+                  <Text className="text-xs font-semibold text-muted-foreground capitalize">{a.preferred_days.join(', ')}</Text>
                 </View>
               )}
             </View>
 
             {/* Actions row */}
-            <View style={styles.actionsRow}>
+            <View className="flex-row gap-2">
               <TouchableOpacity
-                style={[styles.actionBtn, styles.acceptBtn, acceptMutation.isPending && styles.btnDisabled]}
+                className={`flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 ${acceptMutation.isPending ? 'opacity-50' : ''}`}
                 onPress={() => handleAccept(a)}
                 disabled={acceptMutation.isPending}
               >
                 <UserCheck size={15} color="#16A34A" />
-                <Text style={[styles.actionText, { color: '#16A34A' }]}>Accept</Text>
+                <Text className="text-[13px] font-bold text-green-600">Accept</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionBtn, styles.guestBtn]}
+                className="flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] bg-primary/10 border-primary/30"
                 onPress={() => {
                   setInviteApp(a);
                   setScheduledDate(new Date(Date.now() + 86400000).toISOString().split('T')[0]);
                 }}
               >
-                <UserPlus size={15} color="#2563EB" />
-                <Text style={[styles.actionText, { color: '#2563EB' }]}>Guest Play</Text>
+                <UserPlus size={15} color={colors.primary} />
+                <Text className="text-[13px] font-bold text-primary">Guest Play</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionBtn, styles.rejectBtn, rejectMutation.isPending && styles.btnDisabled]}
+                className={`flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 ${rejectMutation.isPending ? 'opacity-50' : ''}`}
                 onPress={() => handleReject(a)}
                 disabled={rejectMutation.isPending}
               >
                 <X size={15} color="#DC2626" />
-                <Text style={[styles.actionText, { color: '#DC2626' }]}>Reject</Text>
+                <Text className="text-[13px] font-bold text-destructive">Reject</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -160,54 +162,55 @@ export function ApplicationsTab() {
 
       {/* Invite to Guest Play Modal */}
       <Modal visible={!!inviteApp} animationType="fade" transparent onRequestClose={() => setInviteApp(null)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Invite to Guest Play</Text>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setInviteApp(null)}>
-                <X size={16} color="#64748B" />
+        <View className="flex-1 bg-black/50 justify-center p-5">
+          <View className="bg-card rounded-[20px] overflow-hidden shadow-xl">
+            <View className="flex-row justify-between items-center px-5 py-3.5 border-b border-border">
+              <Text className="text-base font-extrabold text-foreground">Invite to Guest Play</Text>
+              <TouchableOpacity className="w-[30px] h-[30px] rounded-full bg-muted items-center justify-center" onPress={() => setInviteApp(null)}>
+                <X size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalSub}>
-                Scheduling a trial session for <Text style={{ fontWeight: '700', color: '#0F172A' }}>{inviteApp?.applicant_name}</Text> in <Text style={{ fontWeight: '700', color: '#2563EB' }}>{inviteApp?.slot?.name || 'slot'}</Text>.
+            <View className="p-5">
+              <Text className="text-[13px] text-muted-foreground leading-5 mb-4">
+                Scheduling a trial session for <Text className="font-bold text-foreground">{inviteApp?.applicant_name}</Text> in <Text className="font-bold text-primary">{inviteApp?.slot?.name || 'slot'}</Text>.
               </Text>
 
-              <Text style={styles.label}>Scheduled Date (YYYY-MM-DD)</Text>
+              <Text className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Scheduled Date (YYYY-MM-DD)</Text>
               <TextInput
-                style={styles.input}
+                className="bg-card border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-3"
                 value={scheduledDate}
                 onChangeText={setScheduledDate}
                 placeholder="2026-07-28"
+                placeholderTextColor={colors.mutedForeground}
               />
 
-              <View style={styles.quickDates}>
+              <View className="flex-row gap-2 mb-5">
                 <TouchableOpacity
-                  style={styles.quickDateBtn}
+                  className="flex-1 py-2 bg-card border border-border rounded-lg items-center"
                   onPress={() => setScheduledDate(new Date().toISOString().split('T')[0])}
                 >
-                  <Text style={styles.quickDateText}>Today</Text>
+                  <Text className="text-xs font-semibold text-muted-foreground">Today</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.quickDateBtn}
+                  className="flex-1 py-2 bg-card border border-border rounded-lg items-center"
                   onPress={() => setScheduledDate(new Date(Date.now() + 86400000).toISOString().split('T')[0])}
                 >
-                  <Text style={styles.quickDateText}>Tomorrow</Text>
+                  <Text className="text-xs font-semibold text-muted-foreground">Tomorrow</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.quickDateBtn}
+                  className="flex-1 py-2 bg-card border border-border rounded-lg items-center"
                   onPress={() => setScheduledDate(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0])}
                 >
-                  <Text style={styles.quickDateText}>Day After</Text>
+                  <Text className="text-xs font-semibold text-muted-foreground">Day After</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity
-                style={[styles.confirmBtn, (!scheduledDate.trim() || inviteMutation.isPending) && styles.btnDisabled]}
+                className={`bg-primary py-3.5 rounded-xl items-center ${(!scheduledDate.trim() || inviteMutation.isPending) ? 'opacity-50' : ''}`}
                 onPress={handleConfirmInvite}
                 disabled={!scheduledDate.trim() || inviteMutation.isPending}
               >
-                <Text style={styles.confirmText}>
+                <Text className="text-white text-[15px] font-bold">
                   {inviteMutation.isPending ? 'Sending Invite...' : 'Confirm Invitation'}
                 </Text>
               </TouchableOpacity>
@@ -218,251 +221,3 @@ export function ApplicationsTab() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 88,
-    gap: 12,
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-    backgroundColor: '#F8FAFC',
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  emptySub: {
-    fontSize: 13,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 14,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  subText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  slotHighlight: {
-    fontWeight: '700',
-    color: '#2563EB',
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    backgroundColor: '#F0FDF4',
-  },
-  statusBadgeReview: {
-    backgroundColor: '#FFFBEB',
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#16A34A',
-  },
-  statusTextReview: {
-    color: '#D97706',
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  tagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-    textTransform: 'capitalize',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-  },
-  acceptBtn: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
-  },
-  guestBtn: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-  },
-  rejectBtn: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FCA5A5',
-  },
-  actionText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  btnDisabled: {
-    opacity: 0.5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalSheet: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalContent: {
-    padding: 20,
-  },
-  modalSub: {
-    fontSize: 13,
-    color: '#64748B',
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-    marginBottom: 12,
-  },
-  quickDates: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
-  },
-  quickDateBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  quickDateText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  confirmBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  confirmText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});

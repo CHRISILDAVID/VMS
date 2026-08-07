@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, Calendar, IndianRupee, Pencil, MoveRight, XCircle, PlayCircle, CheckCircle2 } from 'lucide-react-native';
@@ -18,10 +18,12 @@ import {
 } from '../../features/bookings/hooks/useBookings';
 import { useCourts } from '../../hooks/useCourts';
 import { formatPhone } from '@vms/shared/utils';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export default function BookingDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { colors } = useThemeColors();
 
   const { data: booking, isLoading, error } = useBookingDetail(id);
   const { data: courts } = useCourts(booking?.venue_id || null);
@@ -48,18 +50,18 @@ export default function BookingDetailsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
+      <SafeAreaView className="flex-1 items-center justify-center p-5 bg-background">
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   if (error || !booking) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <Text style={styles.errorText}>Failed to load booking details</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+      <SafeAreaView className="flex-1 items-center justify-center p-5 bg-background">
+        <Text className="text-base text-destructive mb-4">Failed to load booking details</Text>
+        <TouchableOpacity className="px-5 py-2.5 bg-primary rounded-xl" onPress={() => router.back()}>
+          <Text className="text-primary-foreground font-bold">Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -126,47 +128,47 @@ export default function BookingDetailsScreen() {
     });
   };
 
-  const RowItem = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
-    <View style={styles.rowItem}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[styles.rowValue, valueColor ? { color: valueColor } : null]}>{value}</Text>
+  const RowItem = ({ label, value, valueColorClass }: { label: string; value: string; valueColorClass?: string }) => (
+    <View className="flex-row justify-between items-center py-2.5 border-b border-border/50">
+      <Text className="text-[13px] font-medium text-muted-foreground">{label}</Text>
+      <Text className={`text-[13px] font-semibold ${valueColorClass || 'text-foreground'}`}>{value}</Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
-          <ArrowLeft size={20} color="#0F172A" />
+      <View className="flex-row items-center justify-between px-4 py-3 bg-card border-b border-border">
+        <TouchableOpacity className="w-9 h-9 rounded-xl bg-muted items-center justify-center" onPress={() => router.back()}>
+          <ArrowLeft size={20} color={colors.foreground} />
         </TouchableOpacity>
-        <View style={styles.headerTitleBox}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
+        <View className="flex-1 mx-3">
+          <Text className="text-base font-extrabold text-foreground" numberOfLines={1}>
             {customerName}
           </Text>
-          <Text style={styles.headerSubtitle}>{booking.booking_number}</Text>
+          <Text className="text-xs text-muted-foreground mt-0.5">{booking.booking_number}</Text>
         </View>
         <StatusChip status={booking.status} />
       </View>
 
-      <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Customer Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>CUSTOMER</Text>
-          <View style={styles.customerRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
+        <View className="bg-card rounded-2xl p-4 mb-3.5 border border-border/50 shadow-sm">
+          <Text className="text-[11px] font-bold text-muted-foreground tracking-wide mb-3">CUSTOMER</Text>
+          <View className="flex-row items-center gap-3">
+            <View className="w-11 h-11 rounded-xl bg-primary/10 items-center justify-center">
+              <Text className="text-lg font-extrabold text-primary">{initial}</Text>
             </View>
-            <View style={styles.customerInfo}>
-              <Text style={styles.customerNameText}>{customerName}</Text>
-              <Text style={styles.customerPhoneText}>{phone || 'No phone'}</Text>
+            <View className="flex-1">
+              <Text className="text-[15px] font-bold text-foreground">{customerName}</Text>
+              <Text className="text-[13px] text-muted-foreground mt-0.5">{phone || 'No phone'}</Text>
             </View>
             {phone ? (
-              <View style={styles.customerActions}>
-                <TouchableOpacity style={styles.actionIconBtn} onPress={handlePhonePress}>
-                  <Phone size={16} color="#64748B" />
+              <View className="flex-row gap-2">
+                <TouchableOpacity className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center" onPress={handlePhonePress}>
+                  <Phone size={16} color={colors.mutedForeground} />
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionIconBtn, styles.whatsappBtn]} onPress={handleWhatsAppPress}>
+                <TouchableOpacity className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 items-center justify-center" onPress={handleWhatsAppPress}>
                   <MessageCircle size={16} color="#16A34A" />
                 </TouchableOpacity>
               </View>
@@ -175,8 +177,8 @@ export default function BookingDetailsScreen() {
         </View>
 
         {/* Booking Details Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>BOOKING DETAILS</Text>
+        <View className="bg-card rounded-2xl p-4 mb-3.5 border border-border/50 shadow-sm">
+          <Text className="text-[11px] font-bold text-muted-foreground tracking-wide mb-3">BOOKING DETAILS</Text>
           <RowItem label="Court" value={booking.court?.name || 'Court'} />
           <RowItem label="Date" value={booking.date} />
           <RowItem label="Time" value={`${formattedStart} – ${formattedEnd}`} />
@@ -187,59 +189,59 @@ export default function BookingDetailsScreen() {
         {/* Payment Section */}
         <TouchableOpacity 
           activeOpacity={0.7} 
-          style={styles.card}
+          className="bg-card rounded-2xl p-4 mb-3.5 border border-border/50 shadow-sm"
           onPress={() => {
             if (booking.status !== 'cancelled') setPaymentModalVisible(true);
           }}
         >
-          <Text style={styles.cardHeader}>PAYMENT</Text>
+          <Text className="text-[11px] font-bold text-muted-foreground tracking-wide mb-3">PAYMENT</Text>
           <RowItem label="Total" value={`₹${totalRs}`} />
           <RowItem label="Advance Paid" value={`₹${advanceRs}`} />
-          <View style={styles.pendingRow}>
-            <Text style={[styles.pendingLabel, { color: pendingRs > 0 ? '#DC2626' : '#16A34A' }]}>Pending</Text>
-            <Text style={[styles.pendingValue, { color: pendingRs > 0 ? '#DC2626' : '#16A34A' }]}>₹{pendingRs}</Text>
+          <View className="flex-row justify-between items-center py-3 border-b border-border/50">
+            <Text className={`text-sm font-bold ${pendingRs > 0 ? 'text-destructive dark:text-red-500' : 'text-green-600 dark:text-green-500'}`}>Pending</Text>
+            <Text className={`text-base font-extrabold ${pendingRs > 0 ? 'text-destructive dark:text-red-500' : 'text-green-600 dark:text-green-500'}`}>₹{pendingRs}</Text>
           </View>
-          <View style={styles.paymentStatusRow}>
+          <View className="pt-3 items-start">
             <StatusChip status={booking.payment_status} />
           </View>
         </TouchableOpacity>
 
         {/* Notes Section */}
         {booking.notes ? (
-          <View style={[styles.card, styles.notesCard]}>
-            <Text style={styles.notesHeader}>NOTES</Text>
-            <Text style={styles.notesText}>{booking.notes}</Text>
+          <View className="bg-amber-50 dark:bg-amber-900/30 rounded-2xl p-4 mb-3.5 border border-amber-200 dark:border-amber-800 shadow-sm">
+            <Text className="text-[11px] font-bold text-amber-800 dark:text-amber-600 tracking-wide mb-1.5">NOTES</Text>
+            <Text className="text-[13px] text-amber-900 dark:text-amber-500 leading-tight">{booking.notes}</Text>
           </View>
         ) : null}
       </ScrollView>
 
       {/* Footer Actions */}
-      <View style={styles.footer}>
+      <View className="bg-card px-4 py-3 border-t border-border gap-2.5">
         {pendingRs > 0 && booking.status !== 'cancelled' && (
           <TouchableOpacity
-            style={styles.collectBtn}
+            className="flex-row items-center justify-center gap-2 bg-primary py-3.5 rounded-2xl shadow-sm"
             onPress={() => setPaymentModalVisible(true)}
           >
-            <IndianRupee size={18} color="#fff" />
-            <Text style={styles.collectBtnText}>Collect ₹{pendingRs}</Text>
+            <IndianRupee size={18} color={colors.primaryForeground} />
+            <Text className="text-[15px] font-bold text-primary-foreground">Collect ₹{pendingRs}</Text>
           </TouchableOpacity>
         )}
 
         {booking.status !== 'cancelled' && (
-          <View style={styles.actionButtonsRow}>
+          <View className="flex-row gap-2.5">
             <TouchableOpacity
-              style={[styles.actionBtn, styles.moveBtn]}
+              className="flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] border-primary/30 bg-primary/10"
               onPress={() => setMoveModalVisible(true)}
             >
-              <MoveRight size={16} color="#2563EB" />
-              <Text style={styles.moveBtnText}>Move Slot</Text>
+              <MoveRight size={16} color={colors.primary} />
+              <Text className="text-[13px] font-bold text-primary">Move Slot</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionBtn, styles.cancelBtn]}
+              className="flex-1 flex-row items-center justify-center gap-1.5 py-3 rounded-xl border-[1.5px] border-destructive/30 bg-destructive/10"
               onPress={() => setCancelModalVisible(true)}
             >
-              <XCircle size={16} color="#DC2626" />
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+              <XCircle size={16} color={colors.destructive} />
+              <Text className="text-[13px] font-bold text-destructive">Cancel</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -268,245 +270,3 @@ export default function BookingDetailsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#F8FAFC',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#DC2626',
-    marginBottom: 16,
-  },
-  backButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#2563EB',
-    borderRadius: 12,
-  },
-  backButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitleBox: {
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  body: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  cardHeader: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 0.6,
-    marginBottom: 12,
-  },
-  customerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  customerInfo: {
-    flex: 1,
-  },
-  customerNameText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  customerPhoneText: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  customerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  whatsappBtn: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
-  },
-  rowItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  rowLabel: {
-    fontSize: 13,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  rowValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  pendingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  pendingLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  pendingValue: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  paymentStatusRow: {
-    paddingTop: 12,
-    alignItems: 'flex-start',
-  },
-  notesCard: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-  },
-  notesHeader: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#92400E',
-    letterSpacing: 0.6,
-    marginBottom: 6,
-  },
-  notesText: {
-    fontSize: 13,
-    color: '#78350F',
-    lineHeight: 18,
-  },
-  footer: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    gap: 10,
-  },
-  collectBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    borderRadius: 14,
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  collectBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-  },
-  moveBtn: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-  },
-  moveBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#2563EB',
-  },
-  cancelBtn: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FCA5A5',
-  },
-  cancelBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#DC2626',
-  },
-});

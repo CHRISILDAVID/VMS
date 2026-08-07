@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, Alert } from 'react-native';
+import { View, ActivityIndicator, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import BottomSheet from '@gorhom/bottom-sheet';
@@ -165,10 +165,10 @@ export default function ScheduleScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Schedule</Text>
+      <View className="bg-card px-4 pt-3 pb-3 flex-row justify-between items-center border-b border-border">
+        <Text className="text-2xl font-extrabold text-foreground">Schedule</Text>
         <VenueSelector />
       </View>
 
@@ -179,18 +179,18 @@ export default function ScheduleScreen() {
       />
 
       {/* Grid */}
-      <View style={styles.content}>
+      <View className="flex-1">
         {!selectedVenueId ? (
-          <View style={styles.centerContainer}>
-            <Text style={styles.messageText}>Please select a venue first.</Text>
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-base font-semibold text-muted-foreground">Please select a venue first.</Text>
           </View>
         ) : isLoading ? (
-          <View style={styles.centerContainer}>
+          <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color={COLORS.primary} />
           </View>
         ) : (!courts || courts.length === 0) ? (
-          <View style={styles.centerContainer}>
-            <Text style={styles.messageText}>No courts found for this venue.</Text>
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-base font-semibold text-muted-foreground">No courts found for this venue.</Text>
           </View>
         ) : (
           <TimelineGrid
@@ -222,39 +222,3 @@ export default function ScheduleScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  content: {
-    flex: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  messageText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-});

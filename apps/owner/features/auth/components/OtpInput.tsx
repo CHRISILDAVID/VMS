@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
-import { COLORS } from '@vms/shared/utils';
+import { View, TextInput } from 'react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface OtpInputProps {
   length?: number;
@@ -12,6 +12,7 @@ interface OtpInputProps {
 export function OtpInput({ length = 6, value, onChange, error }: OtpInputProps) {
   const inputsRef = useRef<Array<TextInput | null>>([]);
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  const { colors } = useThemeColors();
 
   useEffect(() => {
     // Auto focus first input on mount
@@ -57,57 +58,34 @@ export function OtpInput({ length = 6, value, onChange, error }: OtpInputProps) 
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-row justify-between w-full mb-6">
       {Array(length)
         .fill(0)
-        .map((_, index) => (
-          <TextInput
-            key={index}
-            ref={(ref: any) => (inputsRef.current[index] = ref)}
-            style={[
-              styles.input,
-              focusedIndex === index && styles.inputFocused,
-              error && styles.inputError,
-            ]}
-            keyboardType="number-pad"
-            maxLength={1}
-            value={value[index] || ''}
-            onChangeText={(text) => handleChangeText(text, index)}
-            onKeyPress={(e) => handleKeyPress(e, index)}
-            onFocus={() => setFocusedIndex(index)}
-            onBlur={() => setFocusedIndex(-1)}
-            selectTextOnFocus
-          />
-        ))}
+        .map((_, index) => {
+          let baseClass = "w-12 h-14 bg-white/10 border rounded-xl text-white text-2xl font-semibold text-center";
+          let borderClass = "border-white/20";
+          if (error) {
+            borderClass = "border-destructive text-destructive";
+          } else if (focusedIndex === index) {
+            borderClass = "border-white bg-white/15";
+          }
+
+          return (
+            <TextInput
+              key={index}
+              ref={(ref: any) => (inputsRef.current[index] = ref)}
+              className={`${baseClass} ${borderClass}`}
+              keyboardType="number-pad"
+              maxLength={1}
+              value={value[index] || ''}
+              onChangeText={(text) => handleChangeText(text, index)}
+              onKeyPress={(e) => handleKeyPress(e, index)}
+              onFocus={() => setFocusedIndex(index)}
+              onBlur={() => setFocusedIndex(-1)}
+              selectTextOnFocus
+            />
+          );
+        })}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 24,
-  },
-  input: {
-    width: 48,
-    height: 56,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  inputFocused: {
-    borderColor: '#FFFFFF',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  inputError: {
-    borderColor: COLORS.dangerLight,
-    color: COLORS.dangerLight,
-  },
-});

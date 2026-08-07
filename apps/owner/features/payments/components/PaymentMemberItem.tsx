@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { formatCurrency, formatDate } from '@vms/shared/utils';
 import { CheckCircle2, Clock, CreditCard, Download, History, MessageCircle } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface PaymentMemberItemProps {
   payment: any;
@@ -13,78 +14,79 @@ interface PaymentMemberItemProps {
 export function PaymentMemberItem({ payment, slotName, slotPrice, onMarkPaid }: PaymentMemberItemProps) {
   const isPaid = payment.status === 'paid';
   const isOverdue = payment.status === 'overdue';
-  
-  // Choose colors based on status
-  const borderColor = isPaid ? '#16A34A' : isOverdue ? '#DC2626' : '#F59E0B';
-  const statusColor = isPaid ? '#16A34A' : isOverdue ? '#DC2626' : '#D97706';
+  const { colors } = useThemeColors();
+
+  // Status classes
+  const borderColorClass = isPaid ? 'border-l-green-600 dark:border-l-green-500' : isOverdue ? 'border-l-destructive dark:border-l-red-500' : 'border-l-amber-500 dark:border-l-amber-500';
+  const statusColorClass = isPaid ? 'text-green-600 dark:text-green-500' : isOverdue ? 'text-destructive dark:text-red-500' : 'text-amber-600 dark:text-amber-500';
 
   return (
-    <View style={[styles.container, { borderLeftColor: borderColor }]}>
-      <View style={styles.topRow}>
-        <Text style={styles.name}>{payment.members?.customers?.full_name}</Text>
-        <Text style={styles.amount}>{formatCurrency(payment.amount || slotPrice || 0)}</Text>
+    <View className={`bg-card p-4 rounded-xl border border-border border-l-4 shadow-sm ${borderColorClass}`}>
+      <View className="flex-row justify-between items-center mb-1">
+        <Text className="text-base font-extrabold text-foreground">{payment.members?.customers?.full_name}</Text>
+        <Text className="text-base font-extrabold text-foreground">{formatCurrency(payment.amount || slotPrice || 0)}</Text>
       </View>
       
-      <View style={styles.middleRow}>
-        <Text style={styles.slotName}>{slotName || 'Membership'}</Text>
-        <Text style={[styles.statusText, { color: statusColor }]}>
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-[13px] text-muted-foreground font-medium">{slotName || 'Membership'}</Text>
+        <Text className={`text-xs font-bold ${statusColorClass}`}>
           {isPaid ? 'Paid' : isOverdue ? 'Overdue' : 'Due Soon'}
         </Text>
       </View>
 
-      <View style={styles.badgesRow}>
+      <View className="flex-row gap-2 mb-4">
         {isPaid ? (
           <>
-            <View style={[styles.badge, styles.bgGreenBadge]}>
+            <View className="flex-row items-center px-2 py-1 bg-green-50 dark:bg-green-900/20 rounded-md gap-1">
               <CheckCircle2 size={12} color="#16A34A" />
-              <Text style={[styles.badgeText, styles.textGreen]}>
+              <Text className="text-[11px] font-semibold text-green-600 dark:text-green-500">
                 Paid {payment.paid_on ? formatDate(payment.paid_on) : ''}
               </Text>
             </View>
             {payment.payment_mode && (
-              <View style={[styles.badge, styles.bgGreyBadge]}>
-                <CreditCard size={12} color="#64748B" />
-                <Text style={[styles.badgeText, styles.textGrey]}>
+              <View className="flex-row items-center px-2 py-1 bg-muted rounded-md gap-1">
+                <CreditCard size={12} color={colors.mutedForeground} />
+                <Text className="text-[11px] font-semibold text-muted-foreground">
                   {payment.payment_mode.toUpperCase()}
                 </Text>
               </View>
             )}
           </>
         ) : (
-          <View style={[styles.badge, isOverdue ? styles.bgRedBadge : styles.bgYellowBadge]}>
+          <View className={`flex-row items-center px-2 py-1 rounded-md gap-1 ${isOverdue ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20'}`}>
             <Clock size={12} color={isOverdue ? '#DC2626' : '#D97706'} />
-            <Text style={[styles.badgeText, isOverdue ? styles.textRed : styles.textYellow]}>
+            <Text className={`text-[11px] font-semibold ${isOverdue ? 'text-destructive dark:text-red-500' : 'text-amber-600 dark:text-amber-500'}`}>
               Due {payment.due_date ? formatDate(payment.due_date) : ''}
             </Text>
           </View>
         )}
       </View>
 
-      <View style={styles.actionsRow}>
+      <View className="flex-row gap-2">
         {isPaid ? (
           <>
-            <TouchableOpacity style={styles.actionBtn}>
-              <History size={14} color="#64748B" />
-              <Text style={styles.actionBtnText}>History</Text>
+            <TouchableOpacity className="flex-1 flex-row items-center justify-center py-2 border border-border rounded-lg gap-1.5">
+              <History size={14} color={colors.mutedForeground} />
+              <Text className="text-xs font-bold text-muted-foreground">History</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Download size={14} color="#64748B" />
-              <Text style={styles.actionBtnText}>Receipt</Text>
+            <TouchableOpacity className="flex-1 flex-row items-center justify-center py-2 border border-border rounded-lg gap-1.5">
+              <Download size={14} color={colors.mutedForeground} />
+              <Text className="text-xs font-bold text-muted-foreground">Receipt</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
-            <TouchableOpacity style={[styles.actionBtn, styles.borderGreen]} onPress={onMarkPaid}>
+            <TouchableOpacity className="flex-1 flex-row items-center justify-center py-2 border border-green-200 dark:border-green-800 rounded-lg gap-1.5 bg-green-50/50 dark:bg-green-900/10" onPress={onMarkPaid}>
               <CheckCircle2 size={14} color="#16A34A" />
-              <Text style={[styles.actionBtnText, styles.textGreen]}>Mark Paid</Text>
+              <Text className="text-xs font-bold text-green-600 dark:text-green-500">Mark Paid</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionBtn, styles.borderBlue]}>
+            <TouchableOpacity className="flex-1 flex-row items-center justify-center py-2 border border-blue-200 dark:border-blue-800 rounded-lg gap-1.5 bg-blue-50/50 dark:bg-blue-900/10">
               <MessageCircle size={14} color="#2563EB" />
-              <Text style={[styles.actionBtnText, styles.textBlue]}>Remind</Text>
+              <Text className="text-xs font-bold text-blue-600 dark:text-blue-500">Remind</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn}>
-              <History size={14} color="#64748B" />
-              <Text style={styles.actionBtnText}>History</Text>
+            <TouchableOpacity className="flex-1 flex-row items-center justify-center py-2 border border-border rounded-lg gap-1.5">
+              <History size={14} color={colors.mutedForeground} />
+              <Text className="text-xs font-bold text-muted-foreground">History</Text>
             </TouchableOpacity>
           </>
         )}
@@ -92,98 +94,3 @@ export function PaymentMemberItem({ payment, slotName, slotPrice, onMarkPaid }: 
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  amount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  middleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  slotName: {
-    fontSize: 13,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  bgGreenBadge: { backgroundColor: '#F0FDF4' },
-  bgGreyBadge: { backgroundColor: '#F1F5F9' },
-  bgYellowBadge: { backgroundColor: '#FFFBEB' },
-  bgRedBadge: { backgroundColor: '#FEF2F2' },
-  textGreen: { color: '#16A34A' },
-  textGrey: { color: '#64748B' },
-  textYellow: { color: '#D97706' },
-  textRed: { color: '#DC2626' },
-  textBlue: { color: '#2563EB' },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    gap: 6,
-  },
-  actionBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  borderGreen: { borderColor: '#BBF7D0' },
-  borderBlue: { borderColor: '#BFDBFE' },
-});

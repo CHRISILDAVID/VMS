@@ -1,20 +1,22 @@
 import { Tabs } from 'expo-router';
 import { Calendar, BookOpen, Users, CreditCard, UserCircle } from 'lucide-react-native';
-import { COLORS } from '@vms/shared/utils';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export default function TabLayout() {
+  const { colors } = useThemeColors();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedForeground,
         tabBarStyle: {
           height: 72,
           paddingBottom: 12,
           paddingTop: 8,
           borderTopWidth: 1,
-          borderTopColor: COLORS.border,
-          backgroundColor: COLORS.surface,
+          borderTopColor: colors.border,
+          backgroundColor: colors.card,
         },
         tabBarLabelStyle: {
           fontSize: 11,

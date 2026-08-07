@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { useDefaulters, useVoidPayment } from '../hooks/usePayments';
 import {  formatCurrency , formatPhone } from '@vms/shared/utils';
 import { Check, X, AlertCircle } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface DefaultersListProps {
   venueId?: string;
@@ -11,6 +12,7 @@ interface DefaultersListProps {
 export function DefaultersList({ venueId }: DefaultersListProps) {
   const { data: defaulters, isLoading } = useDefaulters(venueId);
   const voidMutation = useVoidPayment();
+  const { colors } = useThemeColors();
 
   const handleVoid = (paymentId: string, memberName: string) => {
     Alert.alert(
@@ -29,18 +31,18 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>Loading defaulters...</Text>
+      <View className="p-8 items-center bg-background">
+        <Text className="text-sm text-muted-foreground text-center">Loading defaulters...</Text>
       </View>
     );
   }
 
   if (!defaulters || defaulters.length === 0) {
     return (
-      <View style={styles.emptyBox}>
-        <Check size={32} color="#16A34A" style={styles.emptyIcon} />
-        <Text style={styles.emptyTitle}>All Clear!</Text>
-        <Text style={styles.emptyText}>There are no pending payments for this venue.</Text>
+      <View className="p-8 items-center bg-green-50 dark:bg-green-900/20 m-4 rounded-xl border border-green-100 dark:border-green-900">
+        <Check size={32} color="#16A34A" className="mb-3" />
+        <Text className="text-lg font-bold text-green-800 dark:text-green-400 mb-2">All Clear!</Text>
+        <Text className="text-sm text-green-700 dark:text-green-500 text-center">There are no pending payments for this venue.</Text>
       </View>
     );
   }
@@ -49,7 +51,8 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
     <FlatList
       data={defaulters}
       keyExtractor={item => item.id}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={{ padding: 16, gap: 12 }}
+      className="bg-background"
       renderItem={({ item }) => {
         const anyItem = item as any;
         const memberName = anyItem.members?.customer?.full_name || 'Unknown Member';
@@ -58,40 +61,40 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
         const isDeleted = anyItem.membership_slots?.deleted_at != null;
         
         return (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
+          <View className="bg-card rounded-xl p-4 border border-border">
+            <View className="flex-row justify-between items-start mb-3">
               <View>
-                <Text style={styles.memberName}>{memberName}</Text>
-                <Text style={styles.phoneText}>{phone}</Text>
+                <Text className="text-base font-semibold text-foreground">{memberName}</Text>
+                <Text className="text-[13px] text-muted-foreground mt-0.5">{phone}</Text>
               </View>
-              <Text style={styles.amountText}>{formatCurrency(item.amount)}</Text>
+              <Text className="text-lg font-bold text-destructive">{formatCurrency(item.amount)}</Text>
             </View>
 
-            <View style={styles.detailsRow}>
-              <View style={styles.slotInfo}>
-                <Text style={styles.slotName}>{slotName}</Text>
+            <View className="flex-row justify-between items-center mb-4 pb-4 border-b border-border">
+              <View className="flex-row items-center gap-2">
+                <Text className="text-sm text-muted-foreground font-medium">{slotName}</Text>
                 {isDeleted && (
-                  <View style={styles.deletedBadge}>
-                    <Text style={styles.deletedText}>Deleted Slot</Text>
+                  <View className="bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded">
+                    <Text className="text-[11px] font-semibold text-destructive">Deleted Slot</Text>
                   </View>
                 )}
               </View>
-              <Text style={styles.periodText}>Period: {item.billing_period}</Text>
+              <Text className="text-[13px] text-muted-foreground">Period: {item.billing_period}</Text>
             </View>
 
-            <View style={styles.actionsRow}>
+            <View className="flex-row justify-between items-center">
               <TouchableOpacity 
-                style={styles.voidBtn} 
+                className="flex-row items-center gap-1.5 py-1.5 px-3 bg-red-50 dark:bg-red-900/20 rounded-md" 
                 onPress={() => handleVoid(item.id, memberName)}
                 disabled={voidMutation.isPending}
               >
                 <X size={16} color="#DC2626" />
-                <Text style={styles.voidBtnText}>Void</Text>
+                <Text className="text-sm font-semibold text-destructive">Void</Text>
               </TouchableOpacity>
               
-              <View style={styles.statusBadge}>
+              <View className="flex-row items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full">
                 <AlertCircle size={14} color="#D97706" />
-                <Text style={styles.statusText}>{item.status === 'overdue' ? 'Overdue' : 'Due'}</Text>
+                <Text className="text-xs font-semibold text-amber-600 dark:text-amber-500">{item.status === 'overdue' ? 'Overdue' : 'Due'}</Text>
               </View>
             </View>
           </View>
@@ -100,132 +103,3 @@ export function DefaultersList({ venueId }: DefaultersListProps) {
     />
   );
 }
-
-const styles = StyleSheet.create({
-  center: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyBox: {
-    padding: 32,
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    margin: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
-  },
-  emptyIcon: {
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#166534',
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#15803D',
-    textAlign: 'center',
-  },
-  listContent: {
-    padding: 16,
-    gap: 12,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  phoneText: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  amountText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#DC2626',
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  slotInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  slotName: {
-    fontSize: 14,
-    color: '#475569',
-    fontWeight: '500',
-  },
-  deletedBadge: {
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  deletedText: {
-    fontSize: 11,
-    color: '#DC2626',
-    fontWeight: '600',
-  },
-  periodText: {
-    fontSize: 13,
-    color: '#94A3B8',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  voidBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#FEF2F2',
-    borderRadius: 6,
-  },
-  voidBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#DC2626',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#FFFBEB',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#D97706',
-  },
-});

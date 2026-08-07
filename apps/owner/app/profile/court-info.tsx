@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Platform, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Linking, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Phone, Mail, Wifi, ParkingSquare, ShowerHead, Coffee, Camera, Check } from 'lucide-react-native';
 import { useVenues } from '../../hooks/useVenues';
 import { useVenueStore } from '../../stores/venueStore';
-import {  COLORS , formatPhone } from '@vms/shared/utils';
+import { formatPhone } from '@vms/shared/utils';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const amenityIcons: Record<string, React.ComponentType<any>> = {
   'Free Wi-Fi': Wifi,
@@ -14,25 +15,29 @@ const amenityIcons: Record<string, React.ComponentType<any>> = {
   'Cafeteria': Coffee,
 };
 
-const InfoRow = ({ label, value, Icon }: { label: string; value: string | undefined; Icon?: React.ComponentType<any> }) => (
-  <View style={styles.infoRow}>
-    {Icon && (
-      <View style={styles.iconBox}>
-        <Icon size={15} color="#2563EB" />
+const InfoRow = ({ label, value, Icon }: { label: string; value: string | undefined; Icon?: React.ComponentType<any> }) => {
+  const { colors } = useThemeColors();
+  return (
+    <View className="flex-row items-start py-3 border-b border-border">
+      {Icon && (
+        <View className="w-8 h-8 rounded-lg bg-primary/10 items-center justify-center mr-3 mt-0.5">
+          <Icon size={15} color={colors.primary} />
+        </View>
+      )}
+      <View className="flex-1">
+        <Text className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{label}</Text>
+        <Text className="text-sm font-semibold text-foreground leading-5">{value || 'Not provided'}</Text>
       </View>
-    )}
-    <View style={styles.infoContent}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value || 'Not provided'}</Text>
     </View>
-  </View>
-);
+  );
+};
 
 export default function CourtInformationScreen() {
   const router = useRouter();
   const { data: venues } = useVenues();
   const { selectedVenueId } = useVenueStore();
   const venue = venues?.find(v => v.id === selectedVenueId);
+  const { colors } = useThemeColors();
 
   const handleOpenMaps = () => {
     if (!venue?.latitude || !venue?.longitude) return;
@@ -52,8 +57,8 @@ export default function CourtInformationScreen() {
 
   if (!venue) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading venue...</Text>
+      <SafeAreaView className="flex-1 bg-background justify-center items-center">
+        <Text className="text-foreground">Loading venue...</Text>
       </SafeAreaView>
     );
   }
@@ -61,43 +66,43 @@ export default function CourtInformationScreen() {
   const fullAddress = [venue.address, venue.city, venue.state, venue.pincode].filter(Boolean).join(', ');
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={20} color="#0F172A" />
+      <View className="flex-row items-center bg-card px-4 py-3.5 border-b border-border">
+        <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 rounded-xl bg-muted border border-border items-center justify-center mr-3">
+          <ChevronLeft size={20} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Court Information</Text>
+        <Text className="text-lg font-extrabold text-foreground">Court Information</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         {/* Photos (Read Only) */}
-        <View style={styles.card}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
+        <View className="bg-card rounded-2xl p-4 mb-3.5 border border-border">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
             {venue.photos && venue.photos.length > 0 ? (
               venue.photos.map((url, i) => (
-                <View key={i} style={styles.photoWrapper}>
-                  <Image source={{ uri: url }} style={styles.photo} />
+                <View key={i} className="w-[200px] h-[130px] bg-muted mr-2 rounded-lg overflow-hidden">
+                  <Image source={{ uri: url }} className="w-full h-full" />
                 </View>
               ))
             ) : (
-              <View style={[styles.photoWrapper, styles.emptyPhoto]}>
-                <Camera size={24} color="#94A3B8" />
-                <Text style={styles.emptyPhotoText}>No photos</Text>
+              <View className="w-[200px] h-[130px] bg-muted mr-2 rounded-lg overflow-hidden items-center justify-center">
+                <Camera size={24} color={colors.mutedForeground} />
+                <Text className="text-xs text-muted-foreground font-medium mt-1.5">No photos</Text>
               </View>
             )}
           </ScrollView>
-          <View style={styles.photoFooter}>
-            <Camera size={13} color="#94A3B8" />
-            <Text style={styles.photoFooterText}>
+          <View className="flex-row items-center gap-1.5 mt-2.5">
+            <Camera size={13} color={colors.mutedForeground} />
+            <Text className="text-[11px] text-muted-foreground font-medium">
               {venue.photos?.length || 0} photos · Swipe to view
             </Text>
           </View>
         </View>
 
         {/* Basic Info (Read Only) */}
-        <View style={styles.card}>
-          <Text style={styles.cardSectionTitle}>BASIC DETAILS</Text>
+        <View className="bg-card rounded-2xl p-4 mb-3.5 border border-border">
+          <Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-3">BASIC DETAILS</Text>
           <InfoRow label="Court Name" value={venue.name} />
           <InfoRow label="Address" value={fullAddress} Icon={MapPin} />
           <InfoRow label="Phone" value={venue.contact_phone ? formatPhone(venue.contact_phone) : undefined} Icon={Phone} />
@@ -106,24 +111,24 @@ export default function CourtInformationScreen() {
         </View>
 
         {/* Location / Google Maps */}
-        <View style={[styles.card, { padding: 0 }]}>
-          <View style={styles.locationHeader}>
-            <Text style={styles.locationTitle}>Location</Text>
+        <View className="bg-card rounded-2xl mb-3.5 border border-border overflow-hidden">
+          <View className="p-3.5 pb-2.5">
+            <Text className="text-[13px] font-bold text-foreground">Location</Text>
           </View>
-          <View style={styles.mapPlaceholder}>
+          <View className="h-[140px] bg-blue-50 dark:bg-blue-900/20 items-center justify-center">
             {/* Simple stylised representation of a map */}
-            <View style={styles.pinIcon}>
-              <Text style={styles.pinText}>{venue.name}</Text>
+            <View className="bg-background rounded-lg py-1 px-2.5 shadow-sm shadow-black/10">
+              <Text className="text-[11px] font-bold text-foreground">{venue.name}</Text>
             </View>
           </View>
-          <View style={styles.locationFooter}>
+          <View className="p-3.5">
             <TouchableOpacity 
-              style={[styles.mapBtn, (!venue.latitude || !venue.longitude) && styles.mapBtnDisabled]} 
+              className={`flex-row items-center justify-center gap-1.5 p-2.5 rounded-xl border ${(!venue.latitude || !venue.longitude) ? 'bg-muted border-border' : 'bg-primary/10 border-primary/30'}`} 
               onPress={handleOpenMaps}
               disabled={!venue.latitude || !venue.longitude}
             >
-              <MapPin size={13} color={(!venue.latitude || !venue.longitude) ? "#94A3B8" : "#2563EB"} />
-              <Text style={[styles.mapBtnText, (!venue.latitude || !venue.longitude) && styles.mapBtnTextDisabled]}>
+              <MapPin size={13} color={(!venue.latitude || !venue.longitude) ? colors.mutedForeground : colors.primary} />
+              <Text className={`text-xs font-semibold ${(!venue.latitude || !venue.longitude) ? 'text-muted-foreground' : 'text-primary'}`}>
                 Open in Maps
               </Text>
             </TouchableOpacity>
@@ -131,21 +136,21 @@ export default function CourtInformationScreen() {
         </View>
 
         {/* Amenities (Read Only) */}
-        <View style={[styles.card, { marginBottom: 40 }]}>
-          <Text style={styles.cardSectionTitle}>AMENITIES</Text>
-          <View style={styles.amenitiesGrid}>
+        <View className="bg-card rounded-2xl p-4 mb-10 border border-border">
+          <Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-3">AMENITIES</Text>
+          <View className="flex-row flex-wrap gap-2.5">
             {venue.amenities && venue.amenities.length > 0 ? (
               venue.amenities.map(a => {
                 const Icon = amenityIcons[a] || Check;
                 return (
-                  <View key={a} style={styles.amenityBadge}>
-                    <Icon size={16} color="#2563EB" />
-                    <Text style={styles.amenityText}>{a}</Text>
+                  <View key={a} className="flex-row items-center gap-2 py-2.5 px-3.5 bg-primary/10 border border-primary/30 rounded-xl">
+                    <Icon size={16} color={colors.primary} />
+                    <Text className="text-xs font-semibold text-primary">{a}</Text>
                   </View>
                 );
               })
             ) : (
-              <Text style={styles.emptyText}>No amenities listed</Text>
+              <Text className="text-[13px] text-muted-foreground">No amenities listed</Text>
             )}
           </View>
         </View>
@@ -153,194 +158,3 @@ export default function CourtInformationScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  content: { flex: 1, padding: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  photosScroll: { flexDirection: 'row' },
-  photoWrapper: {
-    width: 200,
-    height: 130,
-    backgroundColor: '#F1F5F9',
-    marginRight: 8,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  photo: { width: '100%', height: '100%' },
-  emptyPhoto: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyPhotoText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 6,
-    fontWeight: '500',
-  },
-  photoFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 10,
-  },
-  photoFooterText: {
-    fontSize: 11,
-    color: '#94A3B8',
-    fontWeight: '500',
-  },
-  cardSectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    marginTop: 2,
-  },
-  infoContent: { flex: 1 },
-  infoLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-    lineHeight: 20,
-  },
-  locationHeader: {
-    padding: 14,
-    paddingBottom: 10,
-  },
-  locationTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  mapPlaceholder: {
-    height: 140,
-    backgroundColor: '#E0F2FE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pinIcon: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  pinText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  locationFooter: {
-    padding: 14,
-  },
-  mapBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    padding: 10,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderRadius: 10,
-  },
-  mapBtnDisabled: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-  },
-  mapBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2563EB',
-  },
-  mapBtnTextDisabled: {
-    color: '#94A3B8',
-  },
-  amenitiesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  amenityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderRadius: 12,
-  },
-  amenityText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#2563EB',
-  },
-  emptyText: {
-    fontSize: 13,
-    color: '#94A3B8',
-  }
-});

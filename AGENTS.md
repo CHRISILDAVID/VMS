@@ -74,8 +74,9 @@ Do not invent random UI designs or layouts without first consulting the referenc
 
 When developing or fixing features in mobile applications (such as the Owner App in `apps/owner/` and Player App in `apps/player/`):
 - **References** : use `player_reference/` when designing player app UI and features. Use `owner_reference/` when designing owner app UI and features.
-- **Always verify changes on the Android Emulator.** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
-- **Never assume a bug fix or feature is complete without E2E verification.** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the issue is actually resolved.
+- **Commands for using the Android Emulator.** Use ADB commands (e.g., `adb shell input tap`, `adb shell uiautomator dump`, `adb exec-out screencap -p`) to actively interact with and test the app just like you use a browser for testing web apps.
+- **Never start E2E verification without confirming with the user or without the user explicitly mentioning it in the prompt.**
+- **Verification:** After modifying mobile code, navigate to the affected screen on the emulator, trigger the user flow, and confirm via screenshot or UI dump that the issue is actually resolved.
 
 ## Database Tracking (Important Rule)
 
@@ -100,6 +101,10 @@ Whatever you do with the DB, analyze the `documents/11-supabase-production-setup
 
 ## UI Consistency and Theming (Important Rule)
 
-When developing UI components, **do not manually hardcode giant strings of generic Tailwind classes (like `bg-white dark:bg-slate-900 border...`) everywhere**. Act like a senior developer:
-1. **Use a common theme:** Ensure your components match the established theme of the page (e.g., proper dark mode integration using Tailwind v4 standard variables or `ui/` components).
+When developing UI components, **do not manually hardcode giant strings of generic Tailwind classes (like `bg-white dark:bg-slate-900 border...`) everywhere**, and **do not use hardcoded hex colors in `StyleSheet.create`**. Act like a senior developer:
+1. **Use a common theme:** Ensure your components match the established theme of the page (e.g., proper dark mode integration using Tailwind v4 standard variables or `ui/` components). **Always use NativeWind `className` referencing theme variables** (e.g. `bg-background`, `text-primary`) for styling instead of hardcoding colors, even when building new components. **For the NativeWind components you create (like `Button`, `Card`, `Modal`, `Checkbox` etc.) , always ensure that the component can automatically switch background & foreground colours based on the `ColorScheme` and `theme` provided by the system**
 2. **Use reusable components:** Always check `src/components/ui/` for existing standard components (like `Card`, `Input`, `Button`) before building elements from scratch. If a standard component doesn't exist for a basic input, create it in `ui/` to abstract the styles and use it everywhere.
+
+## Theme Toggling (Important Rule)
+
+Design the pages in such a way that there can be a toggle in the settings screen (Dark mode / Light mode / System default). Ensure all UI components and Tailwind configurations support this dynamic theme switching natively.

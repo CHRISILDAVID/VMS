@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
 import { UserCheck, X, Phone, CheckCircle } from 'lucide-react-native';
 import { GuestPlayWithDetails } from '@vms/shared/services';
-import {  formatCurrency , formatPhone } from '@vms/shared/utils';
+import { formatCurrency, formatPhone } from '@vms/shared/utils';
 import { useGuestPlays, useAcceptGuestAsMember, useUpdateGuestPlayStatus } from '../hooks/useMemberships';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 export function GuestPlayTab() {
   const { data: guestPlays = [], isLoading } = useGuestPlays();
   const acceptMemberMutation = useAcceptGuestAsMember();
   const updateStatusMutation = useUpdateGuestPlayStatus();
+  const { colors } = useThemeColors();
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
 
@@ -59,37 +61,37 @@ export function GuestPlayTab() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-background">
       {/* Segmented control */}
-      <View style={styles.segmentBar}>
+      <View className="flex-row bg-muted rounded-xl p-1 mx-4 mt-3.5 mb-2.5">
         <TouchableOpacity
-          style={[styles.segmentBtn, activeTab === 'upcoming' && styles.segmentBtnActive]}
+          className={`flex-1 py-2.5 rounded-lg items-center justify-center ${activeTab === 'upcoming' ? 'bg-card shadow-sm' : 'shadow-none'}`}
           onPress={() => setActiveTab('upcoming')}
         >
-          <Text style={[styles.segmentText, activeTab === 'upcoming' && styles.segmentTextActive]}>
+          <Text className={`text-[13px] font-semibold ${activeTab === 'upcoming' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
             Upcoming
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.segmentBtn, activeTab === 'completed' && styles.segmentBtnActive]}
+          className={`flex-1 py-2.5 rounded-lg items-center justify-center ${activeTab === 'completed' ? 'bg-card shadow-sm' : 'shadow-none'}`}
           onPress={() => setActiveTab('completed')}
         >
-          <Text style={[styles.segmentText, activeTab === 'completed' && styles.segmentTextActive]}>
+          <Text className={`text-[13px] font-semibold ${activeTab === 'completed' ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
             Completed
           </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 88, gap: 12 }} showsVerticalScrollIndicator={false}>
         {isLoading ? (
-          <View style={styles.centerBox}>
-            <Text style={styles.loadingText}>Loading guest play sessions...</Text>
+          <View className="items-center justify-center py-16 px-8">
+            <Text className="text-sm text-muted-foreground">Loading guest play sessions...</Text>
           </View>
         ) : filtered.length === 0 ? (
-          <View style={styles.centerBox}>
-            <Text style={styles.emojiText}>🏸</Text>
-            <Text style={styles.emptyTitle}>No {activeTab} guest play sessions</Text>
-            <Text style={styles.emptySub}>
+          <View className="items-center justify-center py-16 px-8">
+            <Text className="text-[40px] mb-2.5">🏸</Text>
+            <Text className="text-[15px] font-bold text-foreground mb-1 text-center">No {activeTab} guest play sessions</Text>
+            <Text className="text-[13px] text-muted-foreground text-center leading-[18px]">
               {activeTab === 'upcoming'
                 ? 'When players are invited to trial a session, they will appear here.'
                 : 'Completed trial sessions waiting for membership decision will appear here.'}
@@ -101,63 +103,63 @@ export function GuestPlayTab() {
             const fee = g.slot?.guest_play_fee || 30000;
 
             return (
-              <View key={g.id} style={styles.card}>
-                <View style={styles.topRow}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{initial}</Text>
+              <View key={g.id} className="bg-card rounded-2xl p-4 border border-border">
+                <View className="flex-row items-center gap-3 mb-3.5">
+                  <View className="w-11 h-11 rounded-xl bg-violet-100 dark:bg-violet-900/40 items-center justify-center">
+                    <Text className="text-lg font-extrabold text-violet-600">{initial}</Text>
                   </View>
-                  <View style={styles.info}>
-                    <Text style={styles.name}>{g.player_name || 'Guest Player'}</Text>
-                    <Text style={styles.subText}>
+                  <View className="flex-1">
+                    <Text className="text-[15px] font-bold text-foreground">{g.player_name || 'Guest Player'}</Text>
+                    <Text className="text-xs text-muted-foreground mt-0.5">
                       {g.slot?.name || 'Slot'} · {g.scheduled_date}
                     </Text>
-                    {g.phone ? <Text style={styles.phoneText}>{formatPhone(g.phone)}</Text> : null}
+                    {g.phone ? <Text className="text-[11px] text-muted-foreground mt-0.5">{formatPhone(g.phone)}</Text> : null}
                   </View>
-                  <Text style={styles.feeText}>{formatCurrency(fee)}</Text>
+                  <Text className="text-base font-extrabold text-primary">{formatCurrency(fee)}</Text>
                 </View>
 
                 {activeTab === 'completed' ? (
-                  <View style={styles.actionsRow}>
+                  <View className="flex-row gap-2">
                     <TouchableOpacity
-                      style={[styles.actionBtn, styles.acceptBtn, acceptMemberMutation.isPending && styles.btnDisabled]}
+                      className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border-[1.5px] bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 ${acceptMemberMutation.isPending ? 'opacity-50' : ''}`}
                       onPress={() => handleAcceptMember(g)}
                       disabled={acceptMemberMutation.isPending}
                     >
                       <UserCheck size={15} color="#16A34A" />
-                      <Text style={[styles.actionText, { color: '#16A34A' }]}>Accept as Member</Text>
+                      <Text className="text-xs font-bold text-green-600">Accept as Member</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.actionBtn, styles.rejectBtn]}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border-[1.5px] bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800"
                       onPress={() => handleRejectCompleted(g)}
                     >
                       <X size={15} color="#DC2626" />
-                      <Text style={[styles.actionText, { color: '#DC2626' }]}>Reject</Text>
+                      <Text className="text-xs font-bold text-destructive">Reject</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <View style={styles.actionsRow}>
+                  <View className="flex-row gap-2">
                     <TouchableOpacity
-                      style={[styles.actionBtn, styles.contactBtn]}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border-[1.5px] bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800"
                       onPress={() => handleContact(g.phone)}
                     >
                       <Phone size={14} color="#2563EB" />
-                      <Text style={[styles.actionText, { color: '#2563EB' }]}>Contact</Text>
+                      <Text className="text-xs font-bold text-blue-600">Contact</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.actionBtn, styles.completeBtn]}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border-[1.5px] bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800"
                       onPress={() => handleMarkCompleted(g)}
                     >
                       <CheckCircle size={14} color="#16A34A" />
-                      <Text style={[styles.actionText, { color: '#16A34A' }]}>Completed</Text>
+                      <Text className="text-xs font-bold text-green-600">Completed</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.actionBtn, styles.cancelBtn]}
+                      className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl border-[1.5px] bg-muted border-border"
                       onPress={() => handleCancel(g)}
                     >
-                      <X size={14} color="#64748B" />
-                      <Text style={[styles.actionText, { color: '#64748B' }]}>Cancel</Text>
+                      <X size={14} color={colors.mutedForeground} />
+                      <Text className="text-xs font-bold text-muted-foreground">Cancel</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -169,168 +171,3 @@ export function GuestPlayTab() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  segmentBar: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 12,
-    padding: 3,
-    marginHorizontal: 16,
-    marginTop: 14,
-    marginBottom: 10,
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  segmentBtnActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  segmentTextActive: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  listContainer: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 88,
-    gap: 12,
-  },
-  centerBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 30,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  emojiText: {
-    fontSize: 40,
-    marginBottom: 10,
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  emptySub: {
-    fontSize: 13,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 14,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F5F3FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#7C3AED',
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  subText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  phoneText: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  feeText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1.5,
-  },
-  acceptBtn: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
-  },
-  rejectBtn: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FCA5A5',
-  },
-  contactBtn: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-  },
-  completeBtn: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
-  },
-  cancelBtn: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
-  },
-  actionText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  btnDisabled: {
-    opacity: 0.5,
-  },
-});

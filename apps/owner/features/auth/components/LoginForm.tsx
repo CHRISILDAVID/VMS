@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { PhoneInput } from './PhoneInput';
 import { OtpInput } from './OtpInput';
-import { COLORS, SPACING, RADIUS } from '@vms/shared/utils';
 import { useAuth } from '../hooks/useAuth';
-import { Alert } from 'react-native';
 import { ArrowRight, ArrowLeft } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 export function LoginForm() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [countdown, setCountdown] = useState(0);
+  const { colors } = useThemeColors();
   
   const { signInWithOtp, verifyOtp, loading, error } = useAuth();
 
@@ -52,18 +52,18 @@ export function LoginForm() {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      className="flex-1"
     >
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Badminton Manager</Text>
-          <Text style={styles.subtitle}>
+      <View className="flex-1 justify-center p-6">
+        <View className="mb-10">
+          <Text className="text-[32px] font-extrabold text-white mb-2">Badminton Manager</Text>
+          <Text className="text-base text-white/70">
             {step === 'phone' ? 'Enter your phone number to sign in' : 'Enter the OTP sent to your phone'}
           </Text>
         </View>
 
         {step === 'phone' ? (
-          <View style={styles.form}>
+          <View className="gap-4">
             <PhoneInput
               value={phone}
               onChangeText={setPhone}
@@ -72,26 +72,26 @@ export function LoginForm() {
               editable={!loading}
             />
             <TouchableOpacity 
-              style={[styles.button, (phone.length !== 10 || loading) && styles.buttonDisabled]} 
+              className={`bg-primary h-14 rounded-xl flex-row items-center justify-center gap-2 ${(phone.length !== 10 || loading) ? 'opacity-60' : ''}`} 
               onPress={handleSendOtp}
               disabled={phone.length !== 10 || loading}
             >
               {loading ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={colors.primaryForeground} />
               ) : (
                 <>
-                  <Text style={styles.buttonText}>Continue</Text>
-                  <ArrowRight size={20} color="#FFF" />
+                  <Text className="text-primary-foreground text-lg font-semibold">Continue</Text>
+                  <ArrowRight size={20} color={colors.primaryForeground} />
                 </>
               )}
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.form}>
-             <View style={styles.phoneDisplay}>
-                <Text style={styles.phoneDisplayText}>+91 {phone}</Text>
+          <View className="gap-4">
+             <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-white text-base font-medium">+91 {phone}</Text>
                 <TouchableOpacity onPress={() => setStep('phone')} disabled={loading}>
-                  <Text style={styles.editLink}>Edit</Text>
+                  <Text className="text-indigo-400 text-sm font-semibold">Edit</Text>
                 </TouchableOpacity>
              </View>
              
@@ -106,23 +106,23 @@ export function LoginForm() {
             />
 
             <TouchableOpacity 
-              style={[styles.button, (otp.length !== 6 || loading) && styles.buttonDisabled]} 
+              className={`bg-primary h-14 rounded-xl items-center justify-center ${(otp.length !== 6 || loading) ? 'opacity-60' : ''}`} 
               onPress={() => handleVerifyOtp()}
               disabled={otp.length !== 6 || loading}
             >
               {loading ? (
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color={colors.primaryForeground} />
               ) : (
-                <Text style={styles.buttonText}>Verify</Text>
+                <Text className="text-primary-foreground text-lg font-semibold">Verify</Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.resendButton} 
+              className="items-center py-4" 
               onPress={handleSendOtp}
               disabled={countdown > 0 || loading}
             >
-              <Text style={[styles.resendText, countdown > 0 && styles.resendDisabled]}>
+              <Text className={`text-sm font-medium ${countdown > 0 ? 'text-white/40' : 'text-indigo-400'}`}>
                 {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
               </Text>
             </TouchableOpacity>
@@ -132,75 +132,3 @@ export function LoginForm() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: SPACING.xl,
-  },
-  header: {
-    marginBottom: SPACING.xl * 1.5,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  form: {
-    gap: SPACING.md,
-  },
-  button: {
-    backgroundColor: COLORS.primary,
-    height: 56,
-    borderRadius: RADIUS.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: SPACING.sm,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  phoneDisplay: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  phoneDisplayText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  editLink: {
-    color: COLORS.primaryLight,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  resendButton: {
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-  },
-  resendText: {
-    color: COLORS.primaryLight,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  resendDisabled: {
-    color: 'rgba(255,255,255,0.4)',
-  },
-});

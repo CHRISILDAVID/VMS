@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, ScrollView, Text, TouchableOpacity, Animated } from 'react-native';
 import { Court, Booking, MembershipSlot } from '@vms/shared/types';
 import { 
   processBookingsToBlocks, 
@@ -10,6 +10,7 @@ import {
   slotConfig,
   isHourPast
 } from '../utils/scheduleHelpers';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface TimelineGridProps {
   courts: Court[];
@@ -38,6 +39,7 @@ export function TimelineGrid({
 }: TimelineGridProps) {
   const blinkAnim = React.useRef(new Animated.Value(1)).current;
   const scrollRef = React.useRef<ScrollView>(null);
+  const { colors } = useThemeColors();
 
   React.useEffect(() => {
     if (conflictCourtId && conflictTime) {
@@ -72,18 +74,18 @@ export function TimelineGrid({
   }, [showCurrentTime, currentHourOffset]);
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.gridWrapper}>
+    <View className="flex-1 bg-background">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <View style={{ flexDirection: 'row' }}>
           
           {/* Left Sticky Column */}
-          <View style={styles.courtColumn}>
-            <View style={styles.cornerCell} />
+          <View style={{ width: COURT_LABEL_WIDTH, backgroundColor: colors.card, borderRightWidth: 1, borderRightColor: colors.border, zIndex: 10 }}>
+            <View style={{ height: HEADER_HEIGHT, borderBottomWidth: 1, borderBottomColor: colors.border }} />
             {courts.map((court) => (
-              <View key={court.id} style={styles.courtLabelCell}>
+              <View key={court.id} style={{ height: ROW_HEIGHT, justifyContent: 'center', paddingLeft: 12, borderBottomWidth: 1, borderBottomColor: colors.background }}>
                 <View>
-                  <Text style={styles.courtNameText}>{court.name}</Text>
-                  <View style={styles.courtStatusDot} />
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.foreground }}>{court.name}</Text>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#16A34A', marginTop: 3 }} />
                 </View>
               </View>
             ))}
@@ -93,10 +95,10 @@ export function TimelineGrid({
           <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} ref={scrollRef}>
             <View>
               {/* Time Header */}
-              <View style={styles.timeHeaderRow}>
+              <View style={{ height: HEADER_HEIGHT, flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, backgroundColor: colors.card }}>
                 {hours.map(h => (
-                  <View key={h} style={styles.timeHeaderCell}>
-                    <Text style={styles.timeText}>
+                  <View key={h} style={{ width: HOUR_WIDTH, justifyContent: 'center', paddingLeft: 8, borderRightWidth: 1, borderRightColor: colors.border }}>
+                    <Text style={{ fontSize: 10, fontWeight: '600', color: colors.mutedForeground }}>
                       {(() => {
                         const displayHour = h % 24;
                         if (displayHour === 0) return '12AM';
@@ -110,15 +112,15 @@ export function TimelineGrid({
               </View>
 
               {/* Grid Area */}
-              <View style={styles.gridArea}>
+              <View style={{ position: 'relative' }}>
                 {courts.map(court => (
-                  <View key={court.id} style={styles.gridRow}>
+                  <View key={court.id} style={{ height: ROW_HEIGHT, flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.background }}>
                     {hours.map(h => {
                       const past = isHourPast(h, dateStr);
                       return (
                         <TouchableOpacity 
                           key={h} 
-                          style={[styles.gridCell, past && styles.pastGridCell]}
+                          style={{ width: HOUR_WIDTH, borderRightWidth: 1, borderRightColor: colors.border, backgroundColor: past ? colors.muted : colors.card }}
                           onPress={() => {
                             if (!past) onEmptyTap(court, h);
                           }}
@@ -143,21 +145,25 @@ export function TimelineGrid({
                         const court = courts.find(c => c.id === block.courtId);
                         if (court) onSlotPress(block, court);
                       }}
-                      style={[
-                        styles.bookingBlock,
-                        {
-                          left: (block.startHour - openHour) * HOUR_WIDTH + 2,
-                          top: courtIndex * ROW_HEIGHT + 6,
-                          width: block.duration * HOUR_WIDTH - 4,
-                          backgroundColor: cfg.bg,
-                          borderColor: isConflict ? '#EF4444' : cfg.border,
-                          borderWidth: isConflict ? 2 : 1,
-                          opacity: block.isPast ? 0.6 : 1,
-                        }
-                      ]}
+                      style={{
+                        position: 'absolute',
+                        height: 52,
+                        borderWidth: isConflict ? 2 : 1.5,
+                        borderRadius: 10,
+                        justifyContent: 'center',
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        overflow: 'hidden',
+                        left: (block.startHour - openHour) * HOUR_WIDTH + 2,
+                        top: courtIndex * ROW_HEIGHT + 6,
+                        width: block.duration * HOUR_WIDTH - 4,
+                        backgroundColor: cfg.bg,
+                        borderColor: isConflict ? '#EF4444' : cfg.border,
+                        opacity: block.isPast ? 0.6 : 1,
+                      }}
                     >
                       <Animated.View style={{ flex: 1, opacity: isConflict ? blinkAnim : 1 }}>
-                        <Text style={[styles.bookingBlockText, { color: cfg.text }]} numberOfLines={1}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: cfg.text }} numberOfLines={1}>
                           {block.label}
                         </Text>
                       </Animated.View>
@@ -167,8 +173,8 @@ export function TimelineGrid({
 
                 {/* Current Time Indicator */}
                 {showCurrentTime && (
-                  <View style={[styles.currentTimeLine, { left: currentHourOffset }]}>
-                    <View style={styles.currentTimeDot} />
+                  <View style={{ position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#DC2626', zIndex: 8, left: currentHourOffset }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#DC2626', marginLeft: -3, marginTop: -3 }} />
                   </View>
                 )}
               </View>
@@ -177,7 +183,7 @@ export function TimelineGrid({
         </View>
 
         {/* Legend */}
-        <View style={styles.legendContainer}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, padding: 12, paddingHorizontal: 16, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border }}>
           {Object.entries({ 
             booked: 'Booked', 
             coaching: 'Coaching', 
@@ -185,15 +191,16 @@ export function TimelineGrid({
             blocked: 'Blocked',
             membership: 'Member'
           }).map(([k, label]) => (
-            <View key={k} style={styles.legendItem}>
-              <View style={[
-                styles.legendColor, 
-                { 
-                  backgroundColor: slotConfig[k].bg, 
-                  borderColor: slotConfig[k].border 
-                }
-              ]} />
-              <Text style={styles.legendText}>{label}</Text>
+            <View key={k} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <View style={{ 
+                width: 12, 
+                height: 12, 
+                borderRadius: 3, 
+                borderWidth: 1.5,
+                backgroundColor: slotConfig[k].bg, 
+                borderColor: slotConfig[k].border 
+              }} />
+              <Text style={{ fontSize: 11, color: colors.mutedForeground, fontWeight: '500' }}>{label}</Text>
             </View>
           ))}
         </View>
@@ -201,141 +208,3 @@ export function TimelineGrid({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  gridWrapper: {
-    flexDirection: 'row',
-  },
-  courtColumn: {
-    width: COURT_LABEL_WIDTH,
-    backgroundColor: '#fff',
-    borderRightWidth: 1,
-    borderRightColor: '#F1F5F9',
-    zIndex: 10,
-  },
-  cornerCell: {
-    height: HEADER_HEIGHT,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  courtLabelCell: {
-    height: ROW_HEIGHT,
-    justifyContent: 'center',
-    paddingLeft: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  courtNameText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  courtStatusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#16A34A',
-    marginTop: 3,
-  },
-  timeHeaderRow: {
-    height: HEADER_HEIGHT,
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    backgroundColor: '#fff',
-  },
-  timeHeaderCell: {
-    width: HOUR_WIDTH,
-    justifyContent: 'center',
-    paddingLeft: 8,
-    borderRightWidth: 1,
-    borderRightColor: '#F1F5F9',
-  },
-  timeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#94A3B8',
-  },
-  gridArea: {
-    position: 'relative',
-  },
-  gridRow: {
-    height: ROW_HEIGHT,
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  gridCell: {
-    width: HOUR_WIDTH,
-    borderRightWidth: 1,
-    borderRightColor: '#F1F5F9',
-    backgroundColor: '#fff',
-  },
-  pastGridCell: {
-    backgroundColor: '#F1F5F9',
-  },
-  bookingBlock: {
-    position: 'absolute',
-    height: 52,
-    borderWidth: 1.5,
-    borderRadius: 10,
-    justifyContent: 'center',
-    paddingLeft: 10,
-    paddingRight: 10,
-    overflow: 'hidden',
-  },
-  bookingBlockText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  currentTimeLine: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 2,
-    backgroundColor: '#DC2626',
-    zIndex: 8,
-  },
-  currentTimeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#DC2626',
-    marginLeft: -3,
-    marginTop: -3,
-  },
-  legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    padding: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    marginTop: 'auto',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    borderWidth: 1.5,
-  },
-  legendText: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-});

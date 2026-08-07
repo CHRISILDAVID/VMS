@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { COLORS } from '@vms/shared/utils';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface DateSelectorProps {
   selectedDate: string; // 'yyyy-MM-dd'
@@ -11,6 +11,7 @@ interface DateSelectorProps {
 export function DateSelector({ selectedDate, onDateChange }: DateSelectorProps) {
   const selectedDateObj = new Date(selectedDate);
   const today = new Date();
+  const { colors } = useThemeColors();
   
   // Start week from Monday
   const weekStart = startOfWeek(selectedDateObj, { weekStartsOn: 1 });
@@ -20,7 +21,7 @@ export function DateSelector({ selectedDate, onDateChange }: DateSelectorProps) 
   });
 
   return (
-    <View style={styles.container}>
+    <View className="flex-row px-4 pb-3 bg-card border-b border-border gap-1">
       {weekDays.map((date, i) => {
         const isSelected = isSameDay(date, selectedDateObj);
         const isToday = isSameDay(date, today);
@@ -29,82 +30,29 @@ export function DateSelector({ selectedDate, onDateChange }: DateSelectorProps) 
           <TouchableOpacity
             key={i}
             onPress={() => onDateChange(format(date, 'yyyy-MM-dd'))}
-            style={[
-              styles.dayButton,
-              isSelected && styles.dayButtonSelected,
-            ]}
+            className={`flex-1 items-center py-2 rounded-xl ${isSelected ? 'bg-primary' : 'bg-transparent'}`}
           >
-            <Text style={[
-              styles.dayName,
-              isSelected ? styles.textSelectedLight : styles.textUnselected
-            ]}>
+            <Text
+              className={`text-[10px] font-semibold ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}
+            >
               {format(date, 'EEE')}
             </Text>
             
-            <Text style={[
-              styles.dayNumber,
-              isSelected ? styles.textSelected : isToday ? styles.textToday : styles.textPrimary
-            ]}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '700',
+                marginTop: 2,
+                color: isSelected ? '#fff' : isToday ? colors.primary : colors.foreground,
+              }}
+            >
               {format(date, 'd')}
             </Text>
             
-            {isToday && !isSelected && <View style={styles.todayDot} />}
+            {isToday && !isSelected && <View className="w-1 h-1 rounded-full bg-primary mt-0.5" />}
           </TouchableOpacity>
         );
       })}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    gap: 4,
-  },
-  dayButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: 'transparent',
-  },
-  dayButtonSelected: {
-    backgroundColor: '#2563EB',
-  },
-  dayName: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  textUnselected: {
-    color: '#64748B',
-  },
-  textSelectedLight: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-  dayNumber: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  textPrimary: {
-    color: '#0F172A',
-  },
-  textSelected: {
-    color: '#fff',
-  },
-  textToday: {
-    color: '#2563EB',
-  },
-  todayDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#2563EB',
-    marginTop: 2,
-  },
-});

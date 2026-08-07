@@ -1,9 +1,10 @@
 import { formatPhone } from '@vms/shared/utils';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Alert, Switch } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, Alert, Switch } from 'react-native';
 import { X } from 'lucide-react-native';
 import { MemberWithDetails } from '@vms/shared/services';
 import { useAddMember, useUpdateMember } from '../hooks/useMemberships';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface AddMemberModalProps {
   slotId: string;
@@ -15,6 +16,7 @@ export function AddMemberModal({ slotId, visible, onClose }: AddMemberModalProps
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const addMutation = useAddMember();
+  const { colors } = useThemeColors();
 
   useEffect(() => {
     if (visible) {
@@ -49,38 +51,42 @@ export function AddMemberModal({ slotId, visible, onClose }: AddMemberModalProps
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Add Member</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <X size={16} color="#64748B" />
+      <View className="flex-1 bg-black/50 justify-center p-5">
+        <View className="bg-card rounded-[20px] overflow-hidden shadow-xl">
+          <View className="flex-row justify-between items-center px-5 py-3.5 border-b border-border">
+            <Text className="text-base font-extrabold text-foreground">Add Member</Text>
+            <TouchableOpacity className="w-8 h-8 rounded-full bg-muted items-center justify-center" onPress={onClose}>
+              <X size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
-          <View style={styles.content}>
-            <Text style={styles.label}>Full Name</Text>
+          <View className="p-5">
+            <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Full Name</Text>
             <TextInput
-              style={styles.input}
+              className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
               placeholder="e.g. Arjun Sharma"
+              placeholderTextColor={colors.mutedForeground}
               value={name}
               onChangeText={setName}
             />
 
-            <Text style={styles.label}>Mobile Number</Text>
+            <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Mobile Number</Text>
             <TextInput
-              style={styles.input}
+              className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
               placeholder="98765 43210"
+              placeholderTextColor={colors.mutedForeground}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
             />
 
             <TouchableOpacity
-              style={[styles.submitBtn, (!name.trim() || !phone.trim() || addMutation.isPending) && styles.submitBtnDisabled]}
+              className={`py-3.5 rounded-xl items-center ${(!name.trim() || !phone.trim() || addMutation.isPending) ? 'bg-muted' : 'bg-primary'}`}
               onPress={handleSubmit}
               disabled={!name.trim() || !phone.trim() || addMutation.isPending}
             >
-              <Text style={styles.submitText}>{addMutation.isPending ? 'Adding...' : 'Add Member'}</Text>
+              <Text className={`text-[15px] font-bold ${(!name.trim() || !phone.trim() || addMutation.isPending) ? 'text-muted-foreground' : 'text-white'}`}>
+                {addMutation.isPending ? 'Adding...' : 'Add Member'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,6 +105,7 @@ export function EditMemberModal({ member, onClose }: EditMemberModalProps) {
   const [phone, setPhone] = useState('');
   const [isActive, setIsActive] = useState(true);
   const updateMutation = useUpdateMember();
+  const { colors } = useThemeColors();
 
   useEffect(() => {
     if (member) {
@@ -143,47 +150,52 @@ export function EditMemberModal({ member, onClose }: EditMemberModalProps) {
 
   return (
     <Modal visible={!!member} animationType="fade" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Edit Member</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <X size={16} color="#64748B" />
+      <View className="flex-1 bg-black/50 justify-center p-5">
+        <View className="bg-card rounded-[20px] overflow-hidden shadow-xl">
+          <View className="flex-row justify-between items-center px-5 py-3.5 border-b border-border">
+            <Text className="text-base font-extrabold text-foreground">Edit Member</Text>
+            <TouchableOpacity className="w-8 h-8 rounded-full bg-muted items-center justify-center" onPress={onClose}>
+              <X size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
-          <View style={styles.content}>
-            <Text style={styles.label}>Full Name</Text>
+          <View className="p-5">
+            <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Full Name</Text>
             <TextInput
-              style={styles.input}
+              className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
               placeholder="e.g. Arjun Sharma"
+              placeholderTextColor={colors.mutedForeground}
               value={name}
               onChangeText={setName}
             />
 
-            <Text style={styles.label}>Mobile Number</Text>
+            <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Mobile Number</Text>
             <TextInput
-              style={styles.input}
+              className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
               placeholder="98765 43210"
+              placeholderTextColor={colors.mutedForeground}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
             />
 
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Active Status</Text>
+            <View className="flex-row justify-between items-center p-3.5 bg-background rounded-xl border border-border mb-5">
+              <Text className="text-sm font-semibold text-foreground">Active Status</Text>
               <Switch
                 value={isActive}
                 onValueChange={setIsActive}
-                trackColor={{ false: '#E2E8F0', true: '#16A34A' }}
+                trackColor={{ false: colors.muted, true: '#16A34A' }}
+                thumbColor="#fff"
               />
             </View>
 
             <TouchableOpacity
-              style={[styles.submitBtn, (!name.trim() || !phone.trim() || updateMutation.isPending) && styles.submitBtnDisabled]}
+              className={`py-3.5 rounded-xl items-center ${(!name.trim() || !phone.trim() || updateMutation.isPending) ? 'bg-muted' : 'bg-primary'}`}
               onPress={handleSubmit}
               disabled={!name.trim() || !phone.trim() || updateMutation.isPending}
             >
-              <Text style={styles.submitText}>{updateMutation.isPending ? 'Saving...' : 'Save Changes'}</Text>
+              <Text className={`text-[15px] font-bold ${(!name.trim() || !phone.trim() || updateMutation.isPending) ? 'text-muted-foreground' : 'text-white'}`}>
+                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -191,90 +203,3 @@ export function EditMemberModal({ member, onClose }: EditMemberModalProps) {
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    padding: 20,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-    marginBottom: 16,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  switchLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  submitBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  submitBtnDisabled: {
-    backgroundColor: '#E2E8F0',
-  },
-  submitText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});

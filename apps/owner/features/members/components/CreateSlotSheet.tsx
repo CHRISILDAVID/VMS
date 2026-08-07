@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Modal,
   TouchableOpacity,
   TextInput,
@@ -20,6 +19,7 @@ import { useCreateSlot, useUpdateSlot, useMembershipSlots } from '../hooks/useMe
 import { useCourts } from '../../../hooks/useCourts';
 import { useVenueStore } from '../../../stores/venueStore';
 import { useCurrentVenue } from '../../../hooks/useVenues';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface CreateSlotSheetProps {
   visible: boolean;
@@ -52,6 +52,7 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
   const currentVenue = useCurrentVenue();
   const { data: courts } = useCourts(selectedVenueId);
   const { data: existingSlots } = useMembershipSlots();
+  const { colors } = useThemeColors();
 
   const [name, setName] = useState('');
   const [startTime, setStartTime] = useState('06:00');
@@ -217,38 +218,41 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetContainer}>
-          <View style={styles.sheet}>
-            <View style={styles.handleBar}><View style={styles.handle} /></View>
-            <View style={styles.header}>
-              <Text style={styles.title}>{isEdit ? 'Edit Slot' : 'Create Membership Slot'}</Text>
-              <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                <X size={18} color="#64748B" />
+      <View className="flex-1 justify-end">
+        <TouchableOpacity className="absolute inset-0 bg-black/50" activeOpacity={1} onPress={onClose} />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="max-h-[92%]">
+          <View className="bg-card rounded-t-3xl max-h-full">
+            <View className="items-center pt-3 pb-1">
+              <View className="w-9 h-1 rounded-full bg-muted-foreground/30" />
+            </View>
+            <View className="flex-row justify-between items-center px-5 py-3 border-b border-border">
+              <Text className="text-lg font-extrabold text-foreground">{isEdit ? 'Edit Slot' : 'Create Membership Slot'}</Text>
+              <TouchableOpacity className="w-8 h-8 rounded-full bg-muted items-center justify-center" onPress={onClose}>
+                <X size={18} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-              <Text style={styles.label}>Slot Name</Text>
+            <ScrollView className="p-5" showsVerticalScrollIndicator={false}>
+              <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Slot Name</Text>
               <TextInput
-                style={styles.input}
+                className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                 placeholder="e.g. Morning Warriors"
+                placeholderTextColor={colors.mutedForeground}
                 value={name}
                 onChangeText={setName}
               />
 
-              <View style={styles.row}>
-                <View style={[styles.col, { flex: 1 }]}>
-                  <Text style={styles.label}>Court</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.courtScroll} contentContainerStyle={styles.courtContainer}>
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Court</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4" contentContainerStyle={{ gap: 8 }}>
                     {courts?.map(c => (
                       <TouchableOpacity
                         key={c.id}
-                        style={[styles.courtBtn, courtId === c.id && styles.courtBtnActive]}
+                        className={`px-4 py-2.5 rounded-lg border ${courtId === c.id ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                         onPress={() => setCourtId(c.id)}
                       >
-                        <Text style={[styles.courtBtnText, courtId === c.id && styles.courtBtnTextActive]}>
+                        <Text className={`text-sm ${courtId === c.id ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                           {c.name}
                         </Text>
                       </TouchableOpacity>
@@ -257,43 +261,47 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
                 </View>
               </View>
 
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.label}>Start Time (HH:MM)</Text>
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Start Time (HH:MM)</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="06:00"
+                    placeholderTextColor={colors.mutedForeground}
                     value={startTime}
                     onChangeText={setStartTime}
                   />
                 </View>
-                <View style={styles.col}>
-                  <Text style={styles.label}>End Time (HH:MM)</Text>
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">End Time (HH:MM)</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="08:00"
+                    placeholderTextColor={colors.mutedForeground}
                     value={endTime}
                     onChangeText={setEndTime}
                   />
                 </View>
               </View>
 
-              <View style={styles.row}>
-                <View style={styles.col}>
-                  <Text style={styles.label}>Capacity</Text>
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Capacity</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="10"
+                    placeholderTextColor={colors.mutedForeground}
                     keyboardType="number-pad"
                     value={capacity}
                     onChangeText={setCapacity}
                   />
                 </View>
-                <View style={styles.col}>
-                  <Text style={styles.label}>Monthly Fee (₹)</Text>
+                <View className="flex-1">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Monthly Fee (₹)</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="2500"
+                    placeholderTextColor={colors.mutedForeground}
                     keyboardType="number-pad"
                     value={monthlyFee}
                     onChangeText={setMonthlyFee}
@@ -301,53 +309,55 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
                 </View>
               </View>
 
-              <Text style={styles.label}>Skill Level</Text>
-              <View style={styles.chipsRow}>
+              <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Skill Level</Text>
+              <View className="flex-row flex-wrap gap-2 mb-4">
                 {SKILLS.map(s => {
                   const sel = skillLevel === s.value;
                   return (
                     <TouchableOpacity
                       key={s.value}
-                      style={[styles.chip, sel && styles.chipSelected]}
+                      className={`px-3.5 py-2 rounded-[20px] border-[1.5px] ${sel ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}
                       onPress={() => setSkillLevel(s.value)}
                     >
-                      <Text style={[styles.chipText, sel && styles.chipTextSelected]}>{s.label}</Text>
+                      <Text className={`text-[13px] font-semibold ${sel ? 'text-primary' : 'text-muted-foreground'}`}>{s.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <Text style={styles.label}>Playing Days</Text>
-              <View style={styles.daysRow}>
+              <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Playing Days</Text>
+              <View className="flex-row gap-1.5 mb-4">
                 {ALL_DAYS.map(d => {
                   const sel = playingDays.includes(d.value);
                   return (
                     <TouchableOpacity
                       key={d.value}
-                      style={[styles.dayChip, sel && styles.dayChipSelected]}
+                      className={`flex-1 py-2 rounded-lg border-[1.5px] items-center ${sel ? 'border-primary bg-primary' : 'border-border bg-background'}`}
                       onPress={() => toggleDay(d.value)}
                     >
-                      <Text style={[styles.dayText, sel && styles.dayTextSelected]}>{d.label}</Text>
+                      <Text className={`text-[11px] font-bold ${sel ? 'text-white' : 'text-muted-foreground'}`}>{d.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>Allow Guest Play</Text>
+              <View className="flex-row justify-between items-center p-3.5 bg-background rounded-xl mb-4 border border-border">
+                <Text className="text-sm font-semibold text-foreground">Allow Guest Play</Text>
                 <Switch
                   value={allowGuestPlay}
                   onValueChange={setAllowGuestPlay}
-                  trackColor={{ false: '#E2E8F0', true: '#2563EB' }}
+                  trackColor={{ false: colors.muted, true: colors.primary }}
+                  thumbColor="#fff"
                 />
               </View>
 
               {allowGuestPlay && (
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={styles.label}>Guest Play Fee (₹)</Text>
+                <View className="mb-4">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Guest Play Fee (₹)</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="300"
+                    placeholderTextColor={colors.mutedForeground}
                     keyboardType="number-pad"
                     value={guestPlayFee}
                     onChangeText={setGuestPlayFee}
@@ -356,17 +366,17 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
               )}
 
               {!isEdit && (
-                <View style={styles.initSection}>
-                  <View style={styles.initHeader}>
+                <View className="mb-6">
+                  <View className="flex-row justify-between items-center mb-3">
                     <View>
-                      <Text style={styles.initTitle}>Initial Members</Text>
-                      <Text style={styles.initSub}>
+                      <Text className="text-sm font-extrabold text-foreground">Initial Members</Text>
+                      <Text className="text-xs text-muted-foreground mt-0.5">
                         {capNumber > 0 ? `${initialMembers.length}/${capNumber} members added` : `${initialMembers.length} added`}
-                        <Text style={{ color: '#94A3B8' }}> · optional</Text>
+                        <Text className="text-muted-foreground/60"> · optional</Text>
                       </Text>
                     </View>
                     <TouchableOpacity
-                      style={[styles.addBtn, capNumber > 0 && initialMembers.length >= capNumber && styles.addBtnDisabled]}
+                      className={`flex-row items-center gap-1 px-3 py-1.5 border rounded-lg ${capNumber > 0 && initialMembers.length >= capNumber ? 'bg-muted border-border' : 'bg-primary/10 border-primary/20'}`}
                       onPress={() => {
                         setMName('');
                         setMPhone('');
@@ -375,34 +385,34 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
                       }}
                       disabled={capNumber > 0 && initialMembers.length >= capNumber}
                     >
-                      <Plus size={14} color={capNumber > 0 && initialMembers.length >= capNumber ? '#94A3B8' : '#2563EB'} />
-                      <Text style={[styles.addBtnText, capNumber > 0 && initialMembers.length >= capNumber && { color: '#94A3B8' }]}>
+                      <Plus size={14} color={capNumber > 0 && initialMembers.length >= capNumber ? colors.mutedForeground : colors.primary} />
+                      <Text className={`text-xs font-bold ${capNumber > 0 && initialMembers.length >= capNumber ? 'text-muted-foreground' : 'text-primary'}`}>
                         Add Member
                       </Text>
                     </TouchableOpacity>
                   </View>
 
                   {initialMembers.length === 0 ? (
-                    <View style={styles.emptyBox}>
-                      <Text style={styles.emptyBoxTitle}>No members added yet</Text>
-                      <Text style={styles.emptyBoxSub}>You can publish the slot without members</Text>
+                    <View className="border-[1.5px] border-dashed border-border rounded-xl p-5 items-center">
+                      <Text className="text-[13px] font-semibold text-muted-foreground">No members added yet</Text>
+                      <Text className="text-xs text-muted-foreground/70 mt-1">You can publish the slot without members</Text>
                     </View>
                   ) : (
-                    <View style={styles.membersList}>
+                    <View className="gap-2">
                       {initialMembers.map((m, i) => (
-                        <View key={i} style={styles.memberRow}>
-                          <View style={styles.avatar}>
-                            <Text style={styles.avatarText}>{m.name.charAt(0).toUpperCase()}</Text>
+                        <View key={i} className="flex-row items-center gap-3 p-3 bg-background rounded-xl border border-border">
+                          <View className="w-9 h-9 rounded-lg bg-primary/10 items-center justify-center">
+                            <Text className="text-sm font-extrabold text-primary">{m.name.charAt(0).toUpperCase()}</Text>
                           </View>
-                          <View style={styles.memberInfo}>
-                            <Text style={styles.memberName}>{m.name}</Text>
-                            <Text style={styles.memberPhone}>{formatPhone(m.phone || "")}</Text>
+                          <View className="flex-1">
+                            <Text className="text-[13px] font-bold text-foreground">{m.name}</Text>
+                            <Text className="text-[11px] text-muted-foreground mt-0.5">{formatPhone(m.phone || "")}</Text>
                           </View>
-                          <TouchableOpacity style={styles.iconAction} onPress={() => openEditMember(i)}>
-                            <Edit2 size={13} color="#64748B" />
+                          <TouchableOpacity className="w-7 h-7 rounded-lg bg-card border border-border items-center justify-center" onPress={() => openEditMember(i)}>
+                            <Edit2 size={13} color={colors.mutedForeground} />
                           </TouchableOpacity>
                           <TouchableOpacity
-                            style={[styles.iconAction, { backgroundColor: '#FEF2F2', borderColor: '#FCA5A5' }]}
+                            className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 items-center justify-center"
                             onPress={() => setInitialMembers(prev => prev.filter((_, j) => j !== i))}
                           >
                             <Trash2 size={13} color="#DC2626" />
@@ -415,11 +425,11 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
               )}
 
               <TouchableOpacity
-                style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
+                className={`py-3.5 rounded-xl items-center mb-10 ${isSubmitting ? 'bg-muted' : 'bg-primary'}`}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >
-                <Text style={styles.submitText}>
+                <Text className={`text-[15px] font-bold ${isSubmitting ? 'text-muted-foreground' : 'text-white'}`}>
                   {isSubmitting
                     ? 'Saving...'
                     : isEdit
@@ -431,38 +441,42 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
           </View>
 
           <Modal visible={showAddMember} animationType="fade" transparent onRequestClose={() => setShowAddMember(false)}>
-            <View style={styles.subOverlay}>
-              <View style={styles.subSheet}>
-                <View style={styles.header}>
-                  <Text style={styles.title}>{editMemberIdx !== null ? 'Edit Member' : 'Add Member'}</Text>
-                  <TouchableOpacity style={styles.closeBtn} onPress={() => setShowAddMember(false)}>
-                    <X size={16} color="#64748B" />
+            <View className="flex-1 bg-black/50 justify-center p-5">
+              <View className="bg-card rounded-[20px] overflow-hidden shadow-xl">
+                <View className="flex-row justify-between items-center px-5 py-3.5 border-b border-border">
+                  <Text className="text-base font-extrabold text-foreground">{editMemberIdx !== null ? 'Edit Member' : 'Add Member'}</Text>
+                  <TouchableOpacity className="w-8 h-8 rounded-full bg-muted items-center justify-center" onPress={() => setShowAddMember(false)}>
+                    <X size={16} color={colors.mutedForeground} />
                   </TouchableOpacity>
                 </View>
-                <View style={styles.content}>
-                  <Text style={styles.label}>Full Name</Text>
+                <View className="p-5">
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Full Name</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="e.g. Arjun Sharma"
+                    placeholderTextColor={colors.mutedForeground}
                     value={mName}
                     onChangeText={setMName}
                   />
 
-                  <Text style={styles.label}>Mobile Number</Text>
+                  <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Mobile Number</Text>
                   <TextInput
-                    style={styles.input}
+                    className="bg-background border-[1.5px] border-border rounded-xl px-3.5 py-3 text-[15px] font-semibold text-foreground mb-4"
                     placeholder="98765 43210"
+                    placeholderTextColor={colors.mutedForeground}
                     keyboardType="phone-pad"
                     value={mPhone}
                     onChangeText={setMPhone}
                   />
 
                   <TouchableOpacity
-                    style={[styles.submitBtn, (!mName.trim() || !mPhone.trim()) && styles.submitBtnDisabled]}
+                    className={`py-3.5 rounded-xl items-center ${(!mName.trim() || !mPhone.trim()) ? 'bg-muted' : 'bg-primary'}`}
                     onPress={handleSaveMember}
                     disabled={!mName.trim() || !mPhone.trim()}
                   >
-                    <Text style={styles.submitText}>{editMemberIdx !== null ? 'Save Changes' : 'Add Member'}</Text>
+                    <Text className={`text-[15px] font-bold ${(!mName.trim() || !mPhone.trim()) ? 'text-muted-foreground' : 'text-white'}`}>
+                      {editMemberIdx !== null ? 'Save Changes' : 'Add Member'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -473,310 +487,3 @@ export function CreateSlotSheet({ visible, onClose, slotToEdit }: CreateSlotShee
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  sheetContainer: {
-    maxHeight: '92%',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '100%',
-  },
-  handleBar: {
-    alignItems: 'center',
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E2E8F0',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    padding: 20,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-    marginBottom: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  col: {
-    flex: 1,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-  },
-  chipSelected: {
-    borderColor: '#2563EB',
-    backgroundColor: '#EFF6FF',
-  },
-  courtScroll: {
-    marginBottom: 16,
-  },
-  courtContainer: {
-    gap: 8,
-  },
-  courtBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  courtBtnActive: {
-    backgroundColor: '#EEF2FF',
-    borderColor: '#4F46E5',
-  },
-  courtBtnText: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  courtBtnTextActive: {
-    color: '#4F46E5',
-    fontWeight: '600',
-  },
-  chipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  chipTextSelected: {
-    color: '#2563EB',
-  },
-  daysRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginBottom: 16,
-  },
-  dayChip: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-  },
-  dayChipSelected: {
-    borderColor: '#2563EB',
-    backgroundColor: '#2563EB',
-  },
-  dayText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  dayTextSelected: {
-    color: '#fff',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  switchLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  initSection: {
-    marginBottom: 24,
-  },
-  initHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  initTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  initSub: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderRadius: 10,
-  },
-  addBtnDisabled: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#E2E8F0',
-  },
-  addBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#2563EB',
-  },
-  emptyBox: {
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderStyle: 'dashed',
-    borderRadius: 14,
-    padding: 20,
-    alignItems: 'center',
-  },
-  emptyBoxTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#94A3B8',
-  },
-  emptyBoxSub: {
-    fontSize: 12,
-    color: '#CBD5E1',
-    marginTop: 4,
-  },
-  membersList: {
-    gap: 8,
-  },
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  memberPhone: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 1,
-  },
-  iconAction: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  submitBtnDisabled: {
-    backgroundColor: '#E2E8F0',
-  },
-  submitText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  subOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  subSheet: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-});

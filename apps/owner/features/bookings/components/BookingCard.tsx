@@ -1,10 +1,11 @@
 import { formatPhone } from '@vms/shared/utils';
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Phone, MessageCircle, MapPin, Clock, IndianRupee } from 'lucide-react-native';
 import { BookingWithDetails } from '@vms/shared/services';
 import { StatusChip } from '../../../components/domain/StatusChip';
 import { format, parse } from 'date-fns';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface BookingCardProps {
   booking: BookingWithDetails;
@@ -23,6 +24,7 @@ export function BookingCard({ booking, onPress, onCollectPress }: BookingCardPro
   const customerName = booking.customer?.full_name || 'Walk-in Guest';
   const phone = formatPhone(booking.customer?.phone || '');
   const initial = customerName.charAt(0).toUpperCase();
+  const { colors } = useThemeColors();
 
   const stripeColor = statusStripeColors[booking.status] || '#CBD5E1';
 
@@ -63,67 +65,67 @@ export function BookingCard({ booking, onPress, onCollectPress }: BookingCardPro
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      className="bg-card rounded-2xl border border-border mb-3 relative overflow-hidden shadow-sm"
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.stripe, { backgroundColor: stripeColor }]} />
+      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: stripeColor }} />
 
-      <View style={styles.content}>
+      <View className="p-4 pl-5">
         {/* Top Row: Customer Info & Total/Payment */}
-        <View style={styles.topRow}>
-          <View style={styles.customerContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
+        <View className="flex-row justify-between items-start mb-3">
+          <View className="flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center">
+              <Text className="text-base font-extrabold text-primary">{initial}</Text>
             </View>
             <View>
-              <Text style={styles.customerName}>{customerName}</Text>
-              <Text style={styles.bookingNumber}>{booking.booking_number}</Text>
+              <Text className="text-[15px] font-bold text-foreground">{customerName}</Text>
+              <Text className="text-xs text-muted-foreground mt-0.5">{booking.booking_number}</Text>
             </View>
           </View>
 
-          <View style={styles.paymentContainer}>
-            <Text style={styles.amountText}>₹{totalAmountRs}</Text>
+          <View className="items-end gap-1">
+            <Text className="text-base font-extrabold text-foreground">₹{totalAmountRs}</Text>
             <StatusChip status={booking.payment_status} size="sm" />
           </View>
         </View>
 
         {/* Middle Row: Court, Time, Duration */}
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <MapPin size={12} color="#94A3B8" />
-            <Text style={styles.metaText}>{booking.court?.name || 'Court'}</Text>
+        <View className="flex-row items-center flex-wrap gap-2 mb-3.5">
+          <View className="flex-row items-center gap-1">
+            <MapPin size={12} color={colors.mutedForeground} />
+            <Text className="text-xs font-semibold text-muted-foreground">{booking.court?.name || 'Court'}</Text>
           </View>
-          <View style={styles.dot} />
-          <View style={styles.metaItem}>
-            <Clock size={12} color="#94A3B8" />
-            <Text style={styles.metaText}>
+          <View className="w-[3px] h-[3px] rounded-full bg-border" />
+          <View className="flex-row items-center gap-1">
+            <Clock size={12} color={colors.mutedForeground} />
+            <Text className="text-xs font-semibold text-muted-foreground">
               {formattedStart} – {formattedEnd}
             </Text>
           </View>
-          <View style={styles.dot} />
-          <Text style={styles.metaText}>{booking.duration_minutes / 60}h</Text>
+          <View className="w-[3px] h-[3px] rounded-full bg-border" />
+          <Text className="text-xs font-semibold text-muted-foreground">{booking.duration_minutes / 60}h</Text>
         </View>
 
         {/* Bottom Row: Status & Quick Actions */}
-        <View style={styles.bottomRow}>
-          <View style={styles.statusContainer}>
-            <View style={[styles.statusDot, { backgroundColor: stripeColor }]} />
+        <View className="flex-row items-center justify-between pt-1 border-t border-border/50">
+          <View className="flex-row items-center gap-1.5">
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: stripeColor }} />
             <StatusChip status={booking.status} size="sm" />
           </View>
 
-          <View style={styles.actionsContainer}>
+          <View className="flex-row items-center gap-2">
             {phone ? (
               <>
                 <TouchableOpacity
-                  style={styles.iconBtn}
+                  className="w-8 h-8 rounded-lg bg-muted border border-border items-center justify-center"
                   onPress={handlePhonePress}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Phone size={14} color="#64748B" />
+                  <Phone size={14} color={colors.mutedForeground} />
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.iconBtn, styles.whatsappBtn]}
+                  className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 items-center justify-center"
                   onPress={handleWhatsAppPress}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
@@ -134,11 +136,11 @@ export function BookingCard({ booking, onPress, onCollectPress }: BookingCardPro
 
             {pendingAmountRs > 0 && (
               <TouchableOpacity
-                style={styles.collectBtn}
+                className="flex-row items-center px-2.5 h-8 rounded-lg bg-primary/10 border border-primary/20 gap-1"
                 onPress={onCollectPress || onPress}
               >
-                <IndianRupee size={12} color="#2563EB" />
-                <Text style={styles.collectText}>Collect ₹{pendingAmountRs}</Text>
+                <IndianRupee size={12} color={colors.primary} />
+                <Text className="text-xs font-bold text-primary">Collect ₹{pendingAmountRs}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -147,150 +149,3 @@ export function BookingCard({ booking, onPress, onCollectPress }: BookingCardPro
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    marginBottom: 12,
-    position: 'relative',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  stripe: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
-  },
-  content: {
-    padding: 16,
-    paddingLeft: 20,
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  customerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  customerName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  bookingNumber: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  paymentContainer: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  amountText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 14,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  dot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#CBD5E1',
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  whatsappBtn: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
-  },
-  collectBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    gap: 4,
-  },
-  collectText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#2563EB',
-  },
-});

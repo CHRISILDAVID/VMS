@@ -1,10 +1,10 @@
 import React, { forwardRef, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { Court } from '@vms/shared/types';
 import { Eye, Pencil, CalendarPlus, Ban, Trophy, GraduationCap, X, Users, Unlock } from 'lucide-react-native';
-import { COLORS } from '@vms/shared/utils';
 import { isHourPast } from '../utils/scheduleHelpers';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface SlotBottomSheetProps {
   slot: any | null;
@@ -18,6 +18,7 @@ interface SlotBottomSheetProps {
 export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
   ({ slot, court, hour, dateStr, onClose, onActionPress }, ref) => {
     const snapPoints = useMemo(() => ['50%', '75%'], []);
+    const { colors } = useThemeColors();
 
     const isPast = useMemo(() => {
       if (slot && slot.isPast !== undefined) return slot.isPast;
@@ -31,7 +32,7 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
           if (slot.status === 'membership') {
             return [{ icon: Users, label: 'View Membership', color: '#15803D' }];
           }
-          return [{ icon: Eye, label: 'View Booking', color: '#2563EB' }];
+          return [{ icon: Eye, label: 'View Booking', color: colors.primary }];
         }
         return [];
       }
@@ -48,8 +49,8 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
           ];
         }
         return [
-          { icon: Eye, label: 'View Booking', color: '#2563EB' },
-          { icon: Pencil, label: 'Edit Booking', color: '#0F172A' },
+          { icon: Eye, label: 'View Booking', color: colors.primary },
+          { icon: Pencil, label: 'Edit Booking', color: colors.foreground },
           { icon: CalendarPlus, label: 'New Booking', color: '#16A34A' },
           { icon: Ban, label: 'Block Slot', color: '#DC2626' },
           { icon: Trophy, label: 'Tournament', color: '#7C3AED' },
@@ -57,12 +58,12 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
         ];
       }
       return [
-        { icon: CalendarPlus, label: 'New Booking', color: '#2563EB' },
+        { icon: CalendarPlus, label: 'New Booking', color: colors.primary },
         { icon: Ban, label: 'Block Slot', color: '#DC2626' },
         { icon: Trophy, label: 'Tournament', color: '#7C3AED' },
         { icon: GraduationCap, label: 'Coaching', color: '#D97706' },
       ];
-    }, [slot, isPast]);
+    }, [slot, isPast, colors]);
 
     return (
       <BottomSheet
@@ -75,30 +76,30 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
         backdropComponent={(props) => (
           <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} />
         )}
-        backgroundStyle={styles.bottomSheetBackground}
-        handleIndicatorStyle={styles.handleIndicator}
+        backgroundStyle={{ backgroundColor: colors.card, borderRadius: 24 }}
+        handleIndicatorStyle={{ width: 36, height: 4, backgroundColor: colors.border, marginTop: 8 }}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
+        <View className="flex-1">
+          <View className="flex-row items-center justify-between px-6 py-3 border-b border-border">
             <View>
-              <Text style={styles.titleText}>
+              <Text className="text-base font-bold text-foreground">
                 {court ? court.name : 'Select Court'} · {hour !== null ? `${hour}:00` : ''}
               </Text>
               {slot && (
-                <Text style={styles.subtitleText}>
+                <Text className="text-[13px] text-muted-foreground mt-0.5">
                   {slot.label} · {slot.duration}h
                 </Text>
               )}
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={16} color="#64748B" />
+            <TouchableOpacity onPress={onClose} className="w-8 h-8 rounded-full bg-muted items-center justify-center">
+              <X size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.actionsList}>
+          <View className="p-4">
             {actions.length === 0 ? (
-              <View style={styles.emptyActionsContainer}>
-                <Text style={styles.emptyActionsText}>Past time slots cannot be modified or booked.</Text>
+              <View className="py-6 items-center justify-center">
+                <Text className="text-sm text-muted-foreground text-center">Past time slots cannot be modified or booked.</Text>
               </View>
             ) : (
               actions.map((action, i) => {
@@ -106,7 +107,7 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
                 return (
                   <TouchableOpacity 
                     key={i} 
-                    style={styles.actionButton}
+                    className="flex-row items-center gap-3.5 py-2 px-2 rounded-xl mb-1"
                     onPress={() => {
                       onClose();
                       if (court && hour !== null) {
@@ -114,10 +115,10 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
                       }
                     }}
                   >
-                    <View style={styles.iconContainer}>
+                    <View className="w-10 h-10 rounded-xl bg-muted items-center justify-center">
                       <Icon size={18} color={action.color} />
                     </View>
-                    <Text style={styles.actionLabel}>{action.label}</Text>
+                    <Text className="text-[15px] font-semibold text-foreground">{action.label}</Text>
                   </TouchableOpacity>
                 );
               })
@@ -130,81 +131,3 @@ export const SlotBottomSheet = forwardRef<BottomSheet, SlotBottomSheetProps>(
 );
 
 SlotBottomSheet.displayName = 'SlotBottomSheet';
-
-const styles = StyleSheet.create({
-  bottomSheetBackground: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-  },
-  handleIndicator: {
-    width: 36,
-    height: 4,
-    backgroundColor: '#E2E8F0',
-    marginTop: 8,
-  },
-  content: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  titleText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  subtitleText: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionsList: {
-    padding: 16,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    marginBottom: 4,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-  },
-  emptyActionsContainer: {
-    paddingVertical: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyActionsText: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-});

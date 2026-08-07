@@ -28,3 +28,5 @@ export type MembershipPayStatus = Enums<'membership_pay_status'>
 export type ApplicationStatus = Enums<'application_status'>
 export type GuestPlayStatus = Enums<'guest_play_status'>
 export type SkillLevel = Enums<'skill_level'>
+
+

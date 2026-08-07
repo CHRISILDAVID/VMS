@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus } from 'lucide-react-native';
 import { useLocalSearchParams } from 'expo-router';
@@ -46,7 +46,7 @@ export default function MembersScreen() {
   if (viewingSlot) {
     const latestSlot = slots.find(s => s.id === viewingSlot.id) || viewingSlot;
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
         <SlotMembersView
           slot={latestSlot}
           allSlots={slots}
@@ -57,16 +57,16 @@ export default function MembersScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>Membership</Text>
+      <View className="bg-card px-4 pt-3 pb-3 border-b border-border">
+        <View className="flex-row justify-between items-center mb-3">
+          <Text className="text-2xl font-extrabold text-foreground">Membership</Text>
           <VenueSelector />
         </View>
 
         {/* Tabs */}
-        <View style={styles.tabsRow}>
+        <View className="flex-row">
           {TABS.map(t => {
             const badge = t === 'Applications' ? pendingAppsCount : t === 'Guest Play' ? upcomingGuestCount : 0;
             const isSelected = tab === t;
@@ -74,14 +74,14 @@ export default function MembersScreen() {
             return (
               <TouchableOpacity
                 key={t}
-                style={[styles.tabBtn, isSelected && styles.tabBtnSelected]}
+                className={`flex-1 py-3 items-center border-b-2 -mb-[1px] ${isSelected ? 'border-primary' : 'border-transparent'}`}
                 onPress={() => setTab(t)}
               >
-                <View style={styles.tabContent}>
-                  <Text style={[styles.tabText, isSelected && styles.tabTextSelected]}>{t}</Text>
+                <View className="flex-row items-center gap-1">
+                  <Text className={`text-xs ${isSelected ? 'text-primary font-bold' : 'text-muted-foreground font-semibold'}`}>{t}</Text>
                   {badge > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{badge}</Text>
+                    <View className="bg-destructive px-1.5 py-0.5 rounded-full min-w-[16px] items-center">
+                      <Text className="text-white text-[10px] font-extrabold">{badge}</Text>
                     </View>
                   )}
                 </View>
@@ -95,7 +95,7 @@ export default function MembersScreen() {
       <SummaryCards slots={slots} pendingAppsCount={pendingAppsCount} />
 
       {/* Tab content */}
-      <View style={styles.content}>
+      <View className="flex-1">
         {tab === 'Slots' && (
           <SlotsTab
             slots={slots}
@@ -121,98 +121,12 @@ export default function MembersScreen() {
 
       {tab === 'Slots' && (
         <TouchableOpacity
-          style={styles.fab}
+          className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-primary justify-center items-center shadow-lg"
           onPress={() => setCreateOpen(true)}
         >
-          <Plus size={24} color="#fff" />
+          <Plus size={24} color="#ffffff" />
         </TouchableOpacity>
       )}
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  tabsRow: {
-    flexDirection: 'row',
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    marginBottom: -1,
-  },
-  tabBtnSelected: {
-    borderBottomColor: '#2563EB',
-  },
-  tabContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  tabTextSelected: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  badge: {
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 10,
-    minWidth: 16,
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  content: {
-    flex: 1,
-  },
-});

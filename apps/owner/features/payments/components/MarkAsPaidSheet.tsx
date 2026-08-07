@@ -1,8 +1,9 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Keyboard } from 'react-native';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useMarkPaymentAsPaid } from '../hooks/usePayments';
 import { PaymentMethod } from '@vms/shared/types';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface MarkAsPaidSheetProps {
   payment: any | null;
@@ -19,6 +20,7 @@ const PAYMENT_MODES: { label: string; value: PaymentMethod }[] = [
 export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
   const snapPoints = useMemo(() => ['50%', '75%'], []);
   const { mutateAsync: markAsPaid, isPending } = useMarkPaymentAsPaid();
+  const { colors } = useThemeColors();
 
   const [mode, setMode] = useState<PaymentMethod>('upi');
   const [notes, setNotes] = useState('');
@@ -59,6 +61,8 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
       index={payment ? 0 : -1}
       snapPoints={snapPoints}
       enablePanDownToClose
+      backgroundStyle={{ backgroundColor: colors.card }}
+      handleIndicatorStyle={{ backgroundColor: colors.mutedForeground }}
       onChange={(idx) => {
         if (idx === -1 && payment) {
           onClose();
@@ -68,22 +72,22 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
         <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
       )}
     >
-      <BottomSheetScrollView style={styles.contentContainer} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Mark as Paid</Text>
-        <Text style={styles.subtitle}>
+      <BottomSheetScrollView className="px-6 py-2" keyboardShouldPersistTaps="handled">
+        <Text className="text-xl font-extrabold text-foreground mb-1">Mark as Paid</Text>
+        <Text className="text-sm text-muted-foreground mb-6">
           Record payment for {payment?.members?.customers?.full_name}
         </Text>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Payment Mode</Text>
-          <View style={styles.modesRow}>
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-foreground mb-3">Payment Mode</Text>
+          <View className="flex-row flex-wrap gap-3">
             {PAYMENT_MODES.map((m) => (
               <TouchableOpacity
                 key={m.value}
-                style={[styles.modeChip, mode === m.value && styles.modeChipSelected]}
+                className={`px-4 py-2.5 rounded-full border ${mode === m.value ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
                 onPress={() => setMode(m.value)}
               >
-                <Text style={[styles.modeText, mode === m.value && styles.modeTextSelected]}>
+                <Text className={`text-sm font-semibold ${mode === m.value ? 'text-primary' : 'text-muted-foreground'}`}>
                   {m.label}
                 </Text>
               </TouchableOpacity>
@@ -91,11 +95,13 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Notes (Optional)</Text>
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-foreground mb-3">Notes (Optional)</Text>
           <TextInput
-            style={styles.input}
+            className="border border-border rounded-lg p-3 text-base text-foreground min-h-[80px]"
+            style={{ textAlignVertical: 'top' }}
             placeholder="Transaction ID or remarks"
+            placeholderTextColor={colors.mutedForeground}
             value={notes}
             onChangeText={setNotes}
             multiline
@@ -103,11 +109,11 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
         </View>
 
         <TouchableOpacity 
-          style={[styles.saveBtn, isPending && styles.saveBtnDisabled]} 
+          className={`p-4 rounded-xl items-center mt-3 mb-10 ${isPending ? 'bg-muted' : 'bg-primary'}`}
           onPress={handleSave}
           disabled={isPending}
         >
-          <Text style={styles.saveBtnText}>
+          <Text className={`text-base font-bold ${isPending ? 'text-muted-foreground' : 'text-primary-foreground'}`}>
             {isPending ? 'Saving...' : 'Confirm Payment'}
           </Text>
         </TouchableOpacity>
@@ -115,78 +121,3 @@ export function MarkAsPaidSheet({ payment, onClose }: MarkAsPaidSheetProps) {
     </BottomSheet>
   );
 }
-
-const styles = StyleSheet.create({
-  contentContainer: {
-    padding: 24,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: 12,
-  },
-  modesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  modeChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  modeChipSelected: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#3B82F6',
-  },
-  modeText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '600',
-  },
-  modeTextSelected: {
-    color: '#2563EB',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  saveBtn: {
-    backgroundColor: '#2563EB',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 40,
-  },
-  saveBtnDisabled: {
-    opacity: 0.7,
-  },
-  saveBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});

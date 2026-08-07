@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { BookingWithDetails } from '@vms/shared/services';
 import { X, AlertTriangle } from 'lucide-react-native';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface CancelConfirmModalProps {
   visible: boolean;
@@ -20,6 +21,7 @@ const commonReasons = [
 export function CancelConfirmModal({ visible, booking, onClose, onConfirm }: CancelConfirmModalProps) {
   if (!booking) return null;
 
+  const { colors } = useThemeColors();
   const advanceRs = (booking.advance || 0) / 100;
   const [selectedReason, setSelectedReason] = useState<string>(commonReasons[0]);
   const [customReason, setCustomReason] = useState<string>('');
@@ -43,44 +45,44 @@ export function CancelConfirmModal({ visible, booking, onClose, onConfirm }: Can
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <View style={styles.headerTitleRow}>
-              <View style={styles.iconBox}>
+      <View className="flex-1 bg-black/50 justify-center items-center p-5">
+        <View className="w-full bg-card rounded-3xl overflow-hidden shadow-xl">
+          <View className="flex-row justify-between items-center px-5 pt-5 pb-4 border-b border-border">
+            <View className="flex-row items-center gap-3">
+              <View className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-900/40 items-center justify-center">
                 <AlertTriangle size={20} color="#DC2626" />
               </View>
-              <Text style={styles.title}>Cancel Booking?</Text>
+              <Text className="text-lg font-bold text-foreground">Cancel Booking?</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={18} color="#64748B" />
+            <TouchableOpacity onPress={onClose} className="p-1.5 rounded-2xl bg-muted">
+              <X size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.body}>
-            <Text style={styles.subtitle}>
-              Are you sure you want to cancel booking <Text style={styles.boldText}>{booking.booking_number}</Text> for <Text style={styles.boldText}>{booking.customer?.full_name || 'Walk-in Guest'}</Text>?
+          <View className="p-5">
+            <Text className="text-sm text-muted-foreground leading-5 mb-4">
+              Are you sure you want to cancel booking <Text className="font-bold text-foreground">{booking.booking_number}</Text> for <Text className="font-bold text-foreground">{booking.customer?.full_name || 'Walk-in Guest'}</Text>?
             </Text>
 
             {advanceRs > 0 && (
-              <View style={styles.alertBox}>
-                <Text style={styles.alertText}>
-                  ⚠️ Note: An advance of <Text style={styles.alertBold}>₹{advanceRs}</Text> was paid. Please handle any refund directly with the customer.
+              <View className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
+                <Text style={{ fontSize: 13, color: '#92400E', lineHeight: 18 }}>
+                  ⚠️ Note: An advance of <Text style={{ fontWeight: '700' }}>₹{advanceRs}</Text> was paid. Please handle any refund directly with the customer.
                 </Text>
               </View>
             )}
 
-            <Text style={styles.label}>Reason for Cancellation</Text>
-            <View style={styles.reasonsList}>
+            <Text className="text-sm font-bold text-foreground mb-2.5">Reason for Cancellation</Text>
+            <View className="flex-row flex-wrap gap-2 mb-3">
               {[...commonReasons, 'Other'].map((reason) => {
                 const active = selectedReason === reason;
                 return (
                   <TouchableOpacity
                     key={reason}
-                    style={[styles.reasonPill, active && styles.reasonPillActive]}
+                    className={`px-3.5 py-2 rounded-full border ${active ? 'bg-red-50 dark:bg-red-900/30 border-destructive' : 'bg-muted border-border'}`}
                     onPress={() => setSelectedReason(reason)}
                   >
-                    <Text style={[styles.reasonText, active && styles.reasonTextActive]}>
+                    <Text className={`text-[13px] font-semibold ${active ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
                       {reason}
                     </Text>
                   </TouchableOpacity>
@@ -90,26 +92,26 @@ export function CancelConfirmModal({ visible, booking, onClose, onConfirm }: Can
 
             {selectedReason === 'Other' && (
               <TextInput
-                style={styles.input}
+                className="border border-border rounded-xl p-3 text-sm text-foreground mt-1"
                 value={customReason}
                 onChangeText={setCustomReason}
                 placeholder="Enter custom cancellation reason..."
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.mutedForeground}
               />
             )}
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={{ color: '#DC2626', fontSize: 13, fontWeight: '600', marginTop: 10 }}>{error}</Text> : null}
           </View>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.backBtn} onPress={onClose} disabled={loading}>
-              <Text style={styles.backBtnText}>Keep Booking</Text>
+          <View className="flex-row gap-3 p-5 border-t border-border">
+            <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-muted items-center justify-center" onPress={onClose} disabled={loading}>
+              <Text className="text-[15px] font-bold text-muted-foreground">Keep Booking</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelActionBtn} onPress={handleConfirm} disabled={loading}>
+            <TouchableOpacity className="flex-[1.5] py-3.5 rounded-xl bg-destructive items-center justify-center" onPress={handleConfirm} disabled={loading}>
               {loading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.cancelActionText}>Yes, Cancel Booking</Text>
+                <Text className="text-[15px] font-bold text-white">Yes, Cancel Booking</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -118,167 +120,3 @@ export function CancelConfirmModal({ visible, booking, onClose, onConfirm }: Can
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContainer: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FEF2F2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    padding: 6,
-    borderRadius: 16,
-    backgroundColor: '#F8FAFC',
-  },
-  body: {
-    padding: 20,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  boldText: {
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  alertBox: {
-    backgroundColor: '#FFFBEB',
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  alertText: {
-    fontSize: 13,
-    color: '#92400E',
-    lineHeight: 18,
-  },
-  alertBold: {
-    fontWeight: '700',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
-    marginBottom: 10,
-  },
-  reasonsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  reasonPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  reasonPillActive: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#DC2626',
-  },
-  reasonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  reasonTextActive: {
-    color: '#DC2626',
-    fontWeight: '700',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 14,
-    color: '#0F172A',
-    marginTop: 4,
-  },
-  errorText: {
-    color: '#DC2626',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 10,
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  backBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  cancelActionBtn: {
-    flex: 1.5,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#DC2626',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelActionText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-});

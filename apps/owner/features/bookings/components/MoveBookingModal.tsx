@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { BookingWithDetails } from '@vms/shared/services';
 import { Court } from '@vms/shared/types';
 import { X, Calendar, Clock, MapPin, AlertTriangle, CheckCircle2 } from 'lucide-react-native';
@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { createScheduleService } from '@vms/shared/services';
 import { DayOfWeek } from '@vms/shared/types';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface MoveBookingModalProps {
   visible: boolean;
@@ -32,11 +33,10 @@ interface MoveBookingModalProps {
   ) => Promise<any>;
 }
 
-// Removed hardcoded timeSlots
-
 export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: MoveBookingModalProps) {
   if (!booking) return null;
 
+  const { colors } = useThemeColors();
   const [selectedCourtId, setSelectedCourtId] = useState<string>(booking.court_id);
   const [selectedDate, setSelectedDate] = useState<string>(booking.date);
   const [selectedStartTime, setSelectedStartTime] = useState<string>(booking.start_time);
@@ -69,7 +69,6 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
     }
   }, [booking, visible]);
 
-  // Generate date options (today + 6 days)
   const dateOptions = React.useMemo(() => {
     const list = [];
     const today = new Date();
@@ -123,7 +122,6 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
       base_amount = newBasePaise;
       final_amount = Math.max(0, newBasePaise - discountPaise);
       
-      // We assume advance payments haven't changed, just pending balance
       const advancePaise = (booking.final_amount || 0) - (booking.pending || 0);
       pending = Math.max(0, final_amount - advancePaise);
     }
@@ -156,160 +154,110 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
     }
   };
 
+  const renderPill = (label: string, active: boolean, onPress: () => void, key: string) => (
+    <TouchableOpacity
+      key={key}
+      className={`px-3.5 py-2 rounded-full border ${active ? 'bg-primary/10 border-primary' : 'bg-muted border-border'}`}
+      onPress={onPress}
+    >
+      <Text className={`text-[13px] font-semibold ${active ? 'text-primary font-bold' : 'text-muted-foreground'}`}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Move Booking</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={18} color="#64748B" />
+      <View className="flex-1 bg-black/50 justify-center items-center p-5">
+        <View className="w-full max-h-[90%] bg-card rounded-3xl overflow-hidden shadow-xl">
+          <View className="flex-row justify-between items-center px-5 py-4 border-b border-border">
+            <Text className="text-lg font-bold text-foreground">Move Booking</Text>
+            <TouchableOpacity onPress={onClose} className="p-1.5 rounded-2xl bg-muted">
+              <X size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-            <Text style={styles.subtitle}>
-              Moving <Text style={styles.boldText}>{booking.booking_number}</Text> ({booking.customer?.full_name || 'Guest'})
+          <ScrollView className="p-5" showsVerticalScrollIndicator={false}>
+            <Text className="text-sm text-muted-foreground mb-4">
+              Moving <Text className="font-bold text-foreground">{booking.booking_number}</Text> ({booking.customer?.full_name || 'Guest'})
             </Text>
 
             {/* Select Court */}
-            <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                <MapPin size={16} color="#475569" />
-                <Text style={styles.sectionTitle}>Select Court</Text>
+            <View className="mb-5">
+              <View className="flex-row items-center gap-2 mb-2.5">
+                <MapPin size={16} color={colors.foreground} />
+                <Text className="text-sm font-bold text-foreground">Select Court</Text>
               </View>
-              <View style={styles.pillsContainer}>
-                {courts.map((c) => {
-                  const active = selectedCourtId === c.id;
-                  return (
-                    <TouchableOpacity
-                      key={c.id}
-                      style={[styles.pill, active && styles.pillActive]}
-                      onPress={() => {
-                        setSelectedCourtId(c.id);
-                        setOverlapDetected(false);
-                      }}
-                    >
-                      <Text style={[styles.pillText, active && styles.pillTextActive]}>{c.name}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              <View className="flex-row flex-wrap gap-2">
+                {courts.map((c) => renderPill(c.name, selectedCourtId === c.id, () => { setSelectedCourtId(c.id); setOverlapDetected(false); }, c.id))}
               </View>
             </View>
 
             {/* Select Date */}
-            <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                <Calendar size={16} color="#475569" />
-                <Text style={styles.sectionTitle}>Select Date</Text>
+            <View className="mb-5">
+              <View className="flex-row items-center gap-2 mb-2.5">
+                <Calendar size={16} color={colors.foreground} />
+                <Text className="text-sm font-bold text-foreground">Select Date</Text>
               </View>
-              <View style={styles.pillsContainer}>
-                {dateOptions.map((d) => {
-                  const active = selectedDate === d.value;
-                  return (
-                    <TouchableOpacity
-                      key={d.value}
-                      style={[styles.pill, active && styles.pillActive]}
-                      onPress={() => {
-                        setSelectedDate(d.value);
-                        setOverlapDetected(false);
-                      }}
-                    >
-                      <Text style={[styles.pillText, active && styles.pillTextActive]}>{d.label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              <View className="flex-row flex-wrap gap-2">
+                {dateOptions.map((d) => renderPill(d.label, selectedDate === d.value, () => { setSelectedDate(d.value); setOverlapDetected(false); }, d.value))}
               </View>
             </View>
 
             {/* Select Start Time */}
-            <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
-                <Clock size={16} color="#475569" />
-                <Text style={styles.sectionTitle}>Start Time</Text>
+            <View className="mb-5">
+              <View className="flex-row items-center gap-2 mb-2.5">
+                <Clock size={16} color={colors.foreground} />
+                <Text className="text-sm font-bold text-foreground">Start Time</Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timeScroll}>
-                {timeSlots.map((t) => {
-                  const active = selectedStartTime === t;
-                  const label = t.slice(0, 5);
-                  return (
-                    <TouchableOpacity
-                      key={t}
-                      style={[styles.timePill, active && styles.timePillActive]}
-                      onPress={() => {
-                        setSelectedStartTime(t);
-                        setOverlapDetected(false);
-                      }}
-                    >
-                      <Text style={[styles.timeText, active && styles.timeTextActive]}>{label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {timeSlots.map((t) => renderPill(t.slice(0, 5), selectedStartTime === t, () => { setSelectedStartTime(t); setOverlapDetected(false); }, t))}
               </ScrollView>
             </View>
 
             {/* Select Duration */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Duration</Text>
-              <View style={styles.pillsContainer}>
-                {[0.5, 1, 1.5, 2, 2.5, 3].map((h) => {
-                  const active = durationHours === h;
-                  return (
-                    <TouchableOpacity
-                      key={h}
-                      style={[styles.pill, active && styles.pillActive]}
-                      onPress={() => {
-                        setDurationHours(h);
-                        setOverlapDetected(false);
-                      }}
-                    >
-                      <Text style={[styles.pillText, active && styles.pillTextActive]}>{h} Hour{h > 1 ? 's' : ''}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
+            <View className="mb-5">
+              <Text className="text-sm font-bold text-foreground mb-2.5">Duration</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {[0.5, 1, 1.5, 2, 2.5, 3].map((h) => renderPill(`${h} Hour${h > 1 ? 's' : ''}`, durationHours === h, () => { setDurationHours(h); setOverlapDetected(false); }, h.toString()))}
               </View>
             </View>
 
             {error ? (
-              <View style={[styles.errorBox, overlapDetected && styles.overlapBox]}>
+              <View className={`flex-row items-center gap-2 rounded-xl p-3 mt-2 border ${overlapDetected ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800' : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'}`}>
                 {overlapDetected && <AlertTriangle size={18} color="#D97706" />}
-                <Text style={[styles.errorText, overlapDetected && styles.overlapText]}>{error}</Text>
+                <Text style={{ flex: 1, color: overlapDetected ? '#92400E' : '#DC2626', fontSize: 13, fontWeight: '600' }}>{error}</Text>
               </View>
             ) : null}
           </ScrollView>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onClose} disabled={loading}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+          <View className="flex-row gap-3 p-5 border-t border-border">
+            <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-muted items-center justify-center" onPress={onClose} disabled={loading}>
+              <Text className="text-[15px] font-bold text-muted-foreground">Cancel</Text>
             </TouchableOpacity>
 
             {overlapDetected ? (
               <TouchableOpacity
-                style={styles.forceBtn}
+                className="flex-[2] flex-row items-center justify-center gap-2 py-3.5 rounded-xl"
+                style={{ backgroundColor: '#D97706' }}
                 onPress={() => handleAttemptMove(true)}
                 disabled={loading}
               >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
+                {loading ? <ActivityIndicator size="small" color="#fff" /> : (
                   <>
                     <AlertTriangle size={16} color="#fff" />
-                    <Text style={styles.forceBtnText}>Force Move</Text>
+                    <Text className="text-[15px] font-bold text-white">Force Move</Text>
                   </>
                 )}
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={styles.saveBtn}
+                className="flex-[2] flex-row items-center justify-center gap-2 py-3.5 rounded-xl bg-primary"
                 onPress={() => handleAttemptMove(false)}
                 disabled={loading}
               >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
+                {loading ? <ActivityIndicator size="small" color="#fff" /> : (
                   <>
                     <CheckCircle2 size={16} color="#fff" />
-                    <Text style={styles.saveBtnText}>Move Booking</Text>
+                    <Text className="text-[15px] font-bold text-white">Move Booking</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -320,194 +268,3 @@ export function MoveBookingModal({ visible, booking, courts, onClose, onMove }: 
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContainer: {
-    width: '100%',
-    maxHeight: '90%',
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  closeBtn: {
-    padding: 6,
-    borderRadius: 16,
-    backgroundColor: '#F8FAFC',
-  },
-  body: {
-    padding: 20,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#475569',
-    marginBottom: 16,
-  },
-  boldText: {
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  pillsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  pillActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
-  },
-  pillText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  pillTextActive: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  timeScroll: {
-    gap: 8,
-  },
-  timePill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  timePillActive: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#2563EB',
-  },
-  timeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  timeTextActive: {
-    color: '#2563EB',
-    fontWeight: '700',
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 8,
-  },
-  overlapBox: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
-  },
-  errorText: {
-    flex: 1,
-    color: '#DC2626',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  overlapText: {
-    color: '#92400E',
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  saveBtn: {
-    flex: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#2563EB',
-  },
-  saveBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  forceBtn: {
-    flex: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: '#D97706',
-  },
-  forceBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-});

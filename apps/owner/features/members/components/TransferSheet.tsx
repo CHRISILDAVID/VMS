@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { X, Check } from 'lucide-react-native';
 import { MemberWithDetails, MembershipSlotWithDetails } from '@vms/shared/services';
 import { useTransferMember } from '../hooks/useMemberships';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface TransferSheetProps {
   member: MemberWithDetails | null;
@@ -13,6 +14,7 @@ interface TransferSheetProps {
 export function TransferSheet({ member, slots, onClose }: TransferSheetProps) {
   const [selectedSlotId, setSelectedSlotId] = useState<string>('');
   const transferMutation = useTransferMember();
+  const { colors } = useThemeColors();
 
   if (!member) return null;
 
@@ -36,24 +38,26 @@ export function TransferSheet({ member, slots, onClose }: TransferSheetProps) {
 
   return (
     <Modal visible={!!member} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handleBar}><View style={styles.handle} /></View>
-          <View style={styles.header}>
+      <View className="flex-1 justify-end">
+        <TouchableOpacity className="absolute inset-0 bg-black/50" activeOpacity={1} onPress={onClose} />
+        <View className="bg-card rounded-t-3xl max-h-[80%]">
+          <View className="items-center pt-3 pb-1">
+            <View className="w-9 h-1 rounded-full bg-muted-foreground/30" />
+          </View>
+          <View className="flex-row justify-between items-center px-5 py-3 border-b border-border">
             <View>
-              <Text style={styles.title}>Transfer Member</Text>
-              <Text style={styles.subTitle}>Moving {member.customer?.full_name || 'Member'}</Text>
+              <Text className="text-lg font-extrabold text-foreground">Transfer Member</Text>
+              <Text className="text-xs text-muted-foreground mt-0.5">Moving {member.customer?.full_name || 'Member'}</Text>
             </View>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <X size={18} color="#64748B" />
+            <TouchableOpacity className="w-8 h-8 rounded-full bg-muted items-center justify-center" onPress={onClose}>
+              <X size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content}>
-            <Text style={styles.sectionLabel}>Select Target Slot</Text>
+          <ScrollView className="p-5" showsVerticalScrollIndicator={false}>
+            <Text className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Select Target Slot</Text>
             {availableSlots.length === 0 ? (
-              <Text style={styles.emptyText}>No other open slots available for transfer.</Text>
+              <Text className="text-sm text-muted-foreground text-center my-5">No other open slots available for transfer.</Text>
             ) : (
               availableSlots.map(s => {
                 const activeCount = s.active_count || 0;
@@ -63,20 +67,20 @@ export function TransferSheet({ member, slots, onClose }: TransferSheetProps) {
                 return (
                   <TouchableOpacity
                     key={s.id}
-                    style={[styles.slotCard, isSelected && styles.slotCardSelected]}
+                    className={`flex-row justify-between items-center p-3.5 rounded-xl border-[1.5px] mb-2.5 ${isSelected ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}
                     onPress={() => setSelectedSlotId(s.id)}
                   >
-                    <View style={styles.slotInfo}>
-                      <Text style={[styles.slotName, isSelected && { color: '#2563EB' }]}>{s.name}</Text>
-                      <Text style={styles.slotSub}>
+                    <View className="flex-1">
+                      <Text className={`text-[15px] font-bold ${isSelected ? 'text-primary' : 'text-foreground'}`}>{s.name}</Text>
+                      <Text className="text-xs text-muted-foreground mt-0.5">
                         {s.playing_days?.join(', ') || 'No days'} · {s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}
                       </Text>
                     </View>
-                    <View style={styles.slotRight}>
-                      <Text style={[styles.vacantText, { color: vacant > 0 ? '#16A34A' : '#DC2626' }]}>
+                    <View className="flex-row items-center gap-2">
+                      <Text className={`text-xs font-semibold ${vacant > 0 ? 'text-green-600' : 'text-destructive'}`}>
                         {vacant > 0 ? `${vacant} vacant` : 'Full'}
                       </Text>
-                      {isSelected && <Check size={18} color="#2563EB" />}
+                      {isSelected && <Check size={18} color={colors.primary} />}
                     </View>
                   </TouchableOpacity>
                 );
@@ -84,11 +88,11 @@ export function TransferSheet({ member, slots, onClose }: TransferSheetProps) {
             )}
 
             <TouchableOpacity
-              style={[styles.confirmBtn, (!selectedSlotId || transferMutation.isPending) && styles.confirmBtnDisabled]}
+              className={`py-3.5 rounded-xl items-center mt-2.5 mb-8 ${(!selectedSlotId || transferMutation.isPending) ? 'bg-muted' : 'bg-primary'}`}
               onPress={handleTransfer}
               disabled={!selectedSlotId || transferMutation.isPending}
             >
-              <Text style={[styles.confirmText, (!selectedSlotId || transferMutation.isPending) && { color: '#94A3B8' }]}>
+              <Text className={`text-[15px] font-bold ${(!selectedSlotId || transferMutation.isPending) ? 'text-muted-foreground' : 'text-white'}`}>
                 {transferMutation.isPending ? 'Transferring...' : 'Confirm Transfer'}
               </Text>
             </TouchableOpacity>
@@ -98,128 +102,3 @@ export function TransferSheet({ member, slots, onClose }: TransferSheetProps) {
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '80%',
-  },
-  handleBar: {
-    alignItems: 'center',
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E2E8F0',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  subTitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    padding: 20,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#94A3B8',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  slotCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-    marginBottom: 10,
-  },
-  slotCardSelected: {
-    borderColor: '#2563EB',
-    backgroundColor: '#EFF6FF',
-  },
-  slotInfo: {
-    flex: 1,
-  },
-  slotName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  slotSub: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  slotRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  vacantText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  confirmBtn: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 30,
-  },
-  confirmBtnDisabled: {
-    backgroundColor: '#E2E8F0',
-  },
-  confirmText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});

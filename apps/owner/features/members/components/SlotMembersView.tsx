@@ -1,12 +1,13 @@
 import { formatPhone } from '@vms/shared/utils';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { ChevronLeft, Plus, Edit2, ArrowRightLeft, UserX } from 'lucide-react-native';
 import { MembershipSlotWithDetails, MemberWithDetails } from '@vms/shared/services';
 import { useMembers, useRemoveMember, useUpdateMember } from '../hooks/useMemberships';
 import { useVoidPaymentsForMember } from '../../payments/hooks/usePayments';
 import { AddMemberModal, EditMemberModal } from './MemberSheets';
 import { TransferSheet } from './TransferSheet';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 interface SlotMembersViewProps {
   slot: MembershipSlotWithDetails;
@@ -14,8 +15,11 @@ interface SlotMembersViewProps {
   onBack: () => void;
 }
 
-const payColors: Record<string, string> = { paid: '#16A34A', due: '#D97706', overdue: '#DC2626' };
-const payBg: Record<string, string> = { paid: '#F0FDF4', due: '#FFFBEB', overdue: '#FEF2F2' };
+const payClasses: Record<string, { bgClass: string; textClass: string }> = { 
+  paid: { bgClass: 'bg-green-100 dark:bg-green-900/40', textClass: 'text-green-600' },
+  due: { bgClass: 'bg-amber-100 dark:bg-amber-900/40', textClass: 'text-amber-600' },
+  overdue: { bgClass: 'bg-red-100 dark:bg-red-900/40', textClass: 'text-destructive' }
+};
 const payLabel: Record<string, string> = { paid: 'Paid', due: 'Due Soon', overdue: 'Overdue' };
 
 export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps) {
@@ -23,6 +27,7 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
   const removeMutation = useRemoveMember();
   const updateMutation = useUpdateMember();
   const voidMutation = useVoidPaymentsForMember();
+  const { colors } = useThemeColors();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<MemberWithDetails | null>(null);
@@ -62,39 +67,39 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-background">
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-          <ChevronLeft size={22} color="#0F172A" />
+      <View className="flex-row items-center px-4 py-3 bg-card border-b border-border gap-3">
+        <TouchableOpacity className="p-1.5 rounded-lg bg-muted" onPress={onBack}>
+          <ChevronLeft size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <View style={styles.headerTitles}>
-          <Text style={styles.slotName}>{slot.name}</Text>
-          <Text style={styles.slotSub}>
+        <View className="flex-1">
+          <Text className="text-lg font-extrabold text-foreground">{slot.name}</Text>
+          <Text className="text-xs text-muted-foreground mt-0.5">
             {slot.playing_days?.join(', ')} · {slot.start_time?.slice(0, 5)}–{slot.end_time?.slice(0, 5)}
           </Text>
         </View>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)}>
+        <TouchableOpacity className="flex-row items-center gap-1.5 bg-primary px-3 py-2 rounded-lg" onPress={() => setShowAddModal(true)}>
           <Plus size={16} color="#fff" />
-          <Text style={styles.addBtnText}>Add Member</Text>
+          <Text className="text-[13px] font-bold text-white">Add Member</Text>
         </TouchableOpacity>
       </View>
 
       {/* Stats bar */}
-      <View style={styles.statsBar}>
-        <Text style={styles.statsText}>
-          Active Roster: <Text style={styles.statsBold}>{activeCount}/{slot.capacity}</Text> players
+      <View className="px-4 py-2.5 bg-primary/10 border-b border-primary/20">
+        <Text className="text-[13px] text-primary">
+          Active Roster: <Text className="font-extrabold">{activeCount}/{slot.capacity}</Text> players
         </Text>
       </View>
 
       {/* Members list */}
-      <ScrollView style={styles.listContent} showsVerticalScrollIndicator={false}>
+      <ScrollView className="px-4 pt-4 pb-20" showsVerticalScrollIndicator={false}>
         {isLoading ? (
-          <Text style={styles.emptyText}>Loading members...</Text>
+          <Text className="text-center text-muted-foreground mt-5">Loading members...</Text>
         ) : members.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyTitle}>No Members Enrolled</Text>
-            <Text style={styles.emptySub}>Tap "Add Member" to enroll players into this training slot.</Text>
+          <View className="p-10 items-center justify-center">
+            <Text className="text-base font-bold text-foreground mb-1.5">No Members Enrolled</Text>
+            <Text className="text-[13px] text-muted-foreground text-center leading-[18px]">Tap "Add Member" to enroll players into this training slot.</Text>
           </View>
         ) : (
           members.map(m => {
@@ -102,57 +107,59 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
             const phone = formatPhone(m.customer?.phone || '');
             const initial = customerName.charAt(0).toUpperCase();
             const payStatus = m.latest_payment?.status || (m.is_active ? 'paid' : 'due');
+            const payTheme = payClasses[payStatus] || payClasses.paid;
 
             return (
-              <View key={m.id} style={[styles.card, !m.is_active && styles.cardInactive]}>
+              <View key={m.id} className={`bg-card rounded-2xl p-3.5 border border-border mb-2.5 ${!m.is_active ? 'opacity-70 bg-muted' : ''}`}>
                 {/* Top Row */}
-                <View style={styles.topRow}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{initial}</Text>
+                <View className="flex-row items-center gap-3 mb-3">
+                  <View className="w-[42px] h-[42px] rounded-xl bg-primary/10 items-center justify-center">
+                    <Text className="text-[17px] font-extrabold text-primary">{initial}</Text>
                   </View>
-                  <View style={styles.info}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.name}>{customerName}</Text>
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-1.5 mb-0.5">
+                      <Text className="text-[15px] font-bold text-foreground">{customerName}</Text>
                       {!m.is_active && (
-                        <View style={styles.inactiveBadge}>
-                          <Text style={styles.inactiveText}>Inactive</Text>
+                        <View className="px-1.5 py-0.5 rounded-md bg-muted border border-border">
+                          <Text className="text-[10px] font-bold text-muted-foreground">Inactive</Text>
                         </View>
                       )}
                     </View>
-                    <Text style={styles.phone}>{phone}</Text>
+                    <Text className="text-xs text-muted-foreground">{phone}</Text>
                   </View>
-                  <View style={styles.switchCol}>
-                    <Text style={[styles.switchLabel, { color: m.is_active ? '#16A34A' : '#94A3B8' }]}>
+                  <View className="items-center">
+                    <Text className={`text-[10px] font-semibold mb-0.5 ${m.is_active ? 'text-green-600' : 'text-muted-foreground'}`}>
                       {m.is_active ? 'Active' : 'Inactive'}
                     </Text>
                     <Switch
                       value={m.is_active}
                       onValueChange={() => handleToggleActive(m)}
-                      trackColor={{ false: '#E2E8F0', true: '#16A34A' }}
+                      trackColor={{ false: colors.muted, true: '#16A34A' }}
+                      thumbColor="#fff"
                     />
                   </View>
                 </View>
 
                 {/* Bottom Row */}
-                <View style={styles.bottomRow}>
-                  <View style={[styles.payBadge, { backgroundColor: payBg[payStatus] || '#F0FDF4' }]}>
-                    <Text style={[styles.payText, { color: payColors[payStatus] || '#16A34A' }]}>
+                <View className="flex-row items-center justify-between border-t border-border pt-2.5">
+                  <View className={`px-2.5 py-1 rounded-full ${payTheme.bgClass}`}>
+                    <Text className={`text-[11px] font-bold ${payTheme.textClass}`}>
                       {payLabel[payStatus] || 'Paid'}
                     </Text>
                   </View>
 
-                  <View style={styles.actions}>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => setMemberToEdit(m)}>
-                      <Edit2 size={12} color="#64748B" />
-                      <Text style={styles.actionText}>Edit</Text>
+                  <View className="flex-row gap-1.5">
+                    <TouchableOpacity className="flex-row items-center gap-1 px-2.5 py-1.5 bg-muted border border-border rounded-lg" onPress={() => setMemberToEdit(m)}>
+                      <Edit2 size={12} color={colors.mutedForeground} />
+                      <Text className="text-[11px] font-semibold text-muted-foreground">Edit</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, styles.transferBtn]} onPress={() => setMemberToTransfer(m)}>
-                      <ArrowRightLeft size={12} color="#2563EB" />
-                      <Text style={[styles.actionText, { color: '#2563EB' }]}>Transfer</Text>
+                    <TouchableOpacity className="flex-row items-center gap-1 px-2.5 py-1.5 bg-primary/10 border border-primary/20 rounded-lg" onPress={() => setMemberToTransfer(m)}>
+                      <ArrowRightLeft size={12} color={colors.primary} />
+                      <Text className="text-[11px] font-semibold text-primary">Transfer</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, styles.removeBtn]} onPress={() => handleRemove(m)}>
+                    <TouchableOpacity className="flex-row items-center gap-1 px-2.5 py-1.5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg" onPress={() => handleRemove(m)}>
                       <UserX size={12} color="#DC2626" />
-                      <Text style={[styles.actionText, { color: '#DC2626' }]}>Remove</Text>
+                      <Text className="text-[11px] font-semibold text-destructive">Remove</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -169,204 +176,3 @@ export function SlotMembersView({ slot, allSlots, onBack }: SlotMembersViewProps
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    gap: 12,
-  },
-  backBtn: {
-    padding: 6,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-  },
-  headerTitles: {
-    flex: 1,
-  },
-  slotName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  slotSub: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  addBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  statsBar: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#EFF6FF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#DBEAFE',
-  },
-  statsText: {
-    fontSize: 13,
-    color: '#1E40AF',
-  },
-  statsBold: {
-    fontWeight: '800',
-  },
-  listContent: {
-    padding: 16,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#64748B',
-    marginTop: 20,
-  },
-  emptyBox: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 6,
-  },
-  emptySub: {
-    fontSize: 13,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    marginBottom: 10,
-  },
-  cardInactive: {
-    opacity: 0.7,
-    backgroundColor: '#F8FAFC',
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#2563EB',
-  },
-  info: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  inactiveBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-  },
-  inactiveText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  phone: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  switchCol: {
-    alignItems: 'center',
-  },
-  switchLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#F8FAFC',
-    paddingTop: 10,
-  },
-  payBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  payText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-  },
-  actionText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  transferBtn: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
-  },
-  removeBtn: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FCA5A5',
-  },
-});

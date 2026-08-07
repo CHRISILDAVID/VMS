@@ -5,10 +5,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { cssInterop, useColorScheme } from 'nativewind';
+
+cssInterop(GestureHandlerRootView, { className: 'style' });
 import 'react-native-reanimated';
 import '../global.css';
 
 import { AuthProvider, useAuthContext } from '../contexts/AuthContext';
+import { ThemeProvider } from '../components/ThemeProvider';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -60,6 +64,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  const { colorScheme } = useColorScheme();
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -79,20 +84,21 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} className={colorScheme === 'dark' ? 'dark' : ''}>
       <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthGuard>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="booking" options={{ headerShown: false }} />
-              <Stack.Screen name="profile" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </AuthGuard>
-          <StatusBar style="dark" />
-        </QueryClientProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthGuard>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="booking" options={{ headerShown: false }} />
+                <Stack.Screen name="profile" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </AuthGuard>
+          </QueryClientProvider>
+        </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );
