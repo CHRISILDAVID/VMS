@@ -119,8 +119,11 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
       .eq('date', dateStr)
       .is('deleted_at', null)
       .not('status', 'eq', 'cancelled')
-      .lt('start_time', endTime)
-      .gt('end_time', startTime);
+      .or(`end_time.gt.${startTime},end_time.eq.00:00:00,end_time.eq.00:00`);
+
+    if (endTime !== '00:00:00' && endTime !== '00:00') {
+      bQuery = bQuery.lt('start_time', endTime);
+    }
 
     if (excludeBookingId) {
       bQuery = bQuery.neq('id', excludeBookingId);
@@ -133,14 +136,19 @@ export const createBookingsService = (supabase: SupabaseClient) => ({
     const dateObj = new Date(dateStr);
     const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase() as DayOfWeek;
     
-    const { data: mConflicts, error: mError } = await supabase
+    let mQuery = supabase
       .from('membership_slots')
       .select('*')
       .eq('venue_id', venueId)
       .contains('playing_days', [dayOfWeek])
       .is('deleted_at', null)
-      .lt('start_time', endTime)
-      .gt('end_time', startTime);
+      .or(`end_time.gt.${startTime},end_time.eq.00:00:00,end_time.eq.00:00`);
+
+    if (endTime !== '00:00:00' && endTime !== '00:00') {
+      mQuery = mQuery.lt('start_time', endTime);
+    }
+
+    const { data: mConflicts, error: mError } = await mQuery;
 
     if (mError && !mError.message?.includes('schema cache') && !mError.message?.includes('does not exist')) {
       throw mError;
