@@ -9,6 +9,7 @@ import { X, UploadCloud, Loader2 } from 'lucide-react';
 import type { Venue } from '@vms/shared/types';
 import { OwnerSearchSelect } from '../owners/OwnerSearchSelect';
 import { ScrollTimePicker } from '../ui/ScrollTimePicker';
+import { LocationPicker } from './LocationPicker';
 
 const venueSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -40,7 +41,7 @@ export function VenueForm({ initialData, onSubmit, isSubmitting }: VenueFormProp
   const [photos, setPhotos] = useState<string[]>(initialData?.photos || []);
   const [uploading, setUploading] = useState(false);
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm<VenueFormData>({
+  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<VenueFormData>({
     resolver: zodResolver(venueSchema),
     defaultValues: {
       name: initialData?.name || '',
@@ -162,6 +163,37 @@ export function VenueForm({ initialData, onSubmit, isSubmitting }: VenueFormProp
               <label htmlFor="pincode" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pincode</label>
               <Input id="pincode" {...register('pincode')} error={errors.pincode?.message} />
             </div>
+          </div>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Pinpoint Location on Map</label>
+            <Controller
+              name="latitude"
+              control={control}
+              render={({ field: { value: lat } }) => (
+                <Controller
+                  name="longitude"
+                  control={control}
+                  render={({ field: { value: lng } }) => (
+                    <LocationPicker
+                      latitude={lat || null}
+                      longitude={lng || null}
+                      onChange={(newLat, newLng, details) => {
+                        setValue('latitude', newLat, { shouldDirty: true });
+                        setValue('longitude', newLng, { shouldDirty: true });
+                        
+                        if (details) {
+                          if (details.address) setValue('address', details.address, { shouldDirty: true });
+                          if (details.city) setValue('city', details.city, { shouldDirty: true });
+                          if (details.state) setValue('state', details.state, { shouldDirty: true });
+                          if (details.pincode) setValue('pincode', details.pincode, { shouldDirty: true });
+                        }
+                      }}
+                    />
+                  )}
+                />
+              )}
+            />
           </div>
 
           <hr className="border-slate-200 dark:border-slate-800" />

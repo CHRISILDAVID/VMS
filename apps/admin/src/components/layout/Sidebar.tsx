@@ -47,6 +47,38 @@ export function Sidebar() {
             </NavLink>
           );
         })}
+        
+        <div className="pt-6 pb-2 px-3">
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Player Platform</div>
+        </div>
+
+        <NavLink
+          to="/wallet-management"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              isActive
+                ? 'bg-blue-600/10 text-blue-400'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`
+          }
+        >
+          <CreditCard size={18} />
+          Wallet Management
+        </NavLink>
+        
+        <NavLink
+          to="/coaches"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              isActive
+                ? 'bg-blue-600/10 text-blue-400'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`
+          }
+        >
+          <Users size={18} />
+          Coach Management
+        </NavLink>
       </nav>
     </aside>
   );

@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ── Light Mode ── Navy foreground on White background */
+  :root {
+    --color-background: #FFFFFF;
+    --color-foreground: #0B1F3A;
+
+    --color-card: #F5F7FA;
+    --color-card-foreground: #0B1F3A;
+
+    /* Primary: Navy button with Lime text in light mode */
+    --color-primary: #0B1F3A;
+    --color-primary-foreground: #A7FF3F;
+
+    /* Accent: Lime highlight */
+    --color-accent: #A7FF3F;
+    --color-accent-foreground: #0B1F3A;
+
+    --color-border: #D1D9E0;
+    --color-input: #FFFFFF;
+
+    --color-muted: #EEF1F5;
+    --color-muted-foreground: #5A6B7B;
+
+    --color-destructive: #EF4444;
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+  }
+
+  /* ── Dark Mode ── Navy background, Lime primary, white text */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background: #0B1F3A;
+      --color-foreground: #FFFFFF;
+
+      --color-card: #102844;
+      --color-card-foreground: #F0F4F8;
+
+      /* Primary: Lime button with Navy text in dark mode */
+      --color-primary: #A7FF3F;
+      --color-primary-foreground: #0B1F3A;
+
+      /* Accent: same Lime */
+      --color-accent: #A7FF3F;
+      --color-accent-foreground: #0B1F3A;
+
+      --color-border: #1A3655;
+      --color-input: #102844;
+
+      --color-muted: #1A3655;
+      --color-muted-foreground: #94A3B8;
+
+      --color-destructive: #F87171;
+      --color-success: #4ADE80;
+      --color-warning: #FBBF24;
+    }
+  }
+}

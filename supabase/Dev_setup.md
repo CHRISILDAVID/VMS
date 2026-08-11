@@ -1,56 +1,58 @@
-# Supabase Development Setup (Local)
+# Supabase Development Setup (Remote Dev Environment)
 
-This guide outlines how to set up the local Supabase environment for development and testing.
+This guide outlines how to interact with the **Remote Development** Supabase project. 
+(Note: This project does not use a local Docker-based Supabase instance. Both Dev and Prod are remote Supabase projects).
 
-## Prerequisites
-- Docker must be installed and running.
-- Supabase CLI installed globally (`npm install -g supabase` or run via `npx supabase`).
-
-## 1. Start Local Supabase
-Ensure Docker is running, then run:
+## 1. Link Your Dev Project
+Connect your local CLI to your remote **Dev** Supabase project. 
 ```bash
-npx supabase start
+npx supabase login
+npx supabase link --project-ref <your-dev-project-ref>
 ```
-This will spin up Postgres, GoTrue (Auth), PostgREST, Realtime, and Storage locally.
 
-## 2. Connect the App
-The local `supabase start` command will print out the `API URL` and `anon key`. 
-Ensure your `apps/owner/.env` and `apps/admin/.env` are pointing to these local credentials if you want to test locally:
+## 2. Configure Environment Variables
+Ensure your application environments (`apps/owner/.env`, `apps/player/.env`, `apps/admin/.env`) point to your **Dev** project credentials:
 ```env
-EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_local_anon_key
+EXPO_PUBLIC_SUPABASE_URL=https://<your-dev-project-ref>.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_dev_anon_key
 ```
 
-## 3. Apply Migrations
-Supabase CLI automatically applies migrations from `supabase/migrations/` in alphabetical/numerical order when you run `supabase start` or `supabase db reset`.
-
-If you created a new migration and want to apply it manually:
+## 3. Apply Migrations (Push to Dev)
+To apply new migrations (like `014_player_core.sql`) to your remote Dev database:
 ```bash
-npx supabase db reset
+npx supabase db push
 ```
+This reads `supabase/migrations/` and applies any scripts that haven't been applied yet.
 
-The execution order is always:
-1. `001_initial_schema.sql` (Auth triggers, core tables)
-2. `002_schedules_pricing.sql` (Courts, Slots)
-3. `003_bookings_customers.sql` (Customers, Guests)
-4. `004_memberships.sql` (Memberships, Edge functions prep)
-5. `005_membership_payments.sql` (Payments, Storage, pg_cron)
-
-## 4. Seeding Data (Local Only)
-We use seed files to populate the local database with dummy data for testing.
-You can run the seed files manually:
+## 4. Seeding Data (Dev Only)
+To populate your remote Dev database with dummy testing data, run the seed files manually:
 ```bash
-npx supabase db query -f supabase/seed_m1.sql --local
-npx supabase db query -f supabase/seed_m2.sql --local
-npx supabase db query -f supabase/seed_m3.sql --local
-npx supabase db query -f supabase/seed_m3_fixes.sql --local
+npx supabase db query -f supabase/seed_m1.sql
+npx supabase db query -f supabase/seed_m2.sql
+npx supabase db query -f supabase/seed_m3.sql
+npx supabase db query -f supabase/seed_m3_fixes.sql
 ```
-
-*(Note: `supabase db reset` automatically runs `supabase/seed.sql` if it exists. We maintain numbered seed scripts for modularity).*
+*(Never run these on the Prod project!)*
 
 ## 5. Edge Functions
-To test the monthly payments cron job locally:
+To deploy edge functions to your Dev environment:
 ```bash
-npx supabase functions serve
+npx supabase functions deploy <function-name>
 ```
-And trigger it using `curl` or Postman.
+
+---
+
+## ⚠️ Important: Rolling Back a Remote Database
+
+Because we are working with a **remote** database rather than a local Docker instance, you **cannot** simply delete a migration file and run `npx supabase db reset`. 
+
+If you push a migration (like 014) to the remote Dev DB and later decide you want to completely scratch the code and revert the database, you have two options:
+
+**Option A: Manual Cleanup (Recommended for small changes)**
+1. Open the Supabase Dashboard for your Dev project in the browser.
+2. Go to the SQL Editor.
+3. Manually write and execute `DROP TABLE players CASCADE;`, `DROP TABLE system_config;`, etc. to remove the tables created by the migration.
+4. Delete the `014_player_core.sql` record from the `supabase_migrations.schema_migrations` table so Supabase forgets it was applied.
+
+**Option B: Full Project Reset (Wipes all Dev data)**
+If the database gets too messy, you can reset the entire remote project from the Supabase Dashboard (Project Settings -> Database -> Reset Database). This will wipe **everything**. You would then run `npx supabase db push` to reapply migrations 001-013, and re-run your seed scripts to get your test data back.

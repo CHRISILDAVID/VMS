@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev:owner": "pnpm --filter @vms/owner start",
+    "dev:player": "pnpm --filter @vms/player start",
     "dev:admin": "pnpm --filter @vms/admin dev",
     "build:admin": "pnpm --filter @vms/admin build",
     "shared:build": "pnpm --filter @vms/shared build",

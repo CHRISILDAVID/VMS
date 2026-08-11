@@ -101,10 +101,15 @@ Whatever you do with the DB, analyze the `documents/11-supabase-production-setup
 
 ## UI Consistency and Theming (Important Rule)
 
-When developing UI components for mobile apps (Owner App in `apps/owner/` and Player App in `apps/player/`), **do not manually hardcode giant strings of generic Tailwind classes (like `bg-white dark:bg-slate-900 border...`) everywhere**, and **do not use hardcoded hex colors in `StyleSheet.create`**. Act like a senior mobile developer:
-1. **Use a common theme:** Ensure your components match the established theme of the page. **Always use NativeWind `className` referencing theme variables** (e.g. `bg-background`, `text-primary`) for styling instead of hardcoding colors, even when building new components. **For the NativeWind components you create (like `Button`, `Card`, `Modal`, `Checkbox` etc.) , always ensure that the component can automatically switch background & foreground colours based on the `ColorScheme` and `theme` provided by the system**
-2. **Use reusable components:** Always check `src/components/ui/` for existing standard components (like `Card`, `Input`, `Button`) before building elements from scratch. If a standard component doesn't exist for a basic input, create it in `ui/` to abstract the styles and use it everywhere.
+When developing UI components for mobile apps (Owner App in `apps/owner/` and Player App in `apps/player/`), **do not manually hardcode giant strings of generic Tailwind classes (like `bg-white dark:bg-slate-900 border...`) everywhere**, and **do not use hardcoded hex colors in `StyleSheet.create` or inline styles**. Act like a senior mobile developer:
+1. **Create and Reuse Common Color Schemes:** Define common color schemes and semantic tokens (e.g., `primary`, `background`, `text-muted`) in the Tailwind config and theme files. **Always use NativeWind `className` referencing these theme variables** for styling across all screens. Do not hardcode specific colors in individual UI elements.
+2. **Build Reusable Components:** Always check `src/components/ui/` for existing standard components (like `Card`, `Input`, `Button`) before building elements from scratch. If a standard UI element or pattern doesn't exist, create it in `ui/` to abstract the styles and reuse it everywhere as a variable component rather than hardcoding the same elements across different screens.
+3. **Dynamic Theme Switching:** For the NativeWind components you create (like `Button`, `Card`, `Modal`, `Checkbox` etc.), always ensure that the component automatically switches background & foreground colors based on the `ColorScheme` and `theme` provided by the system.
 
 ## Theme Toggling (Important Rule)
 
 Design the pages in such a way that there can be a toggle in the settings screen (Dark mode / Light mode / System default). Ensure all UI components and Tailwind configurations support this dynamic theme switching natively.
+
+## Documentation Tracking (Important Rule)
+
+At the end of a chat session, when explicitly instructed by the user (the evaluator), you must update the project documents (e.g., development roadmap, implementation plans) to reflect the progress made during that session. Do NOT update these tracking documents after every single prompt unless explicitly asked to do so; wait for the end-of-session confirmation to keep track of work across different chats and sessions.

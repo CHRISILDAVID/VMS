@@ -1,53 +1,24 @@
-# Handover Prompt: ShuttleHub Player App Development (Phase 2 — M10 onwards)
+Hello! You are joining the Badminton Manager (VMS) project at Phase 2. We have successfully built the Owner App and Admin Panel (Milestones 0–7)/ M8 and M9 is for later during publishing. Your primary task now is to start building the **ShuttleHub Player App**, specifically focusing on **Milestone 10 — Player App Foundation & Auth**.
 
-You are a senior software engineer. You are tasked with the development of the **ShuttleHub Player App** (Phase 2, starting from Milestone 10) for the multi-app Badminton Venue Management System.
+**Before writing any code, you MUST:**
 
-## Your Context & Objectives
+1. Read `AGENTS.md` (located at the root) to understand the strict rules and workflows you must follow. Pay special attention to:
+    * **UI Consistency & Theming:** You must create and reuse common color schemes and semantic variables in the Tailwind config. DO NOT hardcode colors or generic Tailwind strings across screens. Build reusable components (like `Card`, `Button`, `Input`) in `src/components/ui/` and reuse them everywhere as variable components.
+    * **Documentation Tracking:** Do NOT update tracking documents after every single prompt. Only update them at the end of a chat session when I (the evaluator) explicitly instruct you that the session is complete.
+    * **Mobile App Testing:** Confirm how to verify changes using the emulator or Expo Go.
 
-1. **Review the Core Documents (mandatory before writing any code):**
-   - Read `documents/Player_app_Implementation_plan.md` — this is your primary reference for the full scope, architecture decisions, feature specs, and founder's key decisions. Study the **Founder's Key Decisions** section carefully.
-   - Read `documents/10-development-roadmap.md` — understand the current project status. Phase 1 (Owner App M0–M6 + Admin Panel M7) is **complete**. You are starting Phase 2 from **M10**.
-   - Read `documents/06-database-design.md` — understand the full DB schema, especially the Phase 2 tables (`players`, `player_wallets`, `challenges`, `hosted_matches`, etc.).
-   - Read `documents/07-backend-architecture.md` — understand the backend patterns (Supabase, RLS, Edge Functions).
-   - Read `documents/08-frontend-architecture.md` — understand shared service patterns and how the Player App should integrate with `packages/shared/`.
-   - Read `documents/09-mobile-and-deployment.md` — understand the Expo / EAS / deployment conventions.
-   - Read `AGENTS.md` — understand ALL the project-wide rules (styling, testing, DB tracking, design reference rules).
+2. Read `documents/10-development-roadmap.md` to review the specific deliverables and completion checklist for Milestone 10.
+3. Read `documents/Player_app_Implementation_plan.md`, which is the comprehensive architectural and functional blueprint brainstormed for Phase 2. This document is your single source of truth for all business logic, navigation flows, and UI mapping.
+4. Review the backend and frontend architecture updates in `documents/07-backend-architecture.md` and `documents/08-frontend-architecture.md`.
+5. Review the database schema for Phase 2 in `documents/06-database-design.md` (Migrations 014+).
 
-2. **Study the Existing Codebase:**
-   - Examine `apps/owner/` thoroughly — the Player App **must follow the same patterns** for Expo Router, NativeWind, React Query, Zustand, React Hook Form, and Zod as established in the Owner App. Do not invent new conventions.
-   - Examine `packages/shared/src/` — understand the existing service layer, types, and utilities. You will be extending this, not replacing it.
-   - Examine `supabase/migrations/` — understand the existing DB schema before adding new migrations.
+**Your Task (Milestone 10):**
 
-3. **Study the Design References:**
-   - Read `player_reference/figma-src/` — this contains the Figma exports for the Player App. The theme is **Navy (#0B1F3A) + Lime (#A7FF3F)** sporty aesthetic.
-   - Read `player_reference/prompts/v1_all_prompts_and_responses_from_figma_AI.md` and `v2_all_prompts_and_responses_from_figma_AI.md` — these contain rich screen-by-screen descriptions of the original Figma designs, including layout, component behaviour, and copy. This is essential context for building faithful UI.
-   - **Design Rule:** Always refer to `player_reference/figma-src/` when building any screen. However, **do not blindly follow the Figma** if it conflicts with established UI patterns from the Owner App. The goal is to match the original intent while maintaining global UI consistency.
+1. Set up the Expo scaffold under `apps/player/` with the correct package name.
+2. Set up the Supabase client for the player app.
+3. Implement the Phone OTP authentication flow (connecting to the Phase 2 `players` table).
+4. Create the initial Player profile creation screen.
+5. Set up the 5-tab bottom navigation skeleton (Home, Play, Tournaments, Rankings, Shop) and the top bar UI.
+6. Configure the `PLAYER_COLORS` design tokens (Navy `#0B1F3A`, Lime `#A7FF3F`) and NativeWind theme support as reusable variables.
 
-4. **Your Current Task:**
-   - Start from **Milestone 10 — Player App Foundation + Auth**.
-   - **Work in Phases:** The development is broken down into milestones (M10 through M17) in `documents/10-development-roadmap.md`. Tackle these sequentially. You may group one or two tightly coupled milestones into a single session to work efficiently, but always clearly state which milestone(s) you are working on.
-
-## Critical Rules to Remember
-
-- **Player App Path:** `apps/player/` — do NOT put code in `apps/owner/` unless you are making the explicit Owner App impact changes documented in the milestones (e.g., adding min slot duration settings).
-- **Shared Code:** All reusable services, types, and utilities go in `packages/shared/src/`. Keep apps thin.
-- **Database Migrations:** Every schema change must have a properly numbered migration file in `supabase/migrations/`. Track all changes as per `AGENTS.md`.
-- **Remote DB Access:** Never directly run `npx supabase db dump` or similar Docker-dependent commands. Follow the `AGENTS.md` Remote Database Access rule.
-- **Design Tokens:** The Player App uses Navy `#0B1F3A`, Lime `#A7FF3F`, White, and Dark Grey. Do not use the Owner App's blue theme in the Player App.
-- **Brand:** The app is called **ShuttleHub** — use this name in all user-facing text, not "Player App" or "VMS".
-- **Market:** India only — use ₹ for currency, +91 for phone, and Indian city names in seed data.
-- **MVP Payment:** "Pay at Court" only — **no online payment integration** for Phase 2.
-- **Wallet:** Admin-managed balance only — players cannot add money themselves.
-- **Tournaments:** Deferred — show placeholder screens only. Do not implement tournament logic.
-
-## Session Workflow
-
-Make an **Implementation Plan for this specific session** outlining which milestone(s) or phases within a milestone you will tackle. Include:
-- Which deliverables from the roadmap you will complete
-- The sequence of work (DB migrations → shared services → UI screens)
-- Any Owner App changes required
-
-Once I review and approve it, we will start development.
-
-**After completing your session's work:**
-- Log your progress by checking off the completed items `[x]` in the corresponding milestone(s) in `documents/10-development-roadmap.md`.
+Please formulate an execution plan first and wait for my approval before proceeding with the implementation.

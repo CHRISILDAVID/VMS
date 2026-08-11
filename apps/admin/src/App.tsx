@@ -15,6 +15,8 @@ import CustomersPage from './pages/CustomersPage';
 import { PageHeader } from './components/ui/PageHeader';
 import MembershipsPage from './pages/MembershipsPage';
 import PaymentsPage from './pages/PaymentsPage';
+import { WalletManagementPage } from './pages/WalletManagementPage';
+import { CoachManagementPage } from './pages/CoachManagementPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +47,8 @@ export default function App() {
             <Route path="customers" element={<CustomersPage />} />
             <Route path="memberships" element={<MembershipsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
+            <Route path="wallet-management" element={<WalletManagementPage />} />
+            <Route path="coaches" element={<CoachManagementPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -293,3 +293,224 @@ The Admin Panel is **desktop-first** with a simple responsive layout:
 |------------|--------|
 | < 768px | Stacked (mobile fallback) |
 | ≥ 768px | Sidebar + content area |
+
+---
+
+---
+
+# Phase 2 — ShuttleHub Player App Frontend Architecture
+
+---
+
+## 12. Player App Technology Stack
+
+Same as Owner App with the following additions:
+
+| Addition | Purpose |
+|---|---|
+| `expo-screen-orientation` | Force landscape for Umpire Live Scoring screen |
+| `react-native-svg` | SVG knockout bracket connector lines |
+| `react-native-razorpay` | In-app Razorpay checkout |
+| `expo-document-picker` | CSV/Excel/JSON team import |
+| `react-native-reanimated` | Tournament bracket scroll animations |
+
+---
+
+## 13. Player App Folder Structure
+
+```
+apps/player/
+├── app/                              # Expo Router (file-based)
+│   ├── _layout.tsx                   # Root layout (auth guard, providers, theme)
+│   ├── (auth)/
+│   │   ├── _layout.tsx
+│   │   └── login.tsx                 # Phone OTP login
+│   ├── (tabs)/
+│   │   ├── _layout.tsx               # 5-tab bar layout
+│   │   ├── home/
+│   │   │   └── index.tsx             # Home dashboard
+│   │   ├── play/
+│   │   │   ├── _layout.tsx           # Segmented control tabs
+│   │   │   ├── book-court/
+│   │   │   │   ├── index.tsx         # Court listing
+│   │   │   │   ├── [venueId].tsx     # Court detail
+│   │   │   │   ├── slots.tsx         # Slot selection
+│   │   │   │   └── summary.tsx       # Booking summary
+│   │   │   ├── find-players/
+│   │   │   │   ├── index.tsx         # Player discovery
+│   │   │   │   └── [playerId].tsx    # Public player profile
+│   │   │   ├── host-match/
+│   │   │   │   ├── index.tsx         # Hosted match list + join
+│   │   │   │   ├── host.tsx          # Create hosted match
+│   │   │   │   └── [matchId].tsx     # Hosted match detail
+│   │   │   └── train/
+│   │   │       ├── index.tsx         # Coach cards
+│   │   │       └── [coachId].tsx     # Coach detail
+│   │   ├── tournaments/
+│   │   │   ├── index.tsx             # Tournament list (public listings)
+│   │   │   ├── [tournamentId]/
+│   │   │   │   ├── index.tsx         # Tournament detail (tabs)
+│   │   │   │   └── register.tsx      # Registration + payment
+│   │   ├── rankings/
+│   │   │   ├── index.tsx             # Leaderboard / My Rank Card
+│   │   │   └── register-id.tsx       # Player ID registration
+│   │   └── shop/
+│   │       ├── index.tsx             # Product listing
+│   │       ├── [productId].tsx       # Product detail
+│   │       ├── cart.tsx              # Cart
+│   │       └── checkout.tsx          # Checkout
+│   ├── profile/
+│   │   ├── index.tsx                 # Profile menu
+│   │   ├── identity.tsx              # Player Identity detail
+│   │   ├── tournament-history.tsx    # Tournament history
+│   │   ├── play-activity.tsx         # Booking / Hosted / Joined tabs
+│   │   ├── performance.tsx           # Performance report
+│   │   └── orders.tsx                # Shop orders
+│   └── organizer/                    # Organizer Workspace (separate nav stack)
+│       ├── _layout.tsx               # Organizer workspace layout (own header + bottom nav)
+│       ├── setup.tsx                 # Post-approval questionnaire
+│       ├── dashboard/
+│       │   └── index.tsx             # Dashboard (Pools / Standings / Matches / Draw)
+│       ├── teams/
+│       │   └── index.tsx             # Team entry + import
+│       ├── matches/
+│       │   └── index.tsx             # Matches list with Start Match
+│       ├── draw/
+│       │   └── index.tsx             # Knockout bracket view
+│       ├── umpire/
+│       │   └── [matchId].tsx         # Live scoring (forced landscape)
+│       └── champion/
+│           └── index.tsx             # Champion/podium screen
+├── components/
+│   ├── ui/                           # Button, Card, Input, Badge, Chip, Modal
+│   ├── layout/                       # TabBar, PageHeader, SafeArea
+│   ├── overlays/                     # BottomSheet, Dialog
+│   ├── forms/                        # SearchBar, DatePicker, CityPicker, SlotGrid
+│   ├── data-display/                 # TournamentCard, PlayerCard, CoachCard, RankRow
+│   └── domain/                       # UmpireScoreboard, KnockoutBracket, StandingsTable
+├── features/
+│   ├── auth/
+│   ├── home/
+│   ├── booking/
+│   ├── play/                         # social features
+│   ├── tournaments/                  # public listings
+│   ├── rankings/
+│   ├── shop/
+│   ├── profile/
+│   └── organizer/                    # organizer + umpire logic
+│       ├── hooks/
+│       │   ├── useTournament.ts
+│       │   ├── useCategories.ts
+│       │   ├── useMatches.ts
+│       │   └── useLiveScoring.ts     # Supabase Realtime subscription
+│       └── services/
+│           ├── pool-generator.ts     # Pool/fixture generation logic
+│           ├── bracket-generator.ts  # Knockout bracket + bye logic
+│           └── ranking-service.ts    # Points computation (Edge Function call)
+├── hooks/
+├── stores/
+│   ├── playerStore.ts                # Auth player, Player ID, wallet balance
+│   ├── organizerStore.ts             # Active organizer session, active category
+│   └── uiStore.ts
+├── constants/
+│   └── player-theme.ts              # PLAYER_COLORS: Navy + Lime + semantic tokens
+├── assets/
+├── app.json
+├── tsconfig.json
+└── package.json
+```
+
+---
+
+## 14. Player App Routing
+
+```
+(auth)/login                    → LoginScreen
+(tabs)/home                     → HomeScreen
+(tabs)/play/book-court          → CourtListingScreen
+(tabs)/play/book-court/[id]     → CourtDetailScreen
+(tabs)/play/book-court/slots    → SlotSelectionScreen
+(tabs)/play/book-court/summary  → BookingSummaryScreen
+(tabs)/play/find-players        → PlayerDiscoveryScreen
+(tabs)/play/find-players/[id]   → PublicPlayerProfileScreen
+(tabs)/play/host-match          → HostMatchListScreen
+(tabs)/play/host-match/host     → CreateHostedMatchScreen
+(tabs)/play/host-match/[id]     → HostedMatchDetailScreen
+(tabs)/play/train               → CoachListScreen
+(tabs)/play/train/[id]          → CoachDetailScreen
+(tabs)/tournaments              → TournamentListScreen
+(tabs)/tournaments/[id]         → TournamentDetailScreen (5 tabs)
+(tabs)/tournaments/[id]/register → TournamentRegistrationScreen
+(tabs)/rankings                 → RankingsScreen
+(tabs)/rankings/register-id     → PlayerIDRegistrationScreen
+(tabs)/shop                     → ProductListScreen
+(tabs)/shop/[id]                → ProductDetailScreen
+(tabs)/shop/cart                → CartScreen
+(tabs)/shop/checkout            → CheckoutScreen
+profile                         → ProfileScreen
+profile/identity                → PlayerIdentityScreen
+profile/tournament-history      → TournamentHistoryScreen
+profile/play-activity           → PlayActivityScreen
+profile/performance             → PerformanceReportScreen
+profile/orders                  → ShopOrdersScreen
+
+organizer                       → OrganizerWorkspace (modal stack)
+organizer/setup                 → PostApprovalQuestionnaireScreen
+organizer/dashboard             → OrganizerDashboardScreen
+organizer/teams                 → TeamEntryScreen
+organizer/matches               → MatchListScreen
+organizer/draw                  → KnockoutBracketScreen
+organizer/umpire/[matchId]      → LiveScoringScreen (landscape forced)
+organizer/champion              → ChampionScreen
+```
+
+---
+
+## 15. Player App State Management
+
+| State | Tool | Example |
+|---|---|---|
+| Player profile / session | Supabase + Zustand `playerStore` | Player ID, wallet balance |
+| Organizer session | Zustand `organizerStore` | Active category, workspace open |
+| Tournament format | Derived in `organizerStore` from questionnaire answers | 'round_robin' / 'direct_knockout' / 'round_robin_knockout' |
+| Live scores | Supabase Realtime + local reducer | Scores, serving position, game number |
+| BWF rotation state | Local reducer in `useLiveScoring` | Server, receiver, positions (doubles) |
+| Server state | React Query | Tournaments, matches, pools, standings |
+| Form state | React Hook Form + Zod | Booking wizard, organizer questionnaire |
+| URL state | Expo Router params | tournamentId, matchId, categoryId |
+
+---
+
+## 16. Admin Panel Phase 2 Additions
+
+New routes added to the admin panel:
+
+```
+/tournaments                    → PublicTournamentListPage (All/Published/Reg Open/etc.)
+/tournaments/new                → CreateTournamentListingPage
+/tournaments/:id                → TournamentListingDetailPage (edit + status management)
+/tournaments/:id/preview        → TournamentPreviewPage (player-facing view)
+/organizer-approvals            → OrganizerApprovalListPage
+/organizer-approvals/:id        → ApprovalDetailPage
+/players                        → PlayerListPage
+/players/:id                    → PlayerDetailPage (Player ID info, wallet, rankings)
+/wallet                         → WalletManagementPage
+/coaches                        → CoachListPage
+/coaches/new                    → CreateCoachPage
+/rankings-override              → RankingsOverridePage
+/system-config                  → SystemConfigPage
+```
+
+New sidebar groups in the admin panel navigation:
+
+```
+Phase 1 (existing):           Phase 2 (new):
+- Dashboard                   - Tournament Listings
+- Venues                      - Organizer Approvals
+- Courts                      - Player Management
+- Owners                         └── Player IDs
+                              - Wallet Management
+                              - Coaches
+                              - Rankings Override
+                              - System Config
+```
