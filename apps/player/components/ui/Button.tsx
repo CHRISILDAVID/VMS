@@ -11,6 +11,8 @@ interface ButtonProps extends TouchableOpacityProps {
   size?: ButtonSize;
   isLoading?: boolean;
   disabled?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -57,6 +59,8 @@ export function Button({
   size = 'md',
   isLoading = false,
   disabled = false,
+  leftIcon,
+  rightIcon,
   className,
   ...rest
 }: ButtonProps) {
@@ -82,9 +86,13 @@ export function Button({
           color={variant === 'primary' ? colors.primaryForeground : colors.foreground}
         />
       ) : (
-        <Text className={`${labelClasses[variant]} ${labelSizeClasses[size]}`}>
-          {label}
-        </Text>
+        <>
+          {leftIcon}
+          <Text className={`${labelClasses[variant]} ${labelSizeClasses[size]}`}>
+            {label}
+          </Text>
+          {rightIcon}
+        </>
       )}
     </TouchableOpacity>
   );

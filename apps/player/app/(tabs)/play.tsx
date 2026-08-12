@@ -1,35 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
 import { AppHeader } from '../../components/layout/AppHeader';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { CourtListScreen } from '../../features/courts/CourtListScreen';
 import { CoachListScreen } from '../../features/coaches/CoachListScreen';
+import { FindPlayersScreen } from '../../features/social/FindPlayersScreen';
+import { HostJoinMatchScreen } from '../../features/social/HostJoinMatchScreen';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 export default function PlayScreen() {
+  const { tab } = useLocalSearchParams<{ tab: string }>();
+  const router = useRouter();
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const handleTabChange = (index: number) => {
-    if (index >= 2) {
-      Alert.alert('Coming in M12', 'This feature will be available in the next milestone!');
-      return;
+  useEffect(() => {
+    if (tab === 'courts') setSelectedIndex(0);
+    else if (tab === 'players') setSelectedIndex(1);
+    else if (tab === 'matches') setSelectedIndex(2);
+    else if (tab === 'train') setSelectedIndex(3);
+    
+    // Clear param so it doesn't get stuck
+    if (tab) {
+      router.setParams({ tab: '' });
     }
-    setSelectedIndex(index);
-  };
+  }, [tab]);
 
   return (
     <View className="flex-1 bg-background">
-      <AppHeader searchPlaceholder="Search courts, coaches..." />
+      <AppHeader searchPlaceholder="Search courts, players..." />
       <View className="px-4 py-3">
         <SegmentedControl
-          segments={['Courts', 'Train', 'Matches', 'Players']}
+          segments={['Courts', 'Players', 'Matches', 'Train']}
           selectedIndex={selectedIndex}
-          onChange={handleTabChange}
+          onChange={setSelectedIndex}
           variant="pill"
         />
       </View>
       <View className="flex-1">
         {selectedIndex === 0 && <CourtListScreen />}
-        {selectedIndex === 1 && <CoachListScreen />}
+        {selectedIndex === 1 && <FindPlayersScreen />}
+        {selectedIndex === 2 && <HostJoinMatchScreen />}
+        {selectedIndex === 3 && <CoachListScreen />}
       </View>
     </View>
   );

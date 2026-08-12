@@ -106,10 +106,10 @@ ALTER TABLE player_wallets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE player_transactions ENABLE ROW LEVEL SECURITY;
 
 -- ─── players ───────────────────────────────────────────────────
--- Players can only read/write their own profile
-CREATE POLICY "players_select_own"
-  ON players FOR SELECT
-  USING (auth.uid() = id);
+-- Players can read other players' public profiles
+CREATE POLICY "players_select_authenticated"
+  ON players FOR SELECT TO authenticated
+  USING (true);
 
 CREATE POLICY "players_insert_own"
   ON players FOR INSERT

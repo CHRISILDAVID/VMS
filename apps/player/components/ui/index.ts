@@ -7,3 +7,5 @@ export * from './Skeleton';
 export * from './SlotGrid';
 export * from './VenueCard';
 export * from './CoachCard';
+export * from './PlayerCard';
+export * from './MatchCard';

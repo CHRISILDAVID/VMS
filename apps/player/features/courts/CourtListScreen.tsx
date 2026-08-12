@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,19 +19,32 @@ import { useUIStore } from '../../stores/uiStore';
 import { usePlayerThemeColors } from '../../hooks/usePlayerThemeColors';
 import type { PublicVenue } from '@vms/shared/types';
 import { supabase } from '../../lib/supabase';
+import { calculateDistanceKm } from '../../lib/geo';
 
 export function CourtListScreen() {
-  const { cityFilter } = useUIStore();
+  const { cityFilter, userCoords } = useUIStore();
   const { colors } = usePlayerThemeColors();
   const [searchText, setSearchText] = useState('');
 
   const { data: allVenues = [], isLoading, refetch, isRefetching } = usePublicVenues(cityFilter);
 
-  const venues = allVenues.filter(
-    (v) =>
-      v.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      v.city?.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const venues = useMemo(() => {
+    let filtered = allVenues.filter(
+      (v) =>
+        v.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        v.city?.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    if (userCoords) {
+      filtered.sort((a, b) => {
+        const distA = calculateDistanceKm(userCoords.latitude, userCoords.longitude, a.latitude, a.longitude);
+        const distB = calculateDistanceKm(userCoords.latitude, userCoords.longitude, b.latitude, b.longitude);
+        return distA - distB;
+      });
+    }
+
+    return filtered;
+  }, [allVenues, searchText, userCoords]);
 
   return (
     <View className="flex-1 bg-background">
@@ -79,6 +92,7 @@ export function CourtListScreen() {
         renderItem={({ item }) => (
           <VenueListCard
             venue={item as any}
+            userCoords={userCoords}
             onPress={() => router.push(`/courts/${item.id}` as any)}
           />
         )}
@@ -90,9 +104,11 @@ export function CourtListScreen() {
 /** Full-width vertical card for the list view (different from horizontal VenueCard) */
 function VenueListCard({
   venue,
+  userCoords,
   onPress,
 }: {
   venue: PublicVenue & { average_rating?: number | null };
+  userCoords?: { latitude: number; longitude: number } | null;
   onPress: () => void;
 }) {
   const { colors } = usePlayerThemeColors();
@@ -105,6 +121,14 @@ function VenueListCard({
 
   const photos = venue.photos && venue.photos.length > 0 ? venue.photos : [];
   const rating = venue.average_rating ? venue.average_rating.toFixed(1) : '--';
+
+  const distanceLabel = useMemo(() => {
+    if (userCoords && venue.latitude && venue.longitude) {
+      const d = calculateDistanceKm(userCoords.latitude, userCoords.longitude, venue.latitude, venue.longitude);
+      return `${d.toFixed(1)} km away`;
+    }
+    return null;
+  }, [userCoords, venue.latitude, venue.longitude]);
 
   const onScroll = (e: any) => {
     const scrollPos = e.nativeEvent.contentOffset.x;
@@ -175,7 +199,7 @@ function VenueListCard({
 
         {/* Location & Price */}
         <Text className="text-muted-foreground text-sm font-medium">
-          {venue.city || 'Unknown'} • {priceLabel}
+          {venue.city || 'Unknown'}{distanceLabel ? ` • ${distanceLabel}` : ''} • {priceLabel}
         </Text>
 
         {/* Amenities */}
@@ -192,3 +216,4 @@ function VenueListCard({
     </View>
   );
 }
+

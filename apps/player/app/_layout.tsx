@@ -16,6 +16,7 @@ import '../global.css';
 
 import { AuthProvider, useAuthContext } from '../contexts/AuthContext';
 import { ThemeProvider } from '../components/layout/ThemeProvider';
+import { usePlayerLocation } from '../hooks/usePlayerLocation';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -38,6 +39,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, playerProfile, isLoading } = useAuthContext();
   const segments = useSegments();
   const router = useRouter();
+
+  // Silently acquire GPS coordinates after login.
+  // Runs once per session; respects 500m debounce for DB writes.
+  usePlayerLocation();
 
   useEffect(() => {
     if (isLoading) return;
@@ -91,6 +96,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen name="profile" options={{ headerShown: false }} />
                 <Stack.Screen name="courts" options={{ headerShown: false }} />
+                <Stack.Screen name="social" options={{ headerShown: false }} />
                 <Stack.Screen name="+not-found" />
               </Stack>
             </AuthGuard>

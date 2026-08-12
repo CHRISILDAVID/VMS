@@ -43,11 +43,11 @@ The local `supabase/migrations/` folder contains the entire schema history. You 
 
 ## Step 4: Deploy Edge Functions
 
-We use an edge function (`create-owner-account`) to securely create owner accounts from the Admin Panel.
+We use edge functions for tasks like securely creating owner accounts and automatically expiring pending social challenges.
 
-1. Deploy the edge function to production:
+1. Deploy the edge functions to production (using `--use-api` to bypass local Docker requirement):
    ```bash
-   npx supabase functions deploy create-owner-account
+   npx supabase functions deploy --use-api
    ```
 2. Set any environment variables required by the function (if applicable):
    ```bash

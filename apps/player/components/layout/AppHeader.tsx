@@ -4,10 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MapPin, Wallet, Bell, UserCircle, ChevronDown, Search, X, Navigation } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
+import { useQuery } from '@tanstack/react-query';
 import { usePlayerThemeColors } from '../../hooks/usePlayerThemeColors';
 import { usePlayerStore } from '../../stores/playerStore';
 import { useUIStore } from '../../stores/uiStore';
 import { WalletDropdown } from './WalletDropdown';
+import { NotificationsPanel } from '../../features/notifications/NotificationsPanel';
+import { supabase } from '../../lib/supabase';
+import { createSocialService } from '@vms/shared/services';
+
+const socialService = createSocialService(supabase);
 
 interface AppHeaderProps {
   /** Custom search placeholder — defaults to "Search courts, players..." */
@@ -21,10 +27,18 @@ const COMMON_CITIES = ['Kuala Lumpur', 'Chennai', 'Bengaluru', 'Mumbai', 'Delhi'
 export function AppHeader({ searchPlaceholder = 'Search courts, players...', hideSearch = false }: AppHeaderProps) {
   const router = useRouter();
   const { colors, isDark } = usePlayerThemeColors();
-  const { playerProfile, alertsCount } = usePlayerStore();
+  const { playerProfile } = usePlayerStore();
   const { cityFilter, setCityFilter, isWalletPopoverOpen, setWalletPopoverOpen } = useUIStore();
+  
   const [cityModalVisible, setCityModalVisible] = useState(false);
+  const [notifsVisible, setNotifsVisible] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['player-unread-count'],
+    queryFn: () => socialService.fetchUnreadCount(),
+    staleTime: 30_000, // Fetch every 30s max if navigating
+  });
 
   const requestLocation = async (force = false) => {
     if (!force && cityFilter) return;
@@ -56,6 +70,16 @@ export function AppHeader({ searchPlaceholder = 'Search courts, players...', hid
           setCityFilter(geocode.city);
         } else if (geocode?.subregion) {
           setCityFilter(geocode.subregion);
+        }
+
+        // Sync coordinates to DB for distance features
+        const playerId = usePlayerStore.getState().playerProfile?.id;
+        if (playerId) {
+          socialService.updatePlayerLocation(
+            playerId,
+            location.coords.latitude,
+            location.coords.longitude
+          ).catch(e => console.warn('Failed to sync location to DB', e));
         }
       }
     } catch (e) {
@@ -116,7 +140,7 @@ export function AppHeader({ searchPlaceholder = 'Search courts, players...', hid
           {/* Profile icon */}
           <TouchableOpacity
             className="w-9 h-9 rounded-full bg-accent items-center justify-center"
-            onPress={() => router.push('/(tabs)/profile' as any)}
+            onPress={() => router.push('/profile' as any)}
             activeOpacity={0.7}
           >
             {playerProfile?.full_name ? (
@@ -139,12 +163,15 @@ export function AppHeader({ searchPlaceholder = 'Search courts, players...', hid
                 returnKeyType="search"
               />
             </View>
-            <TouchableOpacity className="w-10 h-10 rounded-xl bg-muted items-center justify-center">
+            <TouchableOpacity
+              className="w-10 h-10 rounded-xl bg-muted items-center justify-center"
+              onPress={() => setNotifsVisible(true)}
+            >
               <Bell size={18} color={colors.foreground} strokeWidth={2} />
-              {alertsCount > 0 && (
+              {unreadCount > 0 && (
                 <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive items-center justify-center">
                   <Text className="text-white text-[9px] font-black">
-                    {alertsCount > 9 ? '9+' : alertsCount}
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </Text>
                 </View>
               )}
@@ -152,7 +179,9 @@ export function AppHeader({ searchPlaceholder = 'Search courts, players...', hid
           </View>
         )}
       </View>
+      
       <WalletDropdown />
+      <NotificationsPanel visible={notifsVisible} onClose={() => setNotifsVisible(false)} />
 
       {/* City Picker Modal */}
       <Modal visible={cityModalVisible} transparent animationType="slide">

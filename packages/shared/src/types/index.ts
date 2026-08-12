@@ -49,6 +49,11 @@ export interface Player {
   linked_customer_id: string | null;
   fcm_token: string | null;
   theme_preference: 'light' | 'dark' | 'system';
+  // M16: Geolocation + gender
+  latitude: number | null;
+  longitude: number | null;
+  location_updated_at: string | null;
+  gender: 'male' | 'female' | 'other' | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -91,6 +96,11 @@ export interface UpdatePlayerInput {
   date_of_birth?: string;
   fcm_token?: string;
   theme_preference?: 'light' | 'dark' | 'system';
+  // M16 location update (sent from usePlayerLocation hook)
+  latitude?: number | null;
+  longitude?: number | null;
+  location_updated_at?: string;
+  gender?: 'male' | 'female' | 'other' | null;
 }
 
 // ─── Phase 2 M11 Types ─────────────────────────────────────────────────────
@@ -197,4 +207,162 @@ export interface UpdateCoachInput {
   bio?: string | null;
   price_per_session?: number;
   is_active?: boolean;
+}
+
+// ─── Phase 2 M12 — Social Types ───────────────────────────────────────────
+
+/** Player as returned by get_players_with_distance() RPC */
+export interface PlayerDiscovery {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  city: string | null;
+  player_id: string | null;
+  player_id_verified: boolean;
+  gender: 'male' | 'female' | 'other' | null;
+  latitude: number | null;
+  longitude: number | null;
+  location_updated_at: string | null;
+  /** Distance in km from the requesting player. Null if either party has no location. */
+  distance_km: number | null;
+}
+
+export type MatchFormat = 'singles' | 'doubles' | 'mixed';
+export type SkillLevelFilter = 'all' | 'beginner' | 'intermediate' | 'advanced';
+export type HostedMatchStatus = 'open' | 'full' | 'cancelled' | 'completed';
+export type ChallengeStatus = 'open' | 'cancelled' | 'expired';
+export type InvitationStatus = 'pending' | 'accepted' | 'declined';
+export type NotificationType =
+  | 'challenge_received'
+  | 'challenge_accepted'
+  | 'challenge_declined'
+  | 'challenge_cancelled'
+  | 'match_joined'
+  | 'match_cancelled';
+
+/** Row from hosted_matches table (basic) */
+export interface HostedMatch {
+  id: string;
+  host_player_id: string;
+  booking_id: string;
+  match_format: MatchFormat;
+  skill_level: SkillLevelFilter;
+  city: string | null;
+  visibility: 'public' | 'private';
+  max_players: number;
+  status: HostedMatchStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+/** HostedMatch as returned by get_open_matches_with_distance() RPC */
+export interface HostedMatchDiscovery {
+  id: string;
+  host_player_id: string;
+  host_name: string;
+  host_avatar: string | null;
+  host_player_id_str: string | null;
+  booking_id: string;
+  match_format: MatchFormat;
+  skill_level: SkillLevelFilter;
+  visibility: 'public' | 'private';
+  max_players: number;
+  status: HostedMatchStatus;
+  joined_count: number;
+  venue_name: string | null;
+  venue_city: string | null;
+  booking_date: string;
+  booking_start: string; // "HH:MM:SS"
+  booking_end: string;   // "HH:MM:SS"
+  created_at: string;
+  distance_km: number | null;
+}
+
+/** Hosted match detail with joined players list */
+export interface HostedMatchWithPlayers extends HostedMatch {
+  host_player?: PlayerDiscovery;
+  joined_players: Array<{
+    id: string;
+    player_id: string;
+    player: PlayerDiscovery;
+    joined_at: string;
+  }>;
+  venue_name?: string | null;
+  venue_city?: string | null;
+  booking_date?: string;
+  booking_start?: string;
+  booking_end?: string;
+}
+
+export interface HostMatchPayload {
+  booking_id: string;
+  match_format: MatchFormat;
+  skill_level: SkillLevelFilter;
+  max_players: number;
+  visibility: 'public' | 'private';
+  city?: string;
+}
+
+/** Challenge (host → multiple invitees) */
+export interface Challenge {
+  id: string;
+  host_player_id: string;
+  booking_id: string;
+  match_format: MatchFormat;
+  description: string | null;
+  status: ChallengeStatus;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChallengeInvitation {
+  id: string;
+  challenge_id: string;
+  invited_player_id: string;
+  status: InvitationStatus;
+  responded_at: string | null;
+  created_at: string;
+  /** Joined from challenges */
+  challenge?: Challenge;
+  /** Joined from players */
+  invited_player?: PlayerDiscovery;
+}
+
+export interface ChallengeWithInvitations extends Challenge {
+  host_player?: PlayerDiscovery;
+  invitations: Array<ChallengeInvitation & { invited_player: PlayerDiscovery }>;
+  booking?: {
+    booking_date: string;
+    start_time: string;
+    end_time: string;
+    court?: { name: string; venue?: { name: string } };
+  };
+}
+
+export interface CreateChallengePayload {
+  booking_id: string;
+  match_format: MatchFormat;
+  description?: string;
+  invited_player_ids: string[]; // at least 1
+}
+
+/** In-app notification (player_notifications table) */
+export interface PlayerNotification {
+  id: string;
+  player_id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data: Record<string, unknown> | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+/** Filters for Find Players screen */
+export interface FindPlayersFilters {
+  search?: string;
+  gender?: 'male' | 'female' | 'other';
+  skill?: SkillLevelFilter;
+  radiusKm?: number;
 }
