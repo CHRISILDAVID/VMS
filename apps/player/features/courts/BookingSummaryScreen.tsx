@@ -19,7 +19,13 @@ import {
   MapPin,
   CheckCircle,
 } from 'lucide-react-native';
-import RazorpayCheckout from 'react-native-razorpay';
+let RazorpayCheckout: any = null;
+try {
+  RazorpayCheckout = require('react-native-razorpay').default;
+} catch (e) {
+  console.warn("Razorpay native module is not available in this environment.");
+}
+
 import Constants from 'expo-constants';
 import { format, parse } from 'date-fns';
 import { useCreateBooking, useVenueDetail } from './useCourts';
